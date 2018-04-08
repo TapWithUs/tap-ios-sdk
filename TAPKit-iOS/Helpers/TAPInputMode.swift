@@ -8,12 +8,10 @@
 
 import Foundation
 
-//@objc public enum TAPInputMode : Int {
-//    case text
-//    case controller
-//}
 
 @objc public class TAPInputMode : NSObject {
+
+     
     
     @objc public static let controller : String = "tapinputmodecontroller"
     @objc public static let text : String = "tapinputmodetext"

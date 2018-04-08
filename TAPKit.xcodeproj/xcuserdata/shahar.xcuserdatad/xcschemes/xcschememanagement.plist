@@ -4,12 +4,10 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>TAPKit-App.xcscheme</key>
+		<key>TAPKit-Example.xcscheme</key>
 		<dict>
-			<key>isShown</key>
-			<false/>
 			<key>orderHint</key>
-			<integer>2</integer>
+			<integer>3</integer>
 		</dict>
 		<key>TAPKit-iOS-App.xcscheme</key>
 		<dict>
@@ -25,11 +23,6 @@
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
-		</dict>
-		<key>TAPKitRelease.xcscheme</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>1</integer>
 		</dict>
 		<key>TAPSDK-iOS.xcscheme</key>
 		<dict>
