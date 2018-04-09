@@ -22,7 +22,7 @@ class ViewController: UIViewController {
         // TAPKitLogEvent.error, TAPKitLogEvent.fatal, TAPKitLogEvent.info, TAPKitLogEvent.warning
         // For example, to enable only errors logs:
         // TAPKit.log.enable(event: .error)
-        
+        TAPKit.log.disable(event: .warning)
         TAPKit.log.enableAllEvents()
         
         // start should be called typically in the main screen, after the delegate was being set earlier.
@@ -43,6 +43,7 @@ class ViewController: UIViewController {
         // tapidentifiers : array of identifiers of tap devices to set the mode to text. if nil - all taps devices connected to the iOS device will be set to text.
         // Same for settings the mode to controller:
         // TAPKit.sharedKit.setTAPInputMode(TAPInputMode.controller, forIdentifiers: [tapidentifiers])
+        
         
     }
 
