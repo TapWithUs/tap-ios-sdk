@@ -192,7 +192,11 @@ And to disable a spcific event, warnings for example:
     TAPKit.log.disable(event: .warning)
 ```
 
-## Supports
+## Example APP
+
+The xcode project contains an example app where you can see how to use the features of TAPKit.
+
+## Support
 
 Please refer to the issues tab! :)
 
