@@ -186,6 +186,9 @@ extension TAPKitCentral : CBCentralManagerDelegate {
 
 extension TAPKitCentral : TAPDeviceDelegate {
     func TAPIsReady(identifier: String, name: String) {
+        if let index = self.taps.index(where: { $0.identifier.uuidString == identifier }) {
+            self.taps[index].writeMode()
+        }
         self.delegatesController.tapConnected(withIdentifier: identifier, name: name)
     }
     
@@ -198,6 +201,10 @@ extension TAPKitCentral : TAPDeviceDelegate {
         if let index = self.taps.index(where: { $0.identifier.uuidString == identifier}) {
             self.taps.remove(at: index)
         }
+    }
+    
+    func TAPMoused(identifier: String, vX: Int16, vY: Int16) {
+        self.delegatesController.moused(identifier: identifier, velocityX: vX, velocityY: vY)
     }
     
 }
@@ -255,6 +262,18 @@ extension TAPKitCentral {
             return self.taps[index].mode
         }
         return nil
+    }
+    
+    func vibrate(identifier:UUID? = nil, durationMS:UInt16) -> Void {
+        if let iden = identifier {
+            if let tap = self.taps.filter({ $0.identifier == iden}).first {
+                tap.vibrate(withDuration: durationMS)
+            }
+        } else {
+            self.taps.forEach({
+                $0.vibrate(withDuration: durationMS)
+            })
+        }
     }
 }
 

@@ -12,6 +12,7 @@ import CoreBluetooth
 protocol TAPDeviceDelegate : class {
     func TAPIsReady(identifier:String, name:String)
     func TAPtapped(identifier:String, combination:UInt8)
+    func TAPMoused(identifier:String, vX:Int16, vY:Int16)
     func TAPFailed(identifier:String, name:String)
 }
 
@@ -19,8 +20,17 @@ class TAPDevice : NSObject {
     private var peripheral : CBPeripheral!
     private weak var delegate : TAPDeviceDelegate?
     private var rx:CBCharacteristic?
+    private var uiCommands:CBCharacteristic?
     
     private var neccessaryCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__RX : false, TAPCBUUID.characteristic__TAPData : false]
+    private var optionalCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__MouseData : false, TAPCBUUID.characteristic__UICommands : false]
+    
+    var supportsMouse : Bool {
+        get {
+            return optionalCharacteristics[TAPCBUUID.characteristic__MouseData] == true
+        }
+    }
+    
     private(set) var isReady : Bool = false {
         willSet {
             if self.isReady == false && newValue == true {
@@ -116,6 +126,20 @@ class TAPDevice : NSObject {
         self.writeMode()
     }
     
+    func vibrate(withDuration duration:UInt16) -> Void {
+        if let ch = self.uiCommands {
+            if self.peripheral.state == .connected {
+                var bytes : [UInt8] = [UInt8].init(repeating: 0, count: 20)
+                bytes[0] = 0
+                bytes[1] = 0
+                bytes[2] = UInt8(duration & 0xFF)
+                bytes[3] = UInt8((duration >> 8) & 0xFF)
+                bytes[4] = 100
+                let data = Data.init(bytes: bytes)
+                peripheral.writeValue(data, for: ch, type: .withoutResponse)
+            }
+        }
+    }
     
 }
 
@@ -137,6 +161,15 @@ extension TAPDevice : CBPeripheralDelegate {
                         }
                     }
                 }
+                for (characteristic, _) in self.optionalCharacteristics {
+                    if let matchingService = TAPCBUUID.getService(for: characteristic) {
+                        if matchingService.uuidString == service.uuid.uuidString {
+                            characteristicsToDiscover.append(characteristic)
+                        }
+                    }
+                }
+                // Mouse is optional :
+                
                 if characteristicsToDiscover.count > 0 {
                     peripheral.discoverCharacteristics(characteristicsToDiscover, for: service)
                 }
@@ -160,6 +193,13 @@ extension TAPDevice : CBPeripheralDelegate {
                         self.peripheral.setNotifyValue(true, for: characteristic)
                     }
                     self.checkIfReady()
+                } else if self.optionalCharacteristics.contains(where: { $0.key == characteristic.uuid}) {
+                    self.optionalCharacteristics[characteristic.uuid] = true
+                    if (characteristic.uuid.uuidString == TAPCBUUID.characteristic__MouseData.uuidString) {
+                        self.peripheral.setNotifyValue(true, for: characteristic)
+                    } else if (characteristic.uuid.uuidString == TAPCBUUID.characteristic__UICommands.uuidString) {
+                        self.uiCommands = characteristic
+                    }
                 }
             }
         }
@@ -184,8 +224,16 @@ extension TAPDevice : CBPeripheralDelegate {
                 }
                 
             }
+        } else if characteristic.uuid.uuidString == TAPCBUUID.characteristic__MouseData.uuidString {
+            
+            if let value = characteristic.value {
+                let bytes : [UInt8] = [UInt8](value)
+                if bytes.count >= 10 {
+                    if (bytes[0] == 0 ) {
+                        self.delegate?.TAPMoused(identifier: self.identifier.uuidString, vX: (Int16)(bytes[2]) << 8 | (Int16)(bytes[1]), vY: (Int16)(bytes[4]) << 8 | (Int16)(bytes[3]))
+                    }
+                }
+            }
         }
     }
-    
-    
 }

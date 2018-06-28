@@ -11,6 +11,8 @@ import TAPKit
 
 class ViewController: UIViewController {
 
+    @IBOutlet weak var mouse: UIImageView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -47,6 +49,10 @@ class ViewController: UIViewController {
         
     }
 
+    @IBAction func buttonTouched(_ sender: Any) {
+        TAPKit.sharedKit.vibrate(identifier:nil, durationMS:60)
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         TAPKit.sharedKit.removeDelegate(self)
     }
@@ -105,6 +111,20 @@ extension ViewController : TAPKitDelegate {
     func tapFailedToConnect(withIdentifier identifier: String, name: String) {
         // TAP device failed to connect
         print("TAP \(identifier), \(name) failed to connect!")
+    }
+    
+    func moused(identifier: String, velocityX: Int16, velocityY: Int16) {
+        print("mouse dx = \(velocityX), dy = \(velocityY)")
+        let newPoint = CGPoint(x: self.mouse.frame.origin.x + CGFloat(velocityX), y: self.mouse.frame.origin.y + CGFloat(velocityY))
+        var dx : CGFloat = 0
+        var dy : CGFloat = 0
+        if self.view.frame.contains(CGPoint(x: 0, y: newPoint.y)) {
+            dy = CGFloat(velocityY)
+        }
+        if self.view.frame.contains(CGPoint(x: newPoint.x, y: 0)) {
+            dx = CGFloat(velocityX)
+        }
+        mouse.frame = mouse.frame.offsetBy(dx: dx, dy: dy)
     }
 }
 
