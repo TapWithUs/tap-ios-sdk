@@ -46,11 +46,12 @@ class TAPDevice : NSObject {
     private(set) var mode : String = TAPInputMode.defaultMode()
     private(set) var modeEnabled : Bool!
     
-    override public var hashValue: Int {
+    override public var hash: Int {
         get {
             return self.identifier.hashValue
         }
     }
+    
     
     init(peripheral p:CBPeripheral, delegate d:TAPDeviceDelegate) {
         super.init()
@@ -143,7 +144,7 @@ class TAPDevice : NSObject {
                 }
                 let data = Data.init(bytes: bytes)
                 peripheral.writeValue(data, for: ch, type: .withoutResponse)
-                print("Peripheral write HAPTIC SEQUENCE value \(bytes)")
+                
             }
         }
     }

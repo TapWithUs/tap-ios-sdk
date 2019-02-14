@@ -13,11 +13,13 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var mouse: UIImageView!
     
-    var sequencePlayer : HapticSequencePlayer = HapticSequencePlayer()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        
+        // What's new in TAPKit (Feb2019)
+        // * added a moused event for when the user is using the TAP mouse (see 'func moused...')
+        // * you can now make the Tap vibrate on command (see 'func buttonTouched...')
+        // ---------------------------------------------------------------------------
         
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
@@ -46,27 +48,29 @@ class ViewController: UIViewController {
         // TAPKit.sharedKit.setTAPInputMode(TAPInputMode.text, forIdentifiers: [tapidentifiers])
         // tapidentifiers : array of identifiers of tap devices to set the mode to text. if nil - all taps devices connected to the iOS device will be set to text.
         // Same for settings the mode to controller:
-        // TAPKit.sharedKit.setTAPInputMode(TAPInputMode.controller, forIdentifiers: [tapidentifiers])
+        //TAPKit.sharedKit.setTAPInputMode(TAPInputMode.controller, forIdentifiers: [tapidentifiers])
         
-        self.sequencePlayer.onHapticPlay = self.onHapticPlay
-        self.sequencePlayer.onHapticWait = self.onHapticWait
         
     }
 
-    func onHapticPlay(interval:UInt16) -> Void {
-        TAPKit.sharedKit.vibrate(durationMS: interval)
-        print("Hatpic Play; \(interval)MS")
-    }
     
-    func onHapticWait(interval:UInt16) -> Void {
-        print("Hatpic Wait; \(interval)MS")
-    }
     
     @IBAction func buttonTouched(_ sender: Any) {
-        //
-        TAPKit.sharedKit.vibrate(durations: [2000,0,2000,0,2000])
-        //
-        TAPKit.sharedKit.vibrate(durationMS: 300)
+        
+        // Vibrating the Tap:
+        // The tap can be vibrated (triggering the haptic) on command, Allowing you to specify for how long you want the Tap to vibrate.
+        // Maximum value for a vibration duration passed to these functions is 2500 MS.
+        // Example: This will make the Tap vibrate for 300 MS:
+        // TAPKit.sharedKit.vibrate(durationMS: 300)
+        
+        // Vibrate the Tap with a sequence of vibration&break durations:
+        // Pass an array of this pattern: [vibrationDurationInMS, breakDurationInMS, virationDurationInMS, breakDurationInMS, etc...]
+        // This will make the tap vibrate and break according to the pattern passed.
+        // Example: this will make the Tap vibrate for 1 second, have a short break of half a second, and then vibrate again with 3 fast vibrations and breaks:
+        //TAPKit.sharedKit.vibrate(durations: [1000,500,100,50,100,50,100])
+        
+        // Tip: If you pass an array of: [2500,0,2500] (Having a break of zero MS) it'll make the Tap vibrate for 5 seconds (or 5000 MS) without breaking.
+        // Limitations: You can only pass 18 values in this array.
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -130,7 +134,18 @@ extension ViewController : TAPKitDelegate {
     }
     
     func moused(identifier: String, velocityX: Int16, velocityY: Int16) {
-        print("mouse dx = \(velocityX), dy = \(velocityY)")
+        
+        // Getting an event for when the Tap is using the mouse, called only when the Tap is in controller mode.
+        // Since iOS doesn't support mouse - You can implement it in your app using the parameters of this function.
+        // velocityX : get the amount of movement for X-axis.
+        // velocityY : get the amount of movement for Y-axis.
+        // Important:
+        //   You may want to multiply/divide velocityX and velocityY by a constant number to your liking, in order to enhance the mouse movement to match your expectation in your app.
+        //   So, basically, by multiplying/dividing the velocityX and velocityY by a constant you can implement a "mouse sensitivity" feature that will be used in your app.
+        //   For example: if you have an object responding to mouse object, like written below, then muliplying the velocityX and velocityY by 2 will make the object move
+        //   twice as fast.
+        
+        // Example: Moving the mouse image :
         let newPoint = CGPoint(x: self.mouse.frame.origin.x + CGFloat(velocityX), y: self.mouse.frame.origin.y + CGFloat(velocityY))
         var dx : CGFloat = 0
         var dy : CGFloat = 0
