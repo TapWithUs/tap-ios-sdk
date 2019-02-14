@@ -28,10 +28,14 @@ import Foundation
         return TAPInputMode.controller
     }
     
-    static func data(forMode mode:String) -> Data {
+    static func data(forMode mode:String) -> Data? {
         var modeValue : UInt8 = 0x0
         if (mode == TAPInputMode.controller) {
             modeValue = 0x1
+        } else if (mode == TAPInputMode.text) {
+            modeValue = 0x0
+        } else {
+            return nil
         }
         let bytes : [UInt8] = [0x3,0xc,0x0,modeValue]
         let d = Data.init(bytes: bytes)

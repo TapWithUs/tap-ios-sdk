@@ -38,6 +38,10 @@ extension TAPKit {
         self.kitCentral.remove(delegate: delegate)
     }
     
+    @objc public func setDefaultTAPInputMode(_ defaultMode:String, immediate:Bool) -> Void {
+        self.kitCentral.setDefaultInputMode(defaultMode, immediate: immediate)
+    }
+    
     @objc public func setTAPInputMode(_ newMode:String, forIdentifiers identifiers : [String]?) -> Void {
         self.kitCentral.setTAPInputMode(newMode, forIdentifiers: identifiers)
     }
@@ -52,5 +56,9 @@ extension TAPKit {
     
     @objc public func vibrate(identifier:UUID? = nil, durationMS:UInt16) -> Void {
         self.kitCentral.vibrate(identifier: identifier, durationMS: durationMS)
+    }
+    
+    @objc public func vibrate(identifier:UUID? = nil, durations:Array<UInt16>) -> Void {
+        self.kitCentral.vibrate(identifier: identifier, durations: durations)
     }
 }

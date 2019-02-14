@@ -20,10 +20,12 @@ class TAPKitCentral : NSObject {
     private var delegatesController : TAPKitDelegatesController!
     private var connectionTimer : Timer?
     private var modeTimer : Timer?
-    
+    private var defaultInputMode : String!
+    private var appActive : Bool = true
     
     override init() {
         super.init()
+        self.defaultInputMode = ""
         self.delegatesController = TAPKitDelegatesController()
         self.isBluetoothOn = false
         self.pending = Set<CBPeripheral>()
@@ -42,7 +44,7 @@ class TAPKitCentral : NSObject {
     }
     
     @objc func appDidBecomeActive(notification:NSNotification) -> Void {
-        
+        self.appActive = true
         TAPKit.log.event(.info, message: "appDidBecomeActive notification")
         self.taps.forEach({
             $0.enableMode()
@@ -50,6 +52,7 @@ class TAPKitCentral : NSObject {
     }
     
     @objc func appWillResignActive(notification:NSNotification) -> Void {
+        self.appActive = false
         TAPKit.log.event(.info, message: "appWillResignActive notification")
         self.taps.forEach({
             $0.disableMode()
@@ -187,7 +190,10 @@ extension TAPKitCentral : CBCentralManagerDelegate {
 extension TAPKitCentral : TAPDeviceDelegate {
     func TAPIsReady(identifier: String, name: String) {
         if let index = self.taps.index(where: { $0.identifier.uuidString == identifier }) {
-            self.taps[index].writeMode()
+            if self.appActive {
+                self.taps[index].setNewMode(self.defaultInputMode)
+                self.taps[index].writeMode()
+            }
         }
         self.delegatesController.tapConnected(withIdentifier: identifier, name: name)
     }
@@ -229,6 +235,15 @@ extension TAPKitCentral {
         self.delegatesController.remove(delegate)
     }
     
+    func setDefaultInputMode(_ mode:String, immediate:Bool) -> Void {
+        self.defaultInputMode = mode
+        if immediate {
+            self.taps.forEach({
+                $0.setNewMode(mode)
+            })
+        }
+    }
+    
     func setTAPInputMode(_ newMode:String, forIdentifiers identifiers : [String]?) -> Void {
         if let ids = identifiers {
             ids.forEach({ identifier in
@@ -262,6 +277,19 @@ extension TAPKitCentral {
             return self.taps[index].mode
         }
         return nil
+    }
+    
+    func vibrate(identifier:UUID? = nil, durations:Array<UInt16>) -> Void {
+        if let iden = identifier {
+            if let tap = self.taps.filter({ $0.identifier == iden}).first {
+                tap.vibrate(durations: durations)
+            }
+        } else {
+            self.taps.forEach({
+                $0.vibrate(durations:durations)
+            })
+        }
+
     }
     
     func vibrate(identifier:UUID? = nil, durationMS:UInt16) -> Void {

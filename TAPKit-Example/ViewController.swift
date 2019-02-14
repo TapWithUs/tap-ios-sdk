@@ -13,6 +13,8 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var mouse: UIImageView!
     
+    var sequencePlayer : HapticSequencePlayer = HapticSequencePlayer()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -46,11 +48,25 @@ class ViewController: UIViewController {
         // Same for settings the mode to controller:
         // TAPKit.sharedKit.setTAPInputMode(TAPInputMode.controller, forIdentifiers: [tapidentifiers])
         
+        self.sequencePlayer.onHapticPlay = self.onHapticPlay
+        self.sequencePlayer.onHapticWait = self.onHapticWait
         
     }
 
+    func onHapticPlay(interval:UInt16) -> Void {
+        TAPKit.sharedKit.vibrate(durationMS: interval)
+        print("Hatpic Play; \(interval)MS")
+    }
+    
+    func onHapticWait(interval:UInt16) -> Void {
+        print("Hatpic Wait; \(interval)MS")
+    }
+    
     @IBAction func buttonTouched(_ sender: Any) {
-        TAPKit.sharedKit.vibrate(identifier:nil, durationMS:60)
+        //
+        TAPKit.sharedKit.vibrate(durations: [2000,0,2000,0,2000])
+        //
+        TAPKit.sharedKit.vibrate(durationMS: 300)
     }
     
     override func viewWillDisappear(_ animated: Bool) {

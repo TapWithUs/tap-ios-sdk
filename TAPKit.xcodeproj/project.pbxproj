@@ -14,8 +14,10 @@
 		5367F6F520E4D69C007247C7 /* tap_ui_commands_packet.h in Headers */ = {isa = PBXBuildFile; fileRef = 5367F6F420E4D69C007247C7 /* tap_ui_commands_packet.h */; };
 		5367F6F720E4D6BB007247C7 /* compiler_helper.h in Headers */ = {isa = PBXBuildFile; fileRef = 5367F6F620E4D6BB007247C7 /* compiler_helper.h */; };
 		5367F6F920E4D6C8007247C7 /* bridge-header.h in Headers */ = {isa = PBXBuildFile; fileRef = 5367F6F820E4D6C8007247C7 /* bridge-header.h */; };
-		5367F6FC20E5048B007247C7 /* TAPDevice+Haptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5367F6FB20E5048B007247C7 /* TAPDevice+Haptic.swift */; };
-		5375D46920873D5000578D9D /* Bytes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5375D46820873D5000578D9D /* Bytes.swift */; };
+		53737F9B21774C8800B85BDE /* Haptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53737F9A21774C8800B85BDE /* Haptic.swift */; };
+		539CA624217324AF006097A3 /* HapticSequencePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539CA623217324AF006097A3 /* HapticSequencePlayer.swift */; };
+		539CA62621732990006097A3 /* HapticCombinationParams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539CA62521732990006097A3 /* HapticCombinationParams.swift */; };
+		539CA62821732A71006097A3 /* TapCombination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539CA62721732A71006097A3 /* TapCombination.swift */; };
 		53B1A13F207A58ED00025C59 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B1A13E207A58ED00025C59 /* AppDelegate.swift */; };
 		53B1A141207A58ED00025C59 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B1A140207A58ED00025C59 /* ViewController.swift */; };
 		53B1A144207A58ED00025C59 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53B1A142207A58ED00025C59 /* Main.storyboard */; };
@@ -23,6 +25,7 @@
 		53B1A149207A58ED00025C59 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53B1A147207A58ED00025C59 /* LaunchScreen.storyboard */; };
 		53B1A14E207A5B8700025C59 /* TAPKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 532EB66320624D9F00B7B8BD /* TAPKit.framework */; };
 		53B1A14F207A5B8700025C59 /* TAPKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 532EB66320624D9F00B7B8BD /* TAPKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		53DE7976216F5EA3006DC0F4 /* HapticSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53DE7975216F5EA3006DC0F4 /* HapticSequence.swift */; };
 		53E970AE2067DAA600F68262 /* TAPKitDelegateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E970AD2067DAA600F68262 /* TAPKitDelegateController.swift */; };
 		53E970B0206927DF00F68262 /* TAPInputMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E970AF206927DF00F68262 /* TAPInputMode.swift */; };
 		53E970B2206A2D2200F68262 /* TAPCombination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E970B1206A2D2200F68262 /* TAPCombination.swift */; };
@@ -64,8 +67,10 @@
 		5367F6F420E4D69C007247C7 /* tap_ui_commands_packet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tap_ui_commands_packet.h; sourceTree = "<group>"; };
 		5367F6F620E4D6BB007247C7 /* compiler_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = compiler_helper.h; sourceTree = "<group>"; };
 		5367F6F820E4D6C8007247C7 /* bridge-header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "bridge-header.h"; sourceTree = "<group>"; };
-		5367F6FB20E5048B007247C7 /* TAPDevice+Haptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TAPDevice+Haptic.swift"; sourceTree = "<group>"; };
-		5375D46820873D5000578D9D /* Bytes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bytes.swift; sourceTree = "<group>"; };
+		53737F9A21774C8800B85BDE /* Haptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptic.swift; sourceTree = "<group>"; };
+		539CA623217324AF006097A3 /* HapticSequencePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticSequencePlayer.swift; sourceTree = "<group>"; };
+		539CA62521732990006097A3 /* HapticCombinationParams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticCombinationParams.swift; sourceTree = "<group>"; };
+		539CA62721732A71006097A3 /* TapCombination.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TapCombination.swift; sourceTree = "<group>"; };
 		53B1A13C207A58ED00025C59 /* TAPKit-Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TAPKit-Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		53B1A13E207A58ED00025C59 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		53B1A140207A58ED00025C59 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -73,6 +78,7 @@
 		53B1A145207A58ED00025C59 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		53B1A148207A58ED00025C59 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		53B1A14A207A58ED00025C59 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		53DE7975216F5EA3006DC0F4 /* HapticSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticSequence.swift; sourceTree = "<group>"; };
 		53E970AD2067DAA600F68262 /* TAPKitDelegateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPKitDelegateController.swift; sourceTree = "<group>"; };
 		53E970AF206927DF00F68262 /* TAPInputMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPInputMode.swift; sourceTree = "<group>"; };
 		53E970B1206A2D2200F68262 /* TAPCombination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPCombination.swift; sourceTree = "<group>"; };
@@ -121,6 +127,7 @@
 		532EB66520624D9F00B7B8BD /* TAPKit-iOS */ = {
 			isa = PBXGroup;
 			children = (
+				53DE7974216F5E86006DC0F4 /* Haptic */,
 				5367F6F320E4D692007247C7 /* Common */,
 				53A84E6B207A3572008D0DC2 /* TAPDevice */,
 				53A84E6A207A3568008D0DC2 /* Delegate */,
@@ -137,6 +144,7 @@
 		5367F6F320E4D692007247C7 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				539CA62721732A71006097A3 /* TapCombination.swift */,
 				5367F6F820E4D6C8007247C7 /* bridge-header.h */,
 				5367F6F620E4D6BB007247C7 /* compiler_helper.h */,
 				5367F6F420E4D69C007247C7 /* tap_ui_commands_packet.h */,
@@ -166,7 +174,6 @@
 				53E970B1206A2D2200F68262 /* TAPCombination.swift */,
 				532EB67020624F6800B7B8BD /* TAPCBUUID.swift */,
 				53E970AF206927DF00F68262 /* TAPInputMode.swift */,
-				5375D46820873D5000578D9D /* Bytes.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -183,7 +190,6 @@
 			isa = PBXGroup;
 			children = (
 				532EB66E20624DBB00B7B8BD /* TAPDevice.swift */,
-				5367F6FB20E5048B007247C7 /* TAPDevice+Haptic.swift */,
 			);
 			path = TAPDevice;
 			sourceTree = "<group>";
@@ -199,6 +205,17 @@
 				53B1A14A207A58ED00025C59 /* Info.plist */,
 			);
 			path = "TAPKit-Example";
+			sourceTree = "<group>";
+		};
+		53DE7974216F5E86006DC0F4 /* Haptic */ = {
+			isa = PBXGroup;
+			children = (
+				53DE7975216F5EA3006DC0F4 /* HapticSequence.swift */,
+				539CA623217324AF006097A3 /* HapticSequencePlayer.swift */,
+				539CA62521732990006097A3 /* HapticCombinationParams.swift */,
+				53737F9A21774C8800B85BDE /* Haptic.swift */,
+			);
+			path = Haptic;
 			sourceTree = "<group>";
 		};
 		53E773332067A4A8006F752E /* Frameworks */ = {
@@ -329,14 +346,17 @@
 			files = (
 				532EB66F20624DBB00B7B8BD /* TAPDevice.swift in Sources */,
 				53E970B2206A2D2200F68262 /* TAPCombination.swift in Sources */,
-				5367F6FC20E5048B007247C7 /* TAPDevice+Haptic.swift in Sources */,
 				53E970B0206927DF00F68262 /* TAPInputMode.swift in Sources */,
 				532EB673206260F200B7B8BD /* TAPKitCentral.swift in Sources */,
 				53E970B6206A662700F68262 /* TAPKit.swift in Sources */,
+				539CA62621732990006097A3 /* HapticCombinationParams.swift in Sources */,
 				53E970B4206A345A00F68262 /* TAPKitLog.swift in Sources */,
 				532EB67120624F6800B7B8BD /* TAPCBUUID.swift in Sources */,
-				5375D46920873D5000578D9D /* Bytes.swift in Sources */,
+				53DE7976216F5EA3006DC0F4 /* HapticSequence.swift in Sources */,
+				539CA624217324AF006097A3 /* HapticSequencePlayer.swift in Sources */,
 				53E970AE2067DAA600F68262 /* TAPKitDelegateController.swift in Sources */,
+				539CA62821732A71006097A3 /* TapCombination.swift in Sources */,
+				53737F9B21774C8800B85BDE /* Haptic.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

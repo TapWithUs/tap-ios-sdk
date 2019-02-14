@@ -63,7 +63,6 @@ class TAPDevice : NSObject {
         }
         self.delegate = d
         self.modeEnabled = true
-        
     }
     
     func makeReady() -> Void {
@@ -105,7 +104,9 @@ class TAPDevice : NSObject {
     func disableMode() -> Void {
         TAPKit.log.event(.info, message: "Disabled \(self.mode) for tap identifier \(self.identifier.uuidString)")
         self.modeEnabled = false
-        self.writeRX(TAPInputMode.data(forMode: TAPInputMode.modeWhenDisabled()))
+        if let data = TAPInputMode.data(forMode: TAPInputMode.modeWhenDisabled()) {
+            self.writeRX(data)
+        }
     }
     
     func enableMode() -> Void {
@@ -116,7 +117,9 @@ class TAPDevice : NSObject {
     
     func writeMode() -> Void {
         if (self.modeEnabled) {
-            self.writeRX(TAPInputMode.data(forMode: self.mode))
+            if let data = TAPInputMode.data(forMode: self.mode) {
+                self.writeRX(data)
+            }
         }
     }
     
@@ -124,6 +127,25 @@ class TAPDevice : NSObject {
         TAPKit.log.event(.info, message: "New Mode Set: \(TAPInputMode.title(forMode: self.mode)) for tap identifier \(self.identifier.uuidString)")
         self.mode = newMode
         self.writeMode()
+    }
+    
+     
+    func vibrate(durations:Array<UInt16>) -> Void {
+        // New method - durations should be divided by 10.
+        
+        if let ch = self.uiCommands {
+            if self.peripheral.state == .connected {
+                var bytes = [UInt8].init(repeating: 0, count: 20)
+                bytes[0] = 0
+                bytes[1] = 2
+                for i in 0..<min(18,durations.count) {
+                    bytes[i+2] = UInt8( Double(durations[i])/10.0)
+                }
+                let data = Data.init(bytes: bytes)
+                peripheral.writeValue(data, for: ch, type: .withoutResponse)
+                print("Peripheral write HAPTIC SEQUENCE value \(bytes)")
+            }
+        }
     }
     
     func vibrate(withDuration duration:UInt16) -> Void {
