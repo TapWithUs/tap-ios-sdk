@@ -292,16 +292,16 @@ extension TAPKitCentral {
 
     }
     
-    func vibrate(identifier:UUID? = nil, durationMS:UInt16) -> Void {
-        if let iden = identifier {
-            if let tap = self.taps.filter({ $0.identifier == iden}).first {
-                tap.vibrate(withDuration: durationMS)
-            }
-        } else {
-            self.taps.forEach({
-                $0.vibrate(withDuration: durationMS)
-            })
-        }
-    }
+//    func vibrate(identifier:UUID? = nil, durationMS:UInt16) -> Void {
+//        if let iden = identifier {
+//            if let tap = self.taps.filter({ $0.identifier == iden}).first {
+//                tap.vibrate(withDuration: durationMS)
+//            }
+//        } else {
+//            self.taps.forEach({
+//                $0.vibrate(withDuration: durationMS)
+//            })
+//        }
+//    }
 }
 

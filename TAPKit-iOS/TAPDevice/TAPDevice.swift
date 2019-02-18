@@ -149,20 +149,20 @@ class TAPDevice : NSObject {
         }
     }
     
-    func vibrate(withDuration duration:UInt16) -> Void {
-        if let ch = self.uiCommands {
-            if self.peripheral.state == .connected {
-                var bytes : [UInt8] = [UInt8].init(repeating: 0, count: 20)
-                bytes[0] = 0
-                bytes[1] = 0
-                bytes[2] = UInt8(duration & 0xFF)
-                bytes[3] = UInt8((duration >> 8) & 0xFF)
-                bytes[4] = 100
-                let data = Data.init(bytes: bytes)
-                peripheral.writeValue(data, for: ch, type: .withoutResponse)
-            }
-        }
-    }
+//    func vibrate(withDuration duration:UInt16) -> Void {
+//        if let ch = self.uiCommands {
+//            if self.peripheral.state == .connected {
+//                var bytes : [UInt8] = [UInt8].init(repeating: 0, count: 20)
+//                bytes[0] = 0
+//                bytes[1] = 0
+//                bytes[2] = UInt8(duration & 0xFF)
+//                bytes[3] = UInt8((duration >> 8) & 0xFF)
+//                bytes[4] = 100
+//                let data = Data.init(bytes: bytes)
+//                peripheral.writeValue(data, for: ch, type: .withoutResponse)
+//            }
+//        }
+//    }
     
 }
 
