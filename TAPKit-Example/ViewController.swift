@@ -16,11 +16,6 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // What's new in TAPKit (Feb2019)
-        // * added a moused event for when the user is using the TAP mouse (see 'func moused...')
-        // * you can now make the Tap vibrate on command (see 'func buttonTouched...')
-        // ---------------------------------------------------------------------------
-        
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
 
@@ -51,31 +46,6 @@ class ViewController: UIViewController {
         //TAPKit.sharedKit.setTAPInputMode(TAPInputMode.controller, forIdentifiers: [tapidentifiers])
         
         
-    }
-
-    
-    
-    @IBAction func buttonTouched(_ sender: Any) {
-        
-        // Vibrating the Tap:
-        // The tap can be vibrated (triggering the haptic) on command, Allowing you to specify for how long you want the Tap to vibrate.
-        // Pass an array of this pattern: [vibrationDurationInMS, breakDurationInMS, virationDurationInMS, breakDurationInMS, etc...]
-        // This will make the tap vibrate and break according to the pattern passed.
-        // ** each element of duration can be maximum of 2500 milliseconds.
-        // For a single vibration simply pass an array with one element.
-        // Example: this will make the Tap vibrate for 400 milliseconds:
-        // -----------------------------------------------------------------
-        // TAPKit.sharedKit.vibrate(durations: [400])
-        // -----------------------------------------------------------------
-        //
-        //
-        // Example 2: this will make the Tap vibrate for 1 second, have a short break of half a second, and then vibrate again with 3 fast vibrations and breaks:
-        // -----------------------------------------------------------------
-        // TAPKit.sharedKit.vibrate(durations: [1000,500,100,50,100,50,100])
-        // -----------------------------------------------------------------
-        //
-        // Tip: If you pass an array of: [2500,0,2500] (Having a break of zero MS) it'll make the Tap vibrate for 5 seconds (or 5000 MS) without breaking.
-        // Limitations: You can only pass 18 values in this array.
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -138,7 +108,10 @@ extension ViewController : TAPKitDelegate {
         print("TAP \(identifier), \(name) failed to connect!")
     }
     
-    func moused(identifier: String, velocityX: Int16, velocityY: Int16) {
+    func moused(identifier: String, velocityX: Int16, velocityY: Int16, isMouse: Bool) {
+        
+        // Added isMouse parameter:
+        // A boolean that determines if the TAP is really using the mouse (true) or is it a dummy mouse movement (false)
         
         // Getting an event for when the Tap is using the mouse, called only when the Tap is in controller mode.
         // Since iOS doesn't support mouse - You can implement it in your app using the parameters of this function.
@@ -151,16 +124,19 @@ extension ViewController : TAPKitDelegate {
         //   twice as fast.
         
         // Example: Moving the mouse image :
-        let newPoint = CGPoint(x: self.mouse.frame.origin.x + CGFloat(velocityX), y: self.mouse.frame.origin.y + CGFloat(velocityY))
-        var dx : CGFloat = 0
-        var dy : CGFloat = 0
-        if self.view.frame.contains(CGPoint(x: 0, y: newPoint.y)) {
-            dy = CGFloat(velocityY)
+        if (isMouse) {
+            let newPoint = CGPoint(x: self.mouse.frame.origin.x + CGFloat(velocityX), y: self.mouse.frame.origin.y + CGFloat(velocityY))
+            var dx : CGFloat = 0
+            var dy : CGFloat = 0
+            if self.view.frame.contains(CGPoint(x: 0, y: newPoint.y)) {
+                dy = CGFloat(velocityY)
+            }
+            if self.view.frame.contains(CGPoint(x: newPoint.x, y: 0)) {
+                dx = CGFloat(velocityX)
+            }
+            mouse.frame = mouse.frame.offsetBy(dx: dx, dy: dy)
         }
-        if self.view.frame.contains(CGPoint(x: newPoint.x, y: 0)) {
-            dx = CGFloat(velocityX)
-        }
-        mouse.frame = mouse.frame.offsetBy(dx: dx, dy: dy)
+        
     }
 }
 

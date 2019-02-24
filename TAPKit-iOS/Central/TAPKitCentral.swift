@@ -209,8 +209,8 @@ extension TAPKitCentral : TAPDeviceDelegate {
         }
     }
     
-    func TAPMoused(identifier: String, vX: Int16, vY: Int16) {
-        self.delegatesController.moused(identifier: identifier, velocityX: vX, velocityY: vY)
+    func TAPMoused(identifier: String, vX: Int16, vY: Int16, isMouse:Bool) {
+        self.delegatesController.moused(identifier: identifier, velocityX: vX, velocityY: vY, isMouse: isMouse)
     }
     
 }
@@ -278,30 +278,5 @@ extension TAPKitCentral {
         }
         return nil
     }
-    
-    func vibrate(identifier:UUID? = nil, durations:Array<UInt16>) -> Void {
-        if let iden = identifier {
-            if let tap = self.taps.filter({ $0.identifier == iden}).first {
-                tap.vibrate(durations: durations)
-            }
-        } else {
-            self.taps.forEach({
-                $0.vibrate(durations:durations)
-            })
-        }
-
-    }
-    
-//    func vibrate(identifier:UUID? = nil, durationMS:UInt16) -> Void {
-//        if let iden = identifier {
-//            if let tap = self.taps.filter({ $0.identifier == iden}).first {
-//                tap.vibrate(withDuration: durationMS)
-//            }
-//        } else {
-//            self.taps.forEach({
-//                $0.vibrate(withDuration: durationMS)
-//            })
-//        }
-//    }
 }
 

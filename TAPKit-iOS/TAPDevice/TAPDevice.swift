@@ -12,7 +12,7 @@ import CoreBluetooth
 protocol TAPDeviceDelegate : class {
     func TAPIsReady(identifier:String, name:String)
     func TAPtapped(identifier:String, combination:UInt8)
-    func TAPMoused(identifier:String, vX:Int16, vY:Int16)
+    func TAPMoused(identifier:String, vX:Int16, vY:Int16, isMouse:Bool)
     func TAPFailed(identifier:String, name:String)
 }
 
@@ -129,41 +129,6 @@ class TAPDevice : NSObject {
         self.mode = newMode
         self.writeMode()
     }
-    
-     
-    func vibrate(durations:Array<UInt16>) -> Void {
-        // New method - durations should be divided by 10.
-        
-        if let ch = self.uiCommands {
-            if self.peripheral.state == .connected {
-                var bytes = [UInt8].init(repeating: 0, count: 20)
-                bytes[0] = 0
-                bytes[1] = 2
-                for i in 0..<min(18,durations.count) {
-                    bytes[i+2] = UInt8( Double(durations[i])/10.0)
-                }
-                let data = Data.init(bytes: bytes)
-                peripheral.writeValue(data, for: ch, type: .withoutResponse)
-                
-            }
-        }
-    }
-    
-//    func vibrate(withDuration duration:UInt16) -> Void {
-//        if let ch = self.uiCommands {
-//            if self.peripheral.state == .connected {
-//                var bytes : [UInt8] = [UInt8].init(repeating: 0, count: 20)
-//                bytes[0] = 0
-//                bytes[1] = 0
-//                bytes[2] = UInt8(duration & 0xFF)
-//                bytes[3] = UInt8((duration >> 8) & 0xFF)
-//                bytes[4] = 100
-//                let data = Data.init(bytes: bytes)
-//                peripheral.writeValue(data, for: ch, type: .withoutResponse)
-//            }
-//        }
-//    }
-    
 }
 
 extension TAPDevice : CBPeripheralDelegate {
@@ -253,7 +218,7 @@ extension TAPDevice : CBPeripheralDelegate {
                 let bytes : [UInt8] = [UInt8](value)
                 if bytes.count >= 10 {
                     if (bytes[0] == 0 ) {
-                        self.delegate?.TAPMoused(identifier: self.identifier.uuidString, vX: (Int16)(bytes[2]) << 8 | (Int16)(bytes[1]), vY: (Int16)(bytes[4]) << 8 | (Int16)(bytes[3]))
+                        self.delegate?.TAPMoused(identifier: self.identifier.uuidString, vX: (Int16)(bytes[2]) << 8 | (Int16)(bytes[1]), vY: (Int16)(bytes[4]) << 8 | (Int16)(bytes[3]), isMouse: bytes[9] == 1)
                     }
                 }
             }
