@@ -5,6 +5,10 @@
 TAP iOS SDK allows you to build a a native iOS app that can receive input from TAP devices,
 In a way that each tap is being interpreted as an array or fingers that are tapped, or a binary combination integer (explanation follows), Thus allowing the TAP device to act as a controller for your app!
 
+## Releases / Whats's new
+
+Please view WHATSNEW.md
+
 ## Integration
 
 Download the SDK open-source code from github, and compile it to create TAPKit.framework.
@@ -67,6 +71,12 @@ The LSB is thumb finger, the MSB (bit number 5) is the pinky finger.
 For example: if combination equls 3 - it's binary form is 00101,
 Which means that the thumb and the middle fingers are tapped.
 For your convenience, you can convert the binary format into fingers boolean array (explanation follows)
+
+### moused(identifier:String, velocityX:Int16, velocityY:Int16, isMouse:Bool)
+
+This function will be called when the user is using the TAP as a mouse.
+velocityX and velocityY are the velocities of the mouse movement. These values can be multiplied by a constant to simulate "mouse sensitivity" option.
+isMouse is a boolean that determine if the movement is real (true) or falsely detected by the TAP (false).
 
 ## Adding a TAPKitDelegate :
 
