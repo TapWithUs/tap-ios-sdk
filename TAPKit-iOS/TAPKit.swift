@@ -38,11 +38,15 @@ extension TAPKit {
         self.kitCentral.remove(delegate: delegate)
     }
     
+<<<<<<< HEAD
     @objc public func setDefaultTAPInputMode(_ defaultMode:String, immediate:Bool) -> Void {
         self.kitCentral.setDefaultInputMode(defaultMode, immediate: immediate)
     }
     
     @objc public func setTAPInputMode(_ newMode:String, forIdentifiers identifiers : [String]?) -> Void {
+=======
+    @objc public func setTAPInputMode(_ newMode:String, forIdentifiers identifiers : [String]? = nil) -> Void {
+>>>>>>> 4e2cb32b0abda2b10ab7727be03dab9d8a4437b1
         self.kitCentral.setTAPInputMode(newMode, forIdentifiers: identifiers)
     }
     
