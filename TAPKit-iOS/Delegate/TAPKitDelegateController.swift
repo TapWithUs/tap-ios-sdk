@@ -14,6 +14,7 @@ import Foundation
     @objc optional func tapDisconnected(withIdentifier identifier:String)
     @objc optional func tapFailedToConnect(withIdentifier identifier:String, name:String)
     @objc optional func tapped(identifier:String, combination:UInt8)
+    @objc optional func moused(identifier:String, velocityX:Int16, velocityY:Int16, isMouse:Bool)
 }
 
 class TAPKitDelegateWeakRef {
@@ -91,6 +92,12 @@ extension TAPKitDelegatesController : TAPKitDelegate {
     func centralBluetoothState(poweredOn: Bool) {
         self.get().forEach({
             $0.centralBluetoothState?(poweredOn: poweredOn)
+        })
+    }
+    
+    func moused(identifier: String, velocityX: Int16, velocityY: Int16, isMouse:Bool) {
+        self.get().forEach({
+            $0.moused?(identifier: identifier, velocityX: velocityX, velocityY: velocityY, isMouse: isMouse)
         })
     }
     

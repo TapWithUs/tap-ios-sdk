@@ -11,9 +11,10 @@ import TAPKit
 
 class ViewController: UIViewController {
 
+    @IBOutlet weak var mouse: UIImageView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
         
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
@@ -42,11 +43,11 @@ class ViewController: UIViewController {
         // TAPKit.sharedKit.setTAPInputMode(TAPInputMode.text, forIdentifiers: [tapidentifiers])
         // tapidentifiers : array of identifiers of tap devices to set the mode to text. if nil - all taps devices connected to the iOS device will be set to text.
         // Same for settings the mode to controller:
-        // TAPKit.sharedKit.setTAPInputMode(TAPInputMode.controller, forIdentifiers: [tapidentifiers])
+        //TAPKit.sharedKit.setTAPInputMode(TAPInputMode.controller, forIdentifiers: [tapidentifiers])
         
         
     }
-
+    
     override func viewWillDisappear(_ animated: Bool) {
         TAPKit.sharedKit.removeDelegate(self)
     }
@@ -105,6 +106,37 @@ extension ViewController : TAPKitDelegate {
     func tapFailedToConnect(withIdentifier identifier: String, name: String) {
         // TAP device failed to connect
         print("TAP \(identifier), \(name) failed to connect!")
+    }
+    
+    func moused(identifier: String, velocityX: Int16, velocityY: Int16, isMouse: Bool) {
+        
+        // Added isMouse parameter:
+        // A boolean that determines if the TAP is really using the mouse (true) or is it a dummy mouse movement (false)
+        
+        // Getting an event for when the Tap is using the mouse, called only when the Tap is in controller mode.
+        // Since iOS doesn't support mouse - You can implement it in your app using the parameters of this function.
+        // velocityX : get the amount of movement for X-axis.
+        // velocityY : get the amount of movement for Y-axis.
+        // Important:
+        //   You may want to multiply/divide velocityX and velocityY by a constant number to your liking, in order to enhance the mouse movement to match your expectation in your app.
+        //   So, basically, by multiplying/dividing the velocityX and velocityY by a constant you can implement a "mouse sensitivity" feature that will be used in your app.
+        //   For example: if you have an object responding to mouse object, like written below, then muliplying the velocityX and velocityY by 2 will make the object move
+        //   twice as fast.
+        
+        // Example: Moving the mouse image :
+        if (isMouse) {
+            let newPoint = CGPoint(x: self.mouse.frame.origin.x + CGFloat(velocityX), y: self.mouse.frame.origin.y + CGFloat(velocityY))
+            var dx : CGFloat = 0
+            var dy : CGFloat = 0
+            if self.view.frame.contains(CGPoint(x: 0, y: newPoint.y)) {
+                dy = CGFloat(velocityY)
+            }
+            if self.view.frame.contains(CGPoint(x: newPoint.x, y: 0)) {
+                dx = CGFloat(velocityX)
+            }
+            mouse.frame = mouse.frame.offsetBy(dx: dx, dy: dy)
+        }
+        
     }
 }
 
