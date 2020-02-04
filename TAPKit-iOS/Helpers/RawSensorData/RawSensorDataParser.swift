@@ -14,34 +14,39 @@ class RawSensorDataParser {
 
     public static func parseWhole(data:Data, onMessageReceived:(@escaping (RawSensorData)->Void)) -> Void {
         let array = [UInt8](data)
-
-        var metaRange = Range(uncheckedBounds: (lower:0,upper:4))
+        let metaLength = 4
+        var metaOffset = 0
         var timestamp : UInt32 = 1
-        while (metaRange.upperBound < array.count && timestamp > 0) {
+        var current = 1
+        while (metaOffset + metaLength < array.count && timestamp > 0) {
             var meta : UInt32 = 0
             var add = 0
-            memcpy(&meta, Array(array[metaRange.lowerBound..<metaRange.upperBound]), metaRange.upperBound - metaRange.lowerBound)
+            
+            memcpy(&meta, Array(array[metaOffset..<metaOffset + metaLength]), metaLength)
             if meta > 0 {
-                let packet_type = meta & UInt32(0x80000000);
-                timestamp = meta & UInt32(0x7fffffff);
+                let packet_type = (meta & UInt32(0x80000000)) >> 31;
+                timestamp = UInt32(meta & UInt32(0x7fffffff));
                 var type : RawSensorDataType = .None
                 var messageRange = Range(uncheckedBounds: (lower:0, upper:0))
                 
                 if packet_type == 0 {
-                    messageRange = Range(uncheckedBounds: (lower:metaRange.upperBound, upper:metaRange.upperBound + 12))
+                    messageRange = Range(uncheckedBounds: (lower:metaOffset + metaLength, upper:metaOffset + metaLength + 12))
                     type = .IMU
                     add = 12
                 } else if packet_type == 1 {
-                    messageRange = Range(uncheckedBounds: (lower:metaRange.upperBound, upper:metaRange.upperBound + 30))
+                    messageRange = Range(uncheckedBounds: (lower:metaOffset + metaLength, upper:metaOffset + metaLength + 30))
                     add = 30
                     type = .Device
                 } else {
                     return
                 }
                 if type != .None {
-                    RawSensorDataParser.dq.sync {
-                        RawSensorDataParser.parseSingle(type: type, timestamp: timestamp, arr: Array(array[messageRange.lowerBound..<messageRange.upperBound]), onMessageReceived: onMessageReceived)
+                    if array.indices.contains(messageRange.upperBound) {
+                        RawSensorDataParser.dq.sync {
+                            RawSensorDataParser.parseSingle(type: type, timestamp: timestamp, arr: Array(array[messageRange.lowerBound..<messageRange.upperBound]), onMessageReceived: onMessageReceived)
+                        }
                     }
+                    
                 }
                 if timestamp == 0 {
                     return
@@ -49,8 +54,11 @@ class RawSensorDataParser {
                 if add == 0 {
                     return
                 }
+            } else {
+                return
             }
-            metaRange = Range(uncheckedBounds: (lower: metaRange.lowerBound + add, upper:metaRange.upperBound + add))
+            metaOffset = metaOffset + metaLength + add
+            current = current + 1
         }
         
     }

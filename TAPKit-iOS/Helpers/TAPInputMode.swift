@@ -69,13 +69,10 @@ import Foundation
         if let sens = rawSensorSensitivity {
             for i in 0..<TAPRawSensorSensitivity.order.count {
                 let key = TAPRawSensorSensitivity.order[i]
-                if string != "" {
-                    string.append("; ")
-                }
                 if let value = sens.params[key] {
-                    string.append("\(key):\(sens.normalizeSensitivityValue(value))")
+                    string.append("\(key):\(sens.normalizeSensitivityValue(value)) ")
                 } else {
-                    string.append("\(key):\(TAPRawSensorSensitivity.range.default)")
+                    string.append("\(key):\(TAPRawSensorSensitivity.range.default) ")
                 }
             }
         } else {
