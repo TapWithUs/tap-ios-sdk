@@ -14,15 +14,17 @@ protocol TAPDeviceDelegate : class {
     func TAPtapped(identifier:String, combination:UInt8)
     func TAPMoused(identifier:String, vX:Int16, vY:Int16, isMouse:Bool)
     func TAPFailed(identifier:String, name:String)
+    func TAPRawSensorDataReceieved(identifier:String, data:RawSensorData)
 }
 
 class TAPDevice : NSObject {
     private var peripheral : CBPeripheral!
     private weak var delegate : TAPDeviceDelegate?
     private var rx:CBCharacteristic?
+    private var tx:CBCharacteristic?
     private var uiCommands:CBCharacteristic?
     
-    private var neccessaryCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__RX : false, TAPCBUUID.characteristic__TAPData : false]
+    private var neccessaryCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__RX : false, TAPCBUUID.characteristic__TX : false, TAPCBUUID.characteristic__TAPData : false]
     private var optionalCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__MouseData : false, TAPCBUUID.characteristic__UICommands : false]
     
     var supportsMouse : Bool {
@@ -43,7 +45,7 @@ class TAPDevice : NSObject {
     
     private(set) var identifier : UUID!
     private(set) var name : String!
-    private(set) var mode : String = TAPInputMode.defaultMode()
+    private(set) var mode : TAPInputMode!
     private(set) var modeEnabled : Bool!
     
     override public var hash: Int {
@@ -55,6 +57,7 @@ class TAPDevice : NSObject {
     
     init(peripheral p:CBPeripheral, delegate d:TAPDeviceDelegate) {
         super.init()
+        self.mode = TAPInputMode.defaultMode()
         self.peripheral = p
         self.identifier = p.identifier
         if let n = p.name {
@@ -92,7 +95,7 @@ class TAPDevice : NSObject {
             if (peripheral.state == .connected) {
                 let arr = [UInt8](data);
                 if arr.count >= 3 {
-                    let str = "\(arr[3])"
+                    let str = "\(arr)"
                     TAPKit.log.event(.info, message: "tap \(self.identifier.uuidString) writing mode data [\(str)]")
                 }
                 self.peripheral.writeValue(data, for: rx, type: .withoutResponse)
@@ -103,29 +106,30 @@ class TAPDevice : NSObject {
     }
     
     func disableMode() -> Void {
-        TAPKit.log.event(.info, message: "Disabled \(self.mode) for tap identifier \(self.identifier.uuidString)")
+        TAPKit.log.event(.info, message: "Disabled \(self.mode.title()) for tap identifier \(self.identifier.uuidString)")
         self.modeEnabled = false
-        if let data = TAPInputMode.data(forMode: TAPInputMode.modeWhenDisabled()) {
+        if let data = TAPInputMode.modeWhenDisabled().data() {
             self.writeRX(data)
         }
     }
     
     func enableMode() -> Void {
-        TAPKit.log.event(.info, message: "Enabled [\(TAPInputMode.title(forMode: self.mode)))] for tap identifier \(self.identifier.uuidString)")
+        TAPKit.log.event(.info, message: "Enabled [\(self.mode.title())] for tap identifier \(self.identifier.uuidString)")
         self.modeEnabled = true
         self.writeMode()
     }
     
     func writeMode() -> Void {
         if (self.modeEnabled) {
-            if let data = TAPInputMode.data(forMode: self.mode) {
+            if let data = self.mode.data() {
                 self.writeRX(data)
             }
         }
     }
     
-    func setNewMode(_ newMode:String) -> Void {
-        TAPKit.log.event(.info, message: "New Mode Set: \(TAPInputMode.title(forMode: self.mode)) for tap identifier \(self.identifier.uuidString)")
+    func setNewMode(_ newMode:TAPInputMode) -> Void {
+        TAPKit.log.event(.info, message: "New Mode Set: \(newMode.title()) for tap identifier \(self.identifier.uuidString)")
+        
         self.mode = newMode
         self.writeMode()
     }
@@ -179,6 +183,8 @@ extension TAPDevice : CBPeripheralDelegate {
                         self.rx = characteristic
                     } else if characteristic.uuid.uuidString == TAPCBUUID.characteristic__TAPData.uuidString {
                         self.peripheral.setNotifyValue(true, for: characteristic)
+                    } else if characteristic.uuid.uuidString == TAPCBUUID.characteristic__TX.uuidString {
+                        self.peripheral.setNotifyValue(true, for: characteristic)
                     }
                     self.checkIfReady()
                 } else if self.optionalCharacteristics.contains(where: { $0.key == characteristic.uuid}) {
@@ -221,6 +227,15 @@ extension TAPDevice : CBPeripheralDelegate {
                         self.delegate?.TAPMoused(identifier: self.identifier.uuidString, vX: (Int16)(bytes[2]) << 8 | (Int16)(bytes[1]), vY: (Int16)(bytes[4]) << 8 | (Int16)(bytes[3]), isMouse: bytes[9] == 1)
                     }
                 }
+            }
+        } else if characteristic.uuid.uuidString == TAPCBUUID.characteristic__TX.uuidString {
+            if self.mode.type == TAPInputMode.kRawSensor {
+                if let value = characteristic.value {
+                    RawSensorDataParser.parseWhole(data: value , onMessageReceived: { (rawSensorData) in
+                        self.delegate?.TAPRawSensorDataReceieved(identifier: self.identifier.uuidString, data: rawSensorData)
+                    })
+                }
+                
             }
         }
     }

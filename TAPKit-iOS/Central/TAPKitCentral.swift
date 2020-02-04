@@ -20,12 +20,14 @@ class TAPKitCentral : NSObject {
     private var delegatesController : TAPKitDelegatesController!
     private var connectionTimer : Timer?
     private var modeTimer : Timer?
-    private var defaultInputMode : String!
+    private var defaultInputMode : TAPInputMode!
+    
     private var appActive : Bool = true
     
     override init() {
         super.init()
-        self.defaultInputMode = ""
+        
+        self.defaultInputMode = TAPInputMode.controller()
         self.delegatesController = TAPKitDelegatesController()
         self.isBluetoothOn = false
         self.pending = Set<CBPeripheral>()
@@ -213,6 +215,10 @@ extension TAPKitCentral : TAPDeviceDelegate {
         self.delegatesController.moused(identifier: identifier, velocityX: vX, velocityY: vY, isMouse: isMouse)
     }
     
+    func TAPRawSensorDataReceieved(identifier: String, data: RawSensorData) {
+        self.delegatesController.rawSensorDataReceieved(identifier: identifier, data: data)
+    }
+    
 }
 
 extension TAPKitCentral {
@@ -235,7 +241,7 @@ extension TAPKitCentral {
         self.delegatesController.remove(delegate)
     }
     
-    func setDefaultInputMode(_ mode:String, immediate:Bool) -> Void {
+    func setDefaultInputMode(_ mode:TAPInputMode, immediate:Bool) -> Void {
         self.defaultInputMode = mode
         if immediate {
             self.taps.forEach({
@@ -244,7 +250,7 @@ extension TAPKitCentral {
         }
     }
     
-    func setTAPInputMode(_ newMode:String, forIdentifiers identifiers : [String]?) -> Void {
+    func setTAPInputMode(_ newMode:TAPInputMode, forIdentifiers identifiers : [String]?) -> Void {
         if let ids = identifiers {
             ids.forEach({ identifier in
                 if let index = self.taps.index(where: { tapdevice in
@@ -272,7 +278,7 @@ extension TAPKitCentral {
         return res
     }
     
-    func getTAPInputMode(forTapIdentifier identifier:String) -> String? {
+    func getTAPInputMode(forTapIdentifier identifier:String) -> TAPInputMode? {
         if let index = self.taps.index(where: { $0.identifier.uuidString == identifier }) {
             return self.taps[index].mode
         }

@@ -15,6 +15,7 @@ import Foundation
     @objc optional func tapFailedToConnect(withIdentifier identifier:String, name:String)
     @objc optional func tapped(identifier:String, combination:UInt8)
     @objc optional func moused(identifier:String, velocityX:Int16, velocityY:Int16, isMouse:Bool)
+    @objc optional func rawSensorDataReceieved(identifier:String, data:RawSensorData)
 }
 
 class TAPKitDelegateWeakRef {
@@ -98,6 +99,12 @@ extension TAPKitDelegatesController : TAPKitDelegate {
     func moused(identifier: String, velocityX: Int16, velocityY: Int16, isMouse:Bool) {
         self.get().forEach({
             $0.moused?(identifier: identifier, velocityX: velocityX, velocityY: velocityY, isMouse: isMouse)
+        })
+    }
+    
+    func rawSensorDataReceieved(identifier: String, data: RawSensorData) {
+        self.get().forEach({
+            $0.rawSensorDataReceieved?(identifier: identifier, data: data)
         })
     }
     

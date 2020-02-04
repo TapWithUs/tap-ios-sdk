@@ -19,12 +19,12 @@ class TAPCBUUID {
     static var characteristic__MouseData = CBUUID(string: "C3FF0006-1D8B-40FD-A56F-C7BD5D0F3370")
     static var characteristic__UICommands = CBUUID(string: "C3FF0009-1D8B-40FD-A56F-C7BD5D0F3370")
     static var characteristic__RX = CBUUID(string:"6E400002-B5A3-F393-E0A9-E50E24DCCA9E")
-    
+    static var characteristic__TX = CBUUID(string:"6E400003-B5A3-F393-E0A9-E50E24DCCA9E")
     
     static func getService(for characteristic:CBUUID) -> CBUUID? {
         if characteristic == characteristic__TAPData {
             return service__TAP
-        } else if characteristic == characteristic__RX {
+        } else if characteristic == characteristic__RX || characteristic == characteristic__TX {
             return service__NUS
         } else if characteristic == characteristic__MouseData {
             return service__TAP

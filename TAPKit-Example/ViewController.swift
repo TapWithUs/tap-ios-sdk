@@ -17,8 +17,9 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
+        TAPKit.sharedKit.setDefaultTAPInputMode(.rawSensor(sensitivity: TAPRawSensorSensitivity(accelerometer: 0, gyro: 0, imu: 0)), immediate: true)
         TAPKit.sharedKit.addDelegate(self)
-
+        
         // You can enable/disable logs for specific events, or all events
         // TAPKitLogEvent.error, TAPKitLogEvent.fatal, TAPKitLogEvent.info, TAPKitLogEvent.warning
         // For example, to enable only errors logs:
@@ -136,7 +137,10 @@ extension ViewController : TAPKitDelegate {
             }
             mouse.frame = mouse.frame.offsetBy(dx: dx, dy: dy)
         }
-        
+    }
+    
+    func rawSensorDataReceieved(identifier: String, data: RawSensorData) {
+        print("SENSOR ===> \(data.makeString())")
     }
 }
 
