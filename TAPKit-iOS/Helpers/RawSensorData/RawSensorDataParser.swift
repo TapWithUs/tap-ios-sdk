@@ -12,7 +12,7 @@ class RawSensorDataParser {
     
     private static var dq = DispatchQueue(label: "RawSensorDataParserQueue")
 
-    public static func parseWhole(data:Data, onMessageReceived:(@escaping (RawSensorData)->Void)) -> Void {
+    public static func parseWhole(data:Data, sensitivity:TAPRawSensorSensitivity, onMessageReceived:(@escaping (RawSensorData)->Void)) -> Void {
         let array = [UInt8](data)
         let metaLength = 4
         var metaOffset = 0
@@ -43,7 +43,7 @@ class RawSensorDataParser {
                 if type != .None {
                     if array.indices.contains(messageRange.upperBound) {
                         RawSensorDataParser.dq.sync {
-                            RawSensorDataParser.parseSingle(type: type, timestamp: timestamp, arr: Array(array[messageRange.lowerBound..<messageRange.upperBound]), onMessageReceived: onMessageReceived)
+                            RawSensorDataParser.parseSingle(type: type, timestamp: timestamp, arr: Array(array[messageRange.lowerBound..<messageRange.upperBound]), sensitivitiy: sensitivity, onMessageReceived: onMessageReceived)
                         }
                     }
                     
@@ -63,8 +63,8 @@ class RawSensorDataParser {
         
     }
     
-    private static func parseSingle(type:RawSensorDataType, timestamp:UInt32, arr:[UInt8], onMessageReceived:((RawSensorData) -> Void)) -> Void {
-        if let data = RawSensorData(type: type, timestamp: timestamp, arr: arr) {
+    private static func parseSingle(type:RawSensorDataType, timestamp:UInt32, arr:[UInt8], sensitivitiy: TAPRawSensorSensitivity, onMessageReceived:((RawSensorData) -> Void)) -> Void {
+        if let data = RawSensorData(type: type, timestamp: timestamp, arr: arr, sensitivity: sensitivitiy) {
             onMessageReceived(data)
         }
     }

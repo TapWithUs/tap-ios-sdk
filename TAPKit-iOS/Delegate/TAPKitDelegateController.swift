@@ -16,6 +16,8 @@ import Foundation
     @objc optional func tapped(identifier:String, combination:UInt8)
     @objc optional func moused(identifier:String, velocityX:Int16, velocityY:Int16, isMouse:Bool)
     @objc optional func rawSensorDataReceieved(identifier:String, data:RawSensorData)
+    @objc optional func tapChangedAirGesturesState(identifier:String, isInAirGesturesState:Bool)
+    @objc optional func tapAirGestured(identifier:String, gesture:TAPAirGesture)
 }
 
 class TAPKitDelegateWeakRef {
@@ -107,6 +109,19 @@ extension TAPKitDelegatesController : TAPKitDelegate {
             $0.rawSensorDataReceieved?(identifier: identifier, data: data)
         })
     }
+
+    func tapChangedAirGesturesState(identifier: String, isInAirGesturesState: Bool) {
+        self.get().forEach({
+            $0.tapChangedAirGesturesState?(identifier: identifier, isInAirGesturesState: isInAirGesturesState)
+        })
+    }
     
+    func tapAirGestured(identifier: String, gesture: TAPAirGesture) {
+        self.get().forEach({
+            $0.tapAirGestured?(identifier: identifier, gesture: gesture)
+        })
+    }
+    
+     
 }
 

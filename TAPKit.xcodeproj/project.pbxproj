@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		5310518923E997090028ABCF /* RawSensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5310518823E997090028ABCF /* RawSensorData.swift */; };
 		5310518B23E9971A0028ABCF /* RawSensorDataParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5310518A23E9971A0028ABCF /* RawSensorDataParser.swift */; };
+		5329B3B523EADF11007C2B90 /* TAPRawSensorSensitivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5329B3B423EADF11007C2B90 /* TAPRawSensorSensitivity.swift */; };
+		5329B3B723EAF6E2007C2B90 /* TAPAirGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5329B3B623EAF6E2007C2B90 /* TAPAirGesture.swift */; };
 		532EB66820624D9F00B7B8BD /* TAPKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 532EB66620624D9F00B7B8BD /* TAPKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		532EB66F20624DBB00B7B8BD /* TAPDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 532EB66E20624DBB00B7B8BD /* TAPDevice.swift */; };
 		532EB67120624F6800B7B8BD /* TAPCBUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 532EB67020624F6800B7B8BD /* TAPCBUUID.swift */; };
@@ -58,6 +60,8 @@
 		5310518823E997090028ABCF /* RawSensorData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawSensorData.swift; sourceTree = "<group>"; };
 		5310518A23E9971A0028ABCF /* RawSensorDataParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawSensorDataParser.swift; sourceTree = "<group>"; };
 		5310518D23E9A69D0028ABCF /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		5329B3B423EADF11007C2B90 /* TAPRawSensorSensitivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPRawSensorSensitivity.swift; sourceTree = "<group>"; };
+		5329B3B623EAF6E2007C2B90 /* TAPAirGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPAirGesture.swift; sourceTree = "<group>"; };
 		532EB66320624D9F00B7B8BD /* TAPKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TAPKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		532EB66620624D9F00B7B8BD /* TAPKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TAPKit.h; sourceTree = "<group>"; };
 		532EB66720624D9F00B7B8BD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -105,6 +109,7 @@
 			children = (
 				5310518823E997090028ABCF /* RawSensorData.swift */,
 				5310518A23E9971A0028ABCF /* RawSensorDataParser.swift */,
+				5329B3B423EADF11007C2B90 /* TAPRawSensorSensitivity.swift */,
 			);
 			path = RawSensorData;
 			sourceTree = "<group>";
@@ -177,6 +182,7 @@
 				53E970B1206A2D2200F68262 /* TAPCombination.swift */,
 				532EB67020624F6800B7B8BD /* TAPCBUUID.swift */,
 				53E970AF206927DF00F68262 /* TAPInputMode.swift */,
+				5329B3B623EAF6E2007C2B90 /* TAPAirGesture.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -343,7 +349,9 @@
 				53E970B0206927DF00F68262 /* TAPInputMode.swift in Sources */,
 				532EB673206260F200B7B8BD /* TAPKitCentral.swift in Sources */,
 				5310518B23E9971A0028ABCF /* RawSensorDataParser.swift in Sources */,
+				5329B3B723EAF6E2007C2B90 /* TAPAirGesture.swift in Sources */,
 				53E970B6206A662700F68262 /* TAPKit.swift in Sources */,
+				5329B3B523EADF11007C2B90 /* TAPRawSensorSensitivity.swift in Sources */,
 				53E970B4206A345A00F68262 /* TAPKitLog.swift in Sources */,
 				532EB67120624F6800B7B8BD /* TAPCBUUID.swift in Sources */,
 				53E970AE2067DAA600F68262 /* TAPKitDelegateController.swift in Sources */,

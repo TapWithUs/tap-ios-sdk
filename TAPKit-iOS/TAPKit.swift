@@ -53,4 +53,7 @@ extension TAPKit {
     @objc public func getTAPInputMode(forTapIdentifier identifier:String) -> TAPInputMode? {
         return self.kitCentral.getTAPInputMode(forTapIdentifier:identifier)
     }
+    @objc public func vibrate(durations:Array<UInt16>, forIdentifiers identifiers:[String]? = nil) -> Void {
+        self.kitCentral.vibrate(durations: durations, forIdentifiers: identifiers)
+    }
 }

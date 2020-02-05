@@ -15,6 +15,8 @@ protocol TAPDeviceDelegate : class {
     func TAPMoused(identifier:String, vX:Int16, vY:Int16, isMouse:Bool)
     func TAPFailed(identifier:String, name:String)
     func TAPRawSensorDataReceieved(identifier:String, data:RawSensorData)
+    func TAPAirGestured(identifier:String, gesture:TAPAirGesture)
+    func TAPChangedAirGesturesState(identifier:String, isInAirGesturesState:Bool)
 }
 
 class TAPDevice : NSObject {
@@ -23,13 +25,19 @@ class TAPDevice : NSObject {
     private var rx:CBCharacteristic?
     private var tx:CBCharacteristic?
     private var uiCommands:CBCharacteristic?
-    
+    private var airGestures : CBCharacteristic?
     private var neccessaryCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__RX : false, TAPCBUUID.characteristic__TX : false, TAPCBUUID.characteristic__TAPData : false]
-    private var optionalCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__MouseData : false, TAPCBUUID.characteristic__UICommands : false]
+    private var optionalCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__MouseData : false, TAPCBUUID.characteristic__UICommands : false, TAPCBUUID.characteristic__AirGestures : false]
     
     var supportsMouse : Bool {
         get {
             return optionalCharacteristics[TAPCBUUID.characteristic__MouseData] == true
+        }
+    }
+    
+    var supportsAirGestures : Bool {
+        get {
+            return optionalCharacteristics[TAPCBUUID.characteristic__AirGestures] == true
         }
     }
     
@@ -47,6 +55,7 @@ class TAPDevice : NSObject {
     private(set) var name : String!
     private(set) var mode : TAPInputMode!
     private(set) var modeEnabled : Bool!
+    private(set) var isInAirGesturesState : Bool!
     
     override public var hash: Int {
         get {
@@ -67,6 +76,7 @@ class TAPDevice : NSObject {
         }
         self.delegate = d
         self.modeEnabled = true
+        self.isInAirGesturesState = false
     }
     
     func makeReady() -> Void {
@@ -133,6 +143,33 @@ class TAPDevice : NSObject {
         self.mode = newMode
         self.writeMode()
     }
+    
+    func vibrate(_ durations:Array<UInt16>) -> Void {
+        // New method - durations should be divided by 10.
+        if let ch = self.uiCommands {
+            if self.peripheral.state == .connected {
+                var bytes = [UInt8].init(repeating: 0, count: 20)
+                bytes[0] = 0
+                bytes[1] = 2
+                for i in 0..<min(18,durations.count) {
+                    bytes[i+2] = UInt8( Double(durations[i])/10.0)
+                }
+                let data = Data.init(bytes: bytes)
+                peripheral.writeValue(data, for: ch, type: .withoutResponse)
+
+            }
+        }
+    }
+    private func requestReadAirMouseMode() -> Void {
+        if let ch = self.airGestures {
+            if self.peripheral.state == .connected {
+                var bytes = [UInt8].init(repeating: 0, count: 20)
+                bytes[0] = 13
+                let data = Data.init(bytes: bytes)
+                peripheral.writeValue(data, for: ch, type: .withoutResponse)
+            }
+        }
+    }
 }
 
 extension TAPDevice : CBPeripheralDelegate {
@@ -193,6 +230,10 @@ extension TAPDevice : CBPeripheralDelegate {
                         self.peripheral.setNotifyValue(true, for: characteristic)
                     } else if (characteristic.uuid.uuidString == TAPCBUUID.characteristic__UICommands.uuidString) {
                         self.uiCommands = characteristic
+                    } else if (characteristic.uuid.uuidString == TAPCBUUID.characteristic__AirGestures.uuidString) {
+                        self.airGestures = characteristic
+                        peripheral.setNotifyValue(true, for: characteristic)
+                        self.requestReadAirMouseMode()
                     }
                 }
             }
@@ -213,7 +254,13 @@ extension TAPDevice : CBPeripheralDelegate {
                 let bytes = [UInt8](value)
                 if let first = bytes.first {
                     if first > 0 && first <= 31 {
-                        self.delegate?.TAPtapped(identifier: self.identifier.uuidString, combination: first)
+                        if (self.isInAirGesturesState)  {
+                            if let gesture = TAPAirGestureHelper.tapToAirGesture(first) {
+                                self.delegate?.TAPAirGestured(identifier: self.identifier.uuidString, gesture: gesture)
+                            }
+                        } else {
+                            self.delegate?.TAPtapped(identifier: self.identifier.uuidString, combination: first)
+                        }
                     }
                 }
                 
@@ -231,11 +278,31 @@ extension TAPDevice : CBPeripheralDelegate {
         } else if characteristic.uuid.uuidString == TAPCBUUID.characteristic__TX.uuidString {
             if self.mode.type == TAPInputMode.kRawSensor {
                 if let value = characteristic.value {
-                    RawSensorDataParser.parseWhole(data: value , onMessageReceived: { (rawSensorData) in
-                        self.delegate?.TAPRawSensorDataReceieved(identifier: self.identifier.uuidString, data: rawSensorData)
-                    })
+                    if let sensitivity = self.mode.sensitivity {
+                        RawSensorDataParser.parseWhole(data: value , sensitivity: sensitivity, onMessageReceived: { (rawSensorData) in
+                            self.delegate?.TAPRawSensorDataReceieved(identifier: self.identifier.uuidString, data: rawSensorData)
+                        })
+                    }
+                    
                 }
                 
+            }
+        } else if characteristic.uuid.uuidString == TAPCBUUID.characteristic__AirGestures.uuidString {
+            if let value = characteristic.value {
+                let bytes : [UInt8] = [UInt8](value)
+                if bytes.count > 0 {
+                    let first = bytes[0]
+                    if (first != 20) {
+                        if let gesture = TAPAirGesture(rawValue: Int(first)) {
+                            self.delegate?.TAPAirGestured(identifier: self.identifier.uuidString, gesture: gesture)
+                        }
+                    } else {
+                        if bytes.count > 1 {
+                            self.isInAirGesturesState = bytes[1] == 1
+                            self.delegate?.TAPChangedAirGesturesState(identifier: self.identifier.uuidString, isInAirGesturesState: self.isInAirGesturesState)
+                        }
+                    }
+                }
             }
         }
     }

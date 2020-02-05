@@ -17,7 +17,8 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
-        TAPKit.sharedKit.setDefaultTAPInputMode(.rawSensor(sensitivity: TAPRawSensorSensitivity(accelerometer: 0, gyro: 0, imu: 0)), immediate: true)
+        TAPKit.sharedKit.setDefaultTAPInputMode(.rawSensor(sensitivity: TAPRawSensorSensitivity(deviceAccelerometer: 0, imuGyro: 0, imuAccelerometer: 0)), immediate: true)
+//        TAPKit.sharedKit.setDefaultTAPInputMode(.controller(), immediate: true)
         TAPKit.sharedKit.addDelegate(self)
         
         // You can enable/disable logs for specific events, or all events
@@ -147,8 +148,9 @@ extension ViewController : TAPKitDelegate {
             }
         }
         count = count - 1
-        
     }
+    
+    
 }
 
 

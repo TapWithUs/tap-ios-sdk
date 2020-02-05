@@ -9,9 +9,9 @@
 import Foundation
 
 @objc public class Point3 : NSObject {
-    public var x : Int16!
-    public var y : Int16!
-    public var z : Int16!
+    public var x : Double!
+    public var y : Double!
+    public var z : Double!
     
     public override init() {
         self.x = 0
@@ -20,24 +20,26 @@ import Foundation
         super.init()
     }
     
-    public init(x:Int16, y:Int16, z:Int16) {
-        self.x = x
-        self.y = y
-        self.z = z
-        super.init()
-    }
+//    public init(x:Int16, y:Int16, z:Int16) {
+//        self.x = x
+//        self.y = y
+//        self.z = z
+//        super.init()
+//    }
     
-    public init?(arr:[UInt8]) {
+    public init?(arr:[UInt8], sensitivityFactor:Double) {
         guard arr.count == 6 else { return nil }
-        self.x = Int16(arr[1]) << 8 | Int16(arr[0])
-        self.y = Int16(arr[3]) << 8 | Int16(arr[2])
-        self.z = Int16(arr[5]) << 8 | Int16(arr[4])
+        let x_i : Int16 = Int16(arr[1]) << 8 | Int16(arr[0])
+        let y_i : Int16 = Int16(arr[3]) << 8 | Int16(arr[2])
+        let z_i : Int16 = Int16(arr[5]) << 8 | Int16(arr[4])
+        self.x = Double(x_i) * sensitivityFactor
+        self.y = Double(y_i) * sensitivityFactor
+        self.z = Double(z_i) * sensitivityFactor
         super.init()
     }
 
-    public func makeString(multiply:Bool) -> String {
-        let mult = 0.122
-        return "{ x: \(Double(self.x!)*mult), y: \(Double(self.y!)*mult), z: \(Double(self.z!)*mult) } "
+    public func makeString() -> String {
+        return "{ x: \(String(format: "%.2f", self.x)), y: \(String(format: "%.2f", self.y)), z: \(String(format: "%.2f", self.z)) } "
     }
 }
 
@@ -71,20 +73,27 @@ import Foundation
         
     }
     
-    public init?(type:RawSensorDataType, timestamp:UInt32, arr:[UInt8]) {
+    public init?(type:RawSensorDataType, timestamp:UInt32, arr:[UInt8], sensitivity:TAPRawSensorSensitivity) {
         self.points = [Point3]()
         self.timestamp = timestamp
         self.type = type
-        
+        var pointSensitivity = type == .Device ? TAPRawSensorSensitivity.kDeviceAccelerometer : TAPRawSensorSensitivity.kIMUGyro
         var range = Range.init(uncheckedBounds: (lower:0,upper:6))
         while (range.lowerBound < arr.count) {
             guard arr.indices.contains(range.upperBound-1) else { return nil }
-            if let point = Point3(arr: Array(arr[range.lowerBound ..< range.upperBound])) {
-                self.points.append(point)
+            if let sensitivityFactor = sensitivity.sensitivityFactor(for: pointSensitivity) {
+                if let point = Point3(arr: Array(arr[range.lowerBound ..< range.upperBound]), sensitivityFactor: sensitivityFactor) {
+                    self.points.append(point)
+                } else {
+                    return nil
+                }
             } else {
                 return nil
             }
             range = Range.init(uncheckedBounds: (lower:range.lowerBound + 6, upper:range.upperBound + 6))
+            if type == .IMU {
+                pointSensitivity = TAPRawSensorSensitivity.kIMUAccelerometer
+            }
         }
         
         // Final double-check
@@ -109,8 +118,7 @@ import Foundation
         var pointsString = ""
         for i in 0..<self.points.count {
             let p = self.points[i]
-//            pointsString.append(" { x = \(p.x!), y = \(p.y!), z = \(p.z!) }")
-            pointsString.append(p.makeString(multiply: true))
+            pointsString.append(p.makeString())
         }
         
         return "Timestamp = \(self.timestamp), Type = \(typeString), points =\(pointsString)"

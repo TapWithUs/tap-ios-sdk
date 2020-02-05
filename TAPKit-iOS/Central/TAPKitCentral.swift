@@ -219,6 +219,14 @@ extension TAPKitCentral : TAPDeviceDelegate {
         self.delegatesController.rawSensorDataReceieved(identifier: identifier, data: data)
     }
     
+    func TAPAirGestured(identifier: String, gesture: TAPAirGesture) {
+        self.delegatesController.tapAirGestured(identifier: identifier, gesture: gesture)
+    }
+    
+    func TAPChangedAirGesturesState(identifier: String, isInAirGesturesState: Bool) {
+        self.delegatesController.tapChangedAirGesturesState(identifier: identifier, isInAirGesturesState: isInAirGesturesState)
+    }
+    
 }
 
 extension TAPKitCentral {
@@ -250,22 +258,35 @@ extension TAPKitCentral {
         }
     }
     
-    func setTAPInputMode(_ newMode:TAPInputMode, forIdentifiers identifiers : [String]?) -> Void {
+    private func performTAPAction(on identifiers:[String]?, action:((TAPDevice)->Void)) -> Void {
         if let ids = identifiers {
             ids.forEach({ identifier in
                 if let index = self.taps.index(where: { tapdevice in
                     tapdevice.identifier.uuidString == identifier
                 }) {
-                    self.taps[index].setNewMode(newMode)
+                    action(self.taps[index])
+//                    self.taps[index].setNewMode(newMode)
                 }
             })
         } else {
             self.taps.forEach({
-                $0.setNewMode(newMode)
+                action($0)
+//                $0.setNewMode(newMode)
             })
         }
-    
     }
+    
+    func setTAPInputMode(_ newMode:TAPInputMode, forIdentifiers identifiers : [String]?) -> Void {
+        self.performTAPAction(on: identifiers, action: { tap in
+            tap.setNewMode(newMode)
+        })
+    }
+    
+    func vibrate(durations:Array<UInt16>, forIdentifiers identifiers : [String]?) -> Void {
+        self.performTAPAction(on: identifiers, action: { tap in
+            tap.vibrate(durations)
+        })
+        }
     
     func getConnectedTaps() -> [String : String] {
         var res = [String:String]()
