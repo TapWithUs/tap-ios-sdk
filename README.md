@@ -67,9 +67,8 @@ This is where magic will happen.
 This function will tell you which TAP was being tapped (identifier:String), and which fingers are tapped (combination:UInt8)
 Combination is a 8-bit unsigned number, between 1 and 31.
 It's binary form represents the fingers that are tapped.
-The LSB is thumb finger, the MSB (bit number 5) is the pinky finger.
-For example: if combination equls 3 - it's binary form is 00101,
-Which means that the thumb and the middle fingers are tapped.
+The LSb (bit 0) is thumb finger, the MSb (bit 4) is the pinky finger.
+For example: if combination equls 5 - it's binary form is 10100, which means that the thumb and the middle fingers are tapped.
 For your convenience, you can convert the binary format into fingers boolean array (explanation follows)
 
 ### moused(identifier:String, velocityX:Int16, velocityY:Int16, isMouse:Bool)
