@@ -593,6 +593,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 6BH9T6C7E7;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "TAPKit-Example/Info.plist";
@@ -613,6 +614,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 6BH9T6C7E7;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "TAPKit-Example/Info.plist";

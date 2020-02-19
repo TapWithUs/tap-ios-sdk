@@ -12,7 +12,8 @@ import TAPKit
 class ViewController: UIViewController {
 
     @IBOutlet weak var mouse: UIImageView!
-    private var count = 0
+    private var devCount = 0
+    private var imuCount = 0;
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -141,13 +142,30 @@ extension ViewController : TAPKitDelegate {
     }
     
     func rawSensorDataReceieved(identifier: String, data: RawSensorData) {
-        if data.type == .IMU {
-            if (count <= 0) {
+        
+        if (data.type == .IMU) {
+            imuCount = imuCount + 1;
+            if (imuCount >= 50) {
                 print("SENSOR ===> \(data.makeString())")
-                count = 11
+                imuCount = 0
             }
         }
-        count = count - 1
+            
+//        if (data.type == .Device) {
+//            devCount = devCount + 1;
+//            if (devCount >= 200) {
+//                print("200 DEVICE MESSAGES!! \(Date())");
+//                devCount = 0;
+//            }
+//        } else if (data.type == .IMU) {
+//            imuCount = imuCount + 1;
+//            if (imuCount >= 200) {
+//                print("200 IMU MESSAGES!! \(Date())");
+//                imuCount = 0;
+//            }
+//        }
+//            print("SENSOR ===> \(data.makeString())")
+            
     }
     
     
