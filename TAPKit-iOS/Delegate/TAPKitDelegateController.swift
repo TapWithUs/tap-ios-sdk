@@ -10,11 +10,14 @@ import Foundation
 
 @objc public protocol TAPKitDelegate : class {
     @objc optional func centralBluetoothState(poweredOn:Bool) -> Void
-    @objc optional func tapConnected(withIdentifier identifier:String, name:String)
+    @objc optional func tapConnected(withIdentifier identifier:String, name:String, fw:Int)
     @objc optional func tapDisconnected(withIdentifier identifier:String)
     @objc optional func tapFailedToConnect(withIdentifier identifier:String, name:String)
     @objc optional func tapped(identifier:String, combination:UInt8)
     @objc optional func moused(identifier:String, velocityX:Int16, velocityY:Int16, isMouse:Bool)
+    @objc optional func rawSensorDataReceived(identifier:String, data:RawSensorData)
+    @objc optional func tapChangedAirGesturesState(identifier:String, isInAirGesturesState:Bool)
+    @objc optional func tapAirGestured(identifier:String, gesture:TAPAirGesture)
 }
 
 class TAPKitDelegateWeakRef {
@@ -71,9 +74,9 @@ extension TAPKitDelegatesController : TAPKitDelegate {
         })
     }
     
-    func tapConnected(withIdentifier identifier: String, name: String) {
+    func tapConnected(withIdentifier identifier: String, name: String, fw:Int) {
         self.get().forEach({
-            $0.tapConnected?(withIdentifier: identifier, name: name)
+            $0.tapConnected?(withIdentifier: identifier, name: name, fw:fw)
         })
     }
     
@@ -101,5 +104,24 @@ extension TAPKitDelegatesController : TAPKitDelegate {
         })
     }
     
+    func rawSensorDataReceived(identifier: String, data: RawSensorData) {
+        self.get().forEach({
+            $0.rawSensorDataReceived?(identifier: identifier, data: data)
+        })
+    }
+
+    func tapChangedAirGesturesState(identifier: String, isInAirGesturesState: Bool) {
+        self.get().forEach({
+            $0.tapChangedAirGesturesState?(identifier: identifier, isInAirGesturesState: isInAirGesturesState)
+        })
+    }
+    
+    func tapAirGestured(identifier: String, gesture: TAPAirGesture) {
+        self.get().forEach({
+            $0.tapAirGestured?(identifier: identifier, gesture: gesture)
+        })
+    }
+    
+     
 }
 

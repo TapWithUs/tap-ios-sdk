@@ -37,7 +37,7 @@ import Foundation
     }
     
     @objc public static func combinationSpeakableString(for combination:UInt8) -> String {
-        
+
         var str : String = ""
         let fingers = TAPCombination.toFingerNumbers(combination)
         let allFingers : Bool = fingers.elementsEqual([1,2,3,4,5])
@@ -56,7 +56,7 @@ import Foundation
             }
         }
         return str
-        
+
     }
     
     @objc public static func toFingers(_ combination:UInt8) -> [Bool] {
