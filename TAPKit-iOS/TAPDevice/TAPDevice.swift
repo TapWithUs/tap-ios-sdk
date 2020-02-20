@@ -10,11 +10,11 @@ import Foundation
 import CoreBluetooth
 
 protocol TAPDeviceDelegate : class {
-    func TAPIsReady(identifier:String, name:String)
+    func TAPIsReady(identifier:String, name:String, fw:Int)
     func TAPtapped(identifier:String, combination:UInt8)
     func TAPMoused(identifier:String, vX:Int16, vY:Int16, isMouse:Bool)
     func TAPFailed(identifier:String, name:String)
-    func TAPRawSensorDataReceieved(identifier:String, data:RawSensorData)
+    func TAPRawSensorDataReceived(identifier:String, data:RawSensorData)
     func TAPAirGestured(identifier:String, gesture:TAPAirGesture)
     func TAPChangedAirGesturesState(identifier:String, isInAirGesturesState:Bool)
 }
@@ -26,7 +26,8 @@ class TAPDevice : NSObject {
     private var tx:CBCharacteristic?
     private var uiCommands:CBCharacteristic?
     private var airGestures : CBCharacteristic?
-    private var neccessaryCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__RX : false, TAPCBUUID.characteristic__TX : false, TAPCBUUID.characteristic__TAPData : false]
+    private var fw:Int!
+    private var neccessaryCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__RX : false, TAPCBUUID.characteristic__TX : false, TAPCBUUID.characteristic__TAPData : false, TAPCBUUID.characteristic__FW : false]
     private var optionalCharacteristics : [CBUUID : Bool] = [TAPCBUUID.characteristic__MouseData : false, TAPCBUUID.characteristic__UICommands : false, TAPCBUUID.characteristic__AirGestures : false]
     
     var supportsMouse : Bool {
@@ -46,7 +47,7 @@ class TAPDevice : NSObject {
             if self.isReady == false && newValue == true {
                 TAPKit.log.event(.info, message: "TAP \(self.identifier.uuidString),\(self.name) is ready to use!")
                 self.writeMode()
-                self.delegate?.TAPIsReady(identifier: self.identifier.uuidString, name:self.name)
+                self.delegate?.TAPIsReady(identifier: self.identifier.uuidString, name:self.name, fw: self.fw)
             }
         }
     }
@@ -75,13 +76,14 @@ class TAPDevice : NSObject {
             self.name = ""
         }
         self.delegate = d
+        self.fw = 0
         self.modeEnabled = true
         self.isInAirGesturesState = false
     }
     
     func makeReady() -> Void {
         self.peripheral?.delegate = self
-        self.peripheral?.discoverServices([TAPCBUUID.service__TAP, TAPCBUUID.service__NUS])
+        self.peripheral?.discoverServices([TAPCBUUID.service__TAP, TAPCBUUID.service__NUS, TAPCBUUID.service__DeviceInformation])
     }
     
     private func checkIfReady() -> Void {
@@ -96,7 +98,7 @@ class TAPDevice : NSObject {
                 }
             }
         }
-        self.isReady = allDiscovered && self.name != "" && self.rx != nil
+        self.isReady = allDiscovered && self.name != "" && self.rx != nil && self.fw != 0
         
     }
     
@@ -139,7 +141,6 @@ class TAPDevice : NSObject {
     
     func setNewMode(_ newMode:TAPInputMode) -> Void {
         TAPKit.log.event(.info, message: "New Mode Set: \(newMode.title()) for tap identifier \(self.identifier.uuidString)")
-        
         self.mode = newMode
         self.writeMode()
     }
@@ -222,6 +223,8 @@ extension TAPDevice : CBPeripheralDelegate {
                         self.peripheral.setNotifyValue(true, for: characteristic)
                     } else if characteristic.uuid.uuidString == TAPCBUUID.characteristic__TX.uuidString {
                         self.peripheral.setNotifyValue(true, for: characteristic)
+                    } else if characteristic.uuid.uuidString == TAPCBUUID.characteristic__FW.uuidString {
+                        self.peripheral.readValue(for: characteristic)
                     }
                     self.checkIfReady()
                 } else if self.optionalCharacteristics.contains(where: { $0.key == characteristic.uuid}) {
@@ -249,7 +252,14 @@ extension TAPDevice : CBPeripheralDelegate {
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        if characteristic.uuid.uuidString == TAPCBUUID.characteristic__TAPData.uuidString {
+        if (characteristic.uuid.uuidString == TAPCBUUID.characteristic__FW.uuidString) {
+            if let value = characteristic.value {
+                if let fw_ = VersionNumber.data2Int(data: value) {
+                    self.fw = fw_
+                }
+            }
+            self.checkIfReady()
+        } else if characteristic.uuid.uuidString == TAPCBUUID.characteristic__TAPData.uuidString {
             if let value = characteristic.value {
                 let bytes = [UInt8](value)
                 if let first = bytes.first {
@@ -280,7 +290,7 @@ extension TAPDevice : CBPeripheralDelegate {
                 if let value = characteristic.value {
                     if let sensitivity = self.mode.sensitivity {
                         RawSensorDataParser.parseWhole(data: value , sensitivity: sensitivity, onMessageReceived: { (rawSensorData) in
-                            self.delegate?.TAPRawSensorDataReceieved(identifier: self.identifier.uuidString, data: rawSensorData)
+                            self.delegate?.TAPRawSensorDataReceived(identifier: self.identifier.uuidString, data: rawSensorData)
                         })
                     }
                     

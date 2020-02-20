@@ -190,14 +190,14 @@ extension TAPKitCentral : CBCentralManagerDelegate {
 }
 
 extension TAPKitCentral : TAPDeviceDelegate {
-    func TAPIsReady(identifier: String, name: String) {
+    func TAPIsReady(identifier: String, name: String, fw:Int) {
         if let index = self.taps.index(where: { $0.identifier.uuidString == identifier }) {
             if self.appActive {
                 self.taps[index].setNewMode(self.defaultInputMode)
                 self.taps[index].writeMode()
             }
         }
-        self.delegatesController.tapConnected(withIdentifier: identifier, name: name)
+        self.delegatesController.tapConnected(withIdentifier: identifier, name: name, fw:fw)
     }
     
     func TAPtapped(identifier: String, combination: UInt8) {
@@ -215,8 +215,8 @@ extension TAPKitCentral : TAPDeviceDelegate {
         self.delegatesController.moused(identifier: identifier, velocityX: vX, velocityY: vY, isMouse: isMouse)
     }
     
-    func TAPRawSensorDataReceieved(identifier: String, data: RawSensorData) {
-        self.delegatesController.rawSensorDataReceieved(identifier: identifier, data: data)
+    func TAPRawSensorDataReceived(identifier: String, data: RawSensorData) {
+        self.delegatesController.rawSensorDataReceived(identifier: identifier, data: data)
     }
     
     func TAPAirGestured(identifier: String, gesture: TAPAirGesture) {

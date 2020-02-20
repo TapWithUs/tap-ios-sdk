@@ -57,7 +57,7 @@ import Foundation
         TAPRawSensorSensitivity.kIMUGyro: (default:UInt8(0), low:UInt8(0), high:UInt8(5))
     ]
 
-    public override init() {
+    @objc public override init() {
         self.params = [String:UInt8]()
         
         super.init()
@@ -66,13 +66,13 @@ import Foundation
         self.params[TAPRawSensorSensitivity.kIMUAccelerometer] = TAPRawSensorSensitivity.range[TAPRawSensorSensitivity.kIMUAccelerometer]!.default
     }
     
-    public init(deviceAccelerometer:UInt8? = nil, imuGyro:UInt8? = nil, imuAccelerometer:UInt8? = nil) {
+    @objc public init(deviceAccelerometer:Int, imuGyro:Int, imuAccelerometer:Int) {
         self.params = [String:UInt8]()
         
         super.init()
-        self.params[TAPRawSensorSensitivity.kDeviceAccelerometer] = deviceAccelerometer != nil ? normalizeSensitivityValue(deviceAccelerometer!, type: TAPRawSensorSensitivity.kDeviceAccelerometer) : TAPRawSensorSensitivity.range[TAPRawSensorSensitivity.kDeviceAccelerometer]!.default
-        self.params[TAPRawSensorSensitivity.kIMUGyro] =  imuGyro != nil ? normalizeSensitivityValue(imuGyro!, type: TAPRawSensorSensitivity.kIMUGyro) : TAPRawSensorSensitivity.range[TAPRawSensorSensitivity.kIMUGyro]!.default
-        self.params[TAPRawSensorSensitivity.kIMUAccelerometer] = imuAccelerometer  != nil ? normalizeSensitivityValue(imuAccelerometer!, type: TAPRawSensorSensitivity.kIMUAccelerometer) : TAPRawSensorSensitivity.range[TAPRawSensorSensitivity.kIMUAccelerometer]!.default
+        self.params[TAPRawSensorSensitivity.kDeviceAccelerometer] = normalizeSensitivityValue(UInt8(deviceAccelerometer), type: TAPRawSensorSensitivity.kDeviceAccelerometer)
+        self.params[TAPRawSensorSensitivity.kIMUGyro] = normalizeSensitivityValue(UInt8(imuGyro), type: TAPRawSensorSensitivity.kIMUGyro)
+        self.params[TAPRawSensorSensitivity.kIMUAccelerometer] = normalizeSensitivityValue(UInt8(imuAccelerometer), type: TAPRawSensorSensitivity.kIMUAccelerometer)
     }
     
     public static func title(rawSensorSensitivity:TAPRawSensorSensitivity?) -> String {

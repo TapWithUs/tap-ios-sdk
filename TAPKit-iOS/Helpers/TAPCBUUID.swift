@@ -13,6 +13,7 @@ class TAPCBUUID {
     private init() {
     
     }
+    static var service__DeviceInformation = CBUUID(string: "180A")
     static var service__TAP = CBUUID(string: "C3FF0001-1D8B-40FD-A56F-C7BD5D0F3370")
     static var service__NUS = CBUUID(string: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E")
     static var characteristic__TAPData = CBUUID(string: "C3FF0005-1D8B-40FD-A56F-C7BD5D0F3370")
@@ -21,6 +22,8 @@ class TAPCBUUID {
     static var characteristic__UICommands = CBUUID(string: "C3FF0009-1D8B-40FD-A56F-C7BD5D0F3370")
     static var characteristic__RX = CBUUID(string:"6E400002-B5A3-F393-E0A9-E50E24DCCA9E")
     static var characteristic__TX = CBUUID(string:"6E400003-B5A3-F393-E0A9-E50E24DCCA9E")
+    static var characteristic__HW = CBUUID(string: "2A27")
+    static var characteristic__FW = CBUUID(string: "2A26")
     
     static func getService(for characteristic:CBUUID) -> CBUUID? {
         if characteristic == characteristic__TAPData {
@@ -33,6 +36,8 @@ class TAPCBUUID {
             return service__TAP
         } else if characteristic == characteristic__AirGestures {
             return service__TAP
+        } else if characteristic == characteristic__FW || characteristic == characteristic__HW {
+            return service__DeviceInformation
         }
         return nil
     }

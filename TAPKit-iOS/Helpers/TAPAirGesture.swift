@@ -17,8 +17,8 @@ import Foundation
     case TwoFingersLeft = 7
     case OnefingerRight = 8
     case TwoFingersRight = 9
-    case IndexToThumbTouch = 1000
-    case MiddleToThumbTouch = 1001
+    case IndexToThumbTouch = 10
+    case MiddleToThumbTouch = 11
 }
 
 class TAPAirGestureHelper {

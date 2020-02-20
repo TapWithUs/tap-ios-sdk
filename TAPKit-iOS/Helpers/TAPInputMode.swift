@@ -14,8 +14,9 @@ import Foundation
     @objc public static let kController : String = "Controller"
     @objc public static let kText : String = "Text"
     @objc public static let kRawSensor : String = "RawSensor"
+    @objc public static let kControllerWithMouseHID : String = "ControllerWithMouseHID"
     
-    private static let modeByte : [String:UInt8] = [TAPInputMode.kController : 0x1, TAPInputMode.kText : 0x0, TAPInputMode.kRawSensor : 0xa]
+    private static let modeByte : [String:UInt8] = [TAPInputMode.kController : 0x1, TAPInputMode.kText : 0x0, TAPInputMode.kRawSensor : 0xa, TAPInputMode.kControllerWithMouseHID : 0x3]
     
     public var sensitivity : TAPRawSensorSensitivity?
     public let type:String
@@ -46,6 +47,10 @@ import Foundation
         return TAPInputMode(type: TAPInputMode.kRawSensor, sensitivity: sensitivity)
     }
 
+    @objc public static func controllerWithMouseHID() -> TAPInputMode {
+        return TAPInputMode(type: TAPInputMode.kControllerWithMouseHID)
+    }
+    
     func data() -> Data? {
         guard let modeValue = TAPInputMode.modeByte[self.type] else {
             return nil

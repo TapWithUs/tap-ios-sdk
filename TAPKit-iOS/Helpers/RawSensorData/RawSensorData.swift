@@ -9,9 +9,9 @@
 import Foundation
 
 @objc public class Point3 : NSObject {
-    public var x : Double!
-    public var y : Double!
-    public var z : Double!
+    public let x : Double
+    public let y : Double
+    public let z : Double
     
     public override init() {
         self.x = 0
@@ -40,6 +40,10 @@ import Foundation
 
     public func makeString() -> String {
         return "{ x: \(String(format: "%.2f", self.x)), y: \(String(format: "%.2f", self.y)), z: \(String(format: "%.2f", self.z)) } "
+    }
+    
+    public func rawString(delimeter:String) -> String {
+        return "\(self.x)\(delimeter)\(self.y)\(delimeter)\(self.z)\(delimeter)"
     }
 }
 
@@ -122,5 +126,28 @@ import Foundation
         }
         
         return "Timestamp = \(self.timestamp), Type = \(typeString), points =\(pointsString)"
+    }
+    
+    @objc public func rawString(delimeter:String) -> String {
+        var typeString = "IMU";
+        if self.type == .None {
+            return "";
+        } else if (self.type == .Device) {
+            typeString = "DEVICE";
+        }
+        var pointsString = ""
+        for i in 0..<self.points.count {
+            let p = self.points[i];
+            pointsString.append(p.rawString(delimeter: delimeter))
+        }
+        return "\(self.timestamp)\(delimeter)\(typeString)\(delimeter)\(pointsString)"
+    }
+    
+    @objc public func getPoint(for index:Int) -> Point3? {
+        if self.points.indices.contains(index) {
+            return self.points[index]
+        } else {
+            return nil
+        }
     }
 }
