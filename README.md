@@ -268,6 +268,8 @@ Device is the Accelerometers sensors for each finger (Thumb, Index, Middle, Ring
 }
 ```
 
+[For more information about raw sensor mode click here](https://tapwithus.atlassian.net/wiki/spaces/TD/pages/792002574/Tap+Strap+Raw+Sensors+Mode)
+
 ## Logging
 
 TAPKit has a log, which logs all the events that happens. This can be useful for debugging, or should be attached when reporting a bug :)
