@@ -76,7 +76,6 @@ class ViewController: UIViewController {
         //      func tapChangedAirGesturesState(identifier: String, isInAirGesturesState: Bool)
         //          This event will be triggered when the TAP entering or leaving Air Gesture State.
         
-        TAPKit.sharedKit.setTAPInputMode(TAPInputMode.rawSensor(sensitivity: TAPRawSensorSensitivity(deviceAccelerometer: Int, imuGyro: Int, imuAccelerometer: Int)))
         // Send Haptic/Vibration to TAP devices.
         // To make the TAP vibrate, to your specified array of durations, call:
         // TAPKit.sharedKit.vibrate(durations: [hapticDuration, pauseDuration, hapticDuration, pauseDuration, ...], forIdentifiers: [tapIdentifiers])
@@ -86,7 +85,6 @@ class ViewController: UIViewController {
         //      Example:
         //          TAPKit.sharedKit.vibrate(durations: [500,100,500])
         //          Will send two 500 milliseconds haptics with a 100 milliseconds pause in the middle.
-
     }
     
     override func viewWillDisappear(_ animated: Bool) {
