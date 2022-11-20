@@ -86,6 +86,7 @@ class TAPInputModeController : NSObject {
     }
     
     func stop() {
+        
         self.isActive = false
         self.timer?.invalidate()
     }

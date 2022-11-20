@@ -16,10 +16,12 @@ class VersionNumber {
     private static let multLow = Int(pow(Double(10), Double(VersionNumber.digits)))
     
     public static func data2Int(data:Data) -> Int? {
-        if let str = String(data: data, encoding: String.Encoding.utf8) {
+        if let str = DataConverter.toString(data) {
             return VersionNumber.string2Int(str: str)
+        } else {
+            return nil
         }
-        return nil
+        
     }
     
     public static func string2Int(str:String) -> Int? {
@@ -54,5 +56,6 @@ class VersionNumber {
         return "\(major)\(VersionNumber.delimiter)\(minor)\(VersionNumber.delimiter)\(build)"
     }
 }
+
 
 

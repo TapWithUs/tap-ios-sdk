@@ -180,6 +180,7 @@ static TAPKitObjc* instance = nil;
             return;
         }
     }
+    
     [_tapKit vibrateWithDurations:durations forIdentifiers:@[tapIdentifier]];
     
     

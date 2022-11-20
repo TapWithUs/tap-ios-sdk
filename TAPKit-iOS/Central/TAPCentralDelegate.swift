@@ -10,8 +10,6 @@ import Foundation
 import CoreBluetooth
 
 @objc protocol TAPCentralDelegate {
-    @objc optional func appDidBecomeActive() -> Void
-    @objc optional func appWillResignActive() -> Void
     @objc optional func tapConnected(identifier uuid:String) -> Void
     @objc optional func tapDisconnected(identifier uuid:String) -> Void
     @objc optional func tapFailedToConnect(identifier uuid:String) -> Void

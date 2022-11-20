@@ -19,7 +19,7 @@ class ViewController: UIViewController {
         
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
-        
+        TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode.controller(), immediate: true)
         // You can enable/disable logs for specific events, or all events
         // TAPKitLogEvent.error, TAPKitLogEvent.fatal, TAPKitLogEvent.info, TAPKitLogEvent.warning
         // For example, to enable only errors logs:
@@ -100,6 +100,14 @@ extension ViewController : TAPKitDelegate {
     
     func centralBluetoothState(poweredOn: Bool) {
         // Do something if the bluetooth state is on or off.
+    }
+    
+    func tapDidReadFirmwareVersion(identifier: String, fw: Int) {
+        print("TAP \(identifier) did read fw: \(fw)")
+    }
+    
+    func tapDidReadHardwareVersion(identifier: String, hw: Int) {
+        print("TAP \(identifier) did read hw: \(hw)")
     }
     
     func tapped(identifier: String, combination: UInt8) {

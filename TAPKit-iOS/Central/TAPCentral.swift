@@ -20,16 +20,16 @@ class TAPCentral : NSObject {
     private var started : Bool!
     private var isBluetoothOn : Bool!
     private var appActive : Bool = true
-    private var handleInit : TAPHandleInit!
+    private var handleConfig : TAPHandleConfig!
     private weak var delegate : TAPCentralDelegate?
     private var connectionTimer : Timer?
     
     
-    convenience init(handleInit:TAPHandleInit, delegate:TAPCentralDelegate?) {
+    convenience init(handleInit:TAPHandleConfig, delegate:TAPCentralDelegate?) {
         self.init()
         
         self.delegate = delegate
-        self.handleInit = handleInit
+        self.handleConfig = handleInit
         self.isBluetoothOn = false
         self.pending = Set<CBPeripheral>()
         self.taps = Set<TAPHandle>()
@@ -94,6 +94,7 @@ class TAPCentral : NSObject {
     }
     
     @objc func connectionTimerTick(timer:Timer?) -> Void {
+        
         let connectedPeripherals = self.centralManager.retrieveConnectedPeripherals(withServices: [TAPCBUUID.service__TAP])
         for peripheral in connectedPeripherals {
             if (self.isNewPeripheral(peripheral)) {
@@ -143,7 +144,7 @@ extension TAPCentral : CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         self.pending.remove(peripheral)
         TAPKit.log.event(.info, message: "central manager connected to \(peripheral.identifier), initializing tap...")
-        let tap = TAPHandle(peripheral: peripheral, handleInit: self.handleInit, delegate: self)
+        let tap = TAPHandle(peripheral: peripheral, handleConfig: self.handleConfig, delegate: self)
         self.taps.insert(tap)
         tap.makeReady()
         
@@ -164,6 +165,7 @@ extension TAPCentral : CBCentralManagerDelegate {
         self.pending.remove(peripheral)
         if let index = self.tapIndex(peripheral) {
             TAPKit.log.event(.info, message: "disconnected \(peripheral.identifier)")
+            self.delegate?.tapDisconnected?(identifier: peripheral.identifier.uuidString)
 //            self.delegatesController.tapDisconnected(withIdentifier: self.taps[index].identifier.uuidString)
             self.taps.remove(at: index)
         }
@@ -172,7 +174,11 @@ extension TAPCentral : CBCentralManagerDelegate {
 
 extension TAPCentral : TAPHandleDelegate {
     func TAPHandleIsReady(_ handle: TAPHandle) {
-        
+        self.delegate?.tapConnected?(identifier: handle.identifierString)
+    }
+    
+    func TAPHandleDidUpdateCharacteristicValue(_ handle: TAPHandle, characteristic: CBUUID, value: Data) {
+        self.delegate?.tapDidReadCharacteristicValue?(identifier: handle.identifierString, characteristic: characteristic, value: value)
     }
 }
 

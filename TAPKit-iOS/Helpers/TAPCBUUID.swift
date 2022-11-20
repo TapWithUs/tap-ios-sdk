@@ -13,6 +13,7 @@ protocol TAPCBUUIDProtocol : AnyObject {
     func getService(for characteristic:CBUUID) -> CBUUID?
 }
 
+
 class TAPCBUUIDManager {
     
     static let sharedManager = TAPCBUUIDManager()
@@ -67,5 +68,7 @@ class TAPCBUUID : TAPCBUUIDProtocol {
         }
         return nil
     }
+    
+    
 }
 

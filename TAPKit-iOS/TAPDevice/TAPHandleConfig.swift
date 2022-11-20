@@ -9,31 +9,46 @@
 import Foundation
 import CoreBluetooth
 
-struct TAPHandleInitCharacteristic {
+struct TAPHandleConfigCharacteristic {
     let uuid : CBUUID
-    let readWhenDiscovered : Bool
+    let readOnDiscover : Bool
     let defaultValueIfNotDiscovered : Data?
     let storeLastReadValue : Bool
     let notify:Bool
     
     
-    init(uuid:CBUUID, readWhenDiscovered:Bool=false, defaultValueIfNotDiscovered : Data? = nil, storeLastReadValue : Bool=false, notify:Bool=false) {
+    init(uuid:CBUUID, readOnDiscover:Bool=false, defaultValueIfNotDiscovered : Data? = nil, storeLastReadValue : Bool=false, notify:Bool=false) {
         self.uuid = uuid
-        self.readWhenDiscovered = readWhenDiscovered
+        self.readOnDiscover = readOnDiscover
         self.defaultValueIfNotDiscovered = defaultValueIfNotDiscovered
         self.storeLastReadValue = storeLastReadValue;
         self.notify = notify
     }
 }
 
-class TAPHandleInit {
-    private(set) var characteristics : [CBUUID : TAPHandleInitCharacteristic]!
+class TAPHandleConfig {
+    private(set) var characteristics : [CBUUID : TAPHandleConfigCharacteristic]!
     
-    init(characteristics: [TAPHandleInitCharacteristic]) {
-        self.characteristics = [CBUUID : TAPHandleInitCharacteristic]();
+    init() {
+        self.characteristics = [CBUUID : TAPHandleConfigCharacteristic]()
+    }
+    
+    init(characteristics: [TAPHandleConfigCharacteristic]) {
+        self.characteristics = [CBUUID : TAPHandleConfigCharacteristic]();
         characteristics.forEach({ c in
             self.characteristics[c.uuid] = c
         })
+    }
+    
+    public func add(_ characteristic:TAPHandleConfigCharacteristic, overwrite:Bool=false) -> Void {
+        
+        if let _ = self.characteristics[characteristic.uuid] {
+            if overwrite {
+                self.characteristics[characteristic.uuid] = characteristic
+            }
+        } else {
+            self.characteristics[characteristic.uuid] = characteristic
+        }
     }
     
     public func getServices() -> Set<CBUUID> {
@@ -49,7 +64,7 @@ class TAPHandleInit {
     public func getCharacteristics(forService serviceUUID : CBUUID) -> Set<CBUUID> {
         var characteristics : Set<CBUUID> = Set<CBUUID>()
         self.characteristics.forEach({ (uuid, c) in
-            if let service = TAPCBUUID.sharedManager.getService(for: uuid) {
+            if let service = TAPCBUUIDManager.sharedManager.getService(for: uuid) {
                 if service == serviceUUID {
                     characteristics.insert(uuid)
                 }
@@ -58,9 +73,8 @@ class TAPHandleInit {
         return characteristics
     }
     
-    public func get(_ uuid:CBUUID) -> TAPHandleInitCharacteristic? {
+    public func get(_ uuid:CBUUID) -> TAPHandleConfigCharacteristic? {
         return self.characteristics[uuid]
     }
-    
     
 }

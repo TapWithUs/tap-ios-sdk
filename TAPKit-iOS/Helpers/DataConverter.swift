@@ -21,6 +21,11 @@ class DataConverter {
         guard index >= 0 && index < bytes.count-1 else { return nil }
         return (Int16)(bytes[index+1]) << 8 | (Int16)(bytes[index])
     }
+    
+    static func toString(_ data:Data) -> String? {
+        return String(data: data, encoding: String.Encoding.utf8)
+        
+    }
 }
 
 

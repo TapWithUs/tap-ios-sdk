@@ -22,7 +22,7 @@ class DelegatesController<T> where T:AnyObject  {
     func add(_ delegate:T) -> Void {
         self.removeDeadReferences()
         if (!self.delegates.contains(where: { $0.get() === delegate })) {
-            
+            self.delegates.append(WeakRef<T>(delegate))
         }
     }
     

@@ -24,19 +24,27 @@ public class TAPKit : NSObject {
         self.delegatesController = DelegatesController<TAPKitDelegate>()
         self.airGestureController = TAPAirGestureController()
         super.init()
-        self.central = TAPCentral(handleInit: self.withTapHandleInit(), delegate: self)
+        self.central = TAPCentral(handleInit: self.getHandleConfig(), delegate: self)
         self.inputModeController = TAPInputModeController(interval: 10.0, delegate: self)
         self.setupObservers()
         self.setupParsers()
     }
     
     private func setupParsers() -> Void {
-            
+        self.addParser(TAPCBUUID.characteristic__TAPData, parser: self.tapDataParser(identifier:characteristic:data:))
+        self.addParser(TAPCBUUID.characteristic__MouseData, parser: self.tapMouseParser(identifier:characteristic:data:))
+        self.addParser(TAPCBUUID.characteristic__TX, parser: self.tapRawSensorParser(identifier:characteristic:data:))
+        self.addParser(TAPCBUUID.characteristic__AirGestures, parser: self.tapAirGestureParser(identifier:characteristic:data:))
+        self.addParser(TAPCBUUID.characteristic__HW, parser: self.tapDeviceInformationParser(identifier:characteristic:data:))
+        self.addParser(TAPCBUUID.characteristic__FW, parser: self.tapDeviceInformationParser(identifier:characteristic:data:))
     }
                            
-    private func addParser(_ characteristic:CBUUID, parser: @escaping ((Data)->Void)) {
-        if let v = self.parsers[characteristic] {
-            v.append(parser)
+    private func addParser(_ characteristic:CBUUID, parser: @escaping ((String, CBUUID, Data)->Void)) {
+        if self.parsers[characteristic] == nil {
+            self.parsers[characteristic] = [((String, CBUUID, Data)->Void)]()
+        }
+        if let _ = self.parsers[characteristic] {
+            self.parsers[characteristic]?.append(parser)
         }
     }
     
@@ -46,27 +54,32 @@ public class TAPKit : NSObject {
     }
 
     
-    private func withTapHandleInit() -> TAPHandleInit {
-        return TAPHandleInit(characteristics: [TAPHandleInitCharacteristic(uuid: TAPCBUUID.characteristic__HW)])
-    }
-    
-    private func interpretCharacteristicValue(identifier:String, characteristic:CBUUID, value:Data) -> Void {
-        
+    private func getHandleConfig() -> TAPHandleConfig {
+        let c = TAPHandleConfig()
+        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__TAPData, notify: true))
+        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__MouseData, notify: true))
+        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__RX))
+        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__TX))
+        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__HW, readOnDiscover: true))
+        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__FW, readOnDiscover: true))
+        return c
     }
     
     @objc func appDidBecomeActive(notification:NSNotification) -> Void {
         
         TAPKit.log.event(.info, message: "appDidBecomeActive notification")
-        self.inputModeController.pause(andSetMode: .text())
+        self.inputModeController.resume()
     }
     
     @objc func appWillResignActive(notification:NSNotification) -> Void {
         
         TAPKit.log.event(.info, message: "appWillResignActive notification")
-        self.inputModeController.resume()
+        self.inputModeController.pause(andSetMode: .text())
+        
     }
     
     private func parseCharacteristicValue(identifier:String, characteristic:CBUUID, data:Data) -> Void {
+        
         if let p = self.parsers[characteristic] {
             p.forEach({ parser in
                 parser(identifier, characteristic, data)
@@ -78,7 +91,9 @@ public class TAPKit : NSObject {
 extension TAPKit {
     // Parsers
     private func tapDataParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
+        
         if let first = DataConverter.toUInt8(data: data, index: 0) {
+            
             if self.airGestureController.isInState(uuid: identifier) {
                 if let gesture = TAPAirGestureHelper.tapToAirGesture(first) {
                     self.delegatesController.run(action: { d in
@@ -138,11 +153,27 @@ extension TAPKit {
         }
     }
     
-//    private func deviceInformationParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
-//        switch characteristic {
-//        case TAPCBUUID.characteristic__HW : VersionNumber.data2Int(data: data)
-//        }
-//    }
+    private func tapDeviceInformationParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
+        if let str = DataConverter.toString(data) {
+            switch characteristic {
+            case TAPCBUUID.characteristic__HW :
+                if let hw = VersionNumber.string2Int(str: str) {
+                    self.delegatesController.run(action: { d in
+                        d.tapDidReadHardwareVersion?(identifier: identifier, hw: hw)
+                    })
+                }
+                break
+            case TAPCBUUID.characteristic__FW :
+                if let fw = VersionNumber.string2Int(str: str) {
+                    self.delegatesController.run(action: { d in
+                        d.tapDidReadFirmwareVersion?(identifier: identifier, fw: fw)
+                    })
+                }
+                break
+            default : break
+            }
+        }
+    }
 }
 
 
@@ -156,6 +187,7 @@ extension TAPKit : TAPCentralDelegate {
     }
     
     func tapConnected(identifier uuid:String) -> Void {
+        TAPKit.log.event(.info, message: "tap \(uuid) connected and ready")
         self.inputModeController.add(uuid)
     }
     
@@ -164,7 +196,8 @@ extension TAPKit : TAPCentralDelegate {
     }
     
     func tapDidReadCharacteristicValue(identifier uuid:String, characteristic:CBUUID, value:Data) {
-        self.parseCharacteristicValue(uuid, characteristic, value)
+        
+        self.parseCharacteristicValue(identifier:uuid, characteristic:characteristic, data:value)
     }
 }
 
@@ -185,6 +218,7 @@ extension TAPKit {
         self.inputModeController.reset()
         self.airGestureController.reset()
         self.central.start()
+        self.inputModeController.start()
     }
     
     @objc public func addDelegate(_ delegate:TAPKitDelegate) -> Void {
@@ -209,7 +243,7 @@ extension TAPKit {
 //        return self.kitCentral.getConnectedTaps()
     }
     
-    @objc public func haptic(durations:Array<UInt16>, forIdentifiers identifiers:[String]? = nil) -> Void {
+    @objc public func vibrate(durations:Array<UInt16>, forIdentifiers identifiers:[String]? = nil) -> Void {
         if let data = TAPHaptic.toData(durations: durations) {
             if let identifiers = identifiers {
                 identifiers.forEach( { uuid in
