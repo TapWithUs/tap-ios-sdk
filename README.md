@@ -29,9 +29,9 @@ Functions available (all optional) in TAPKitDelegate:
         @objc optional func tapFailedToConnect(withIdentifier identifier:String, name:String)
         @objc optional func tapped(identifier:String, combination:UInt8)
         @objc optional func moused(identifier:String, velocityX:Int16, velocityY:Int16, isMouse:Bool)
-		@objc optional func rawSensorDataReceived(identifier:String, data:RawSensorData)
-		@objc optional func tapChangedAirGesturesState(identifier:String, isInAirGesturesState:Bool)
-		@objc optional func tapAirGestured(identifier:String, gesture:TAPAirGesture)
+	@objc optional func rawSensorDataReceived(identifier:String, data:RawSensorData)
+	@objc optional func tapChangedAirGesturesState(identifier:String, isInAirGesturesState:Bool)
+	@objc optional func tapAirGestured(identifier:String, gesture:TAPAirGesture)
         @objc optional func tapDidReadHardwareVersion(identifier:String, hw:Int)
         @objc optional func tapDidReadFirmwareVersion(identifier:String, fw:Int)
     }
