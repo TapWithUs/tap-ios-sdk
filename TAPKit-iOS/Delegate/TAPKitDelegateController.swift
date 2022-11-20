@@ -9,7 +9,6 @@
 import Foundation
 
 @objc public protocol TAPKitDelegate : class {
-    @objc optional func centralBluetoothState(poweredOn:Bool) -> Void
     @objc optional func tapConnected(withIdentifier identifier:String, name:String, fw:Int)
     @objc optional func tapDisconnected(withIdentifier identifier:String)
     @objc optional func tapFailedToConnect(withIdentifier identifier:String, name:String)

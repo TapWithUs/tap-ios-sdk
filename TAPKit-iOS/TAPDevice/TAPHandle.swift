@@ -24,6 +24,8 @@ class TAPHandle : NSObject {
     private var values : [CBUUID: Data]
     private var characteristics : [CBUUID : CBCharacteristic]
     private var fullyDiscoveredServices : [CBUUID : Bool]
+    
+    
     private weak var delegate : TAPHandleDelegate?
     
     
@@ -38,7 +40,14 @@ class TAPHandle : NSObject {
         }
     }
     
-    private(set) var name : String
+    public var name : String {
+        get {
+            return self.peripheral.name ?? "TAP\(self.identifierString)"
+        }
+        
+    }
+    
+
     override public var hash: Int {
         get {
             return self.identifier.hashValue
@@ -46,7 +55,6 @@ class TAPHandle : NSObject {
     }
     
     init(peripheral: CBPeripheral!, handleConfig : TAPHandleConfig, delegate:TAPHandleDelegate) {
-        self.name = ""
         self.peripheral = peripheral
         self.handleConfig = handleConfig
         self.values = [CBUUID : Data]()
@@ -63,9 +71,6 @@ class TAPHandle : NSObject {
     private func serviceFullyDiscovered(_ uuid:CBUUID) {
         self.fullyDiscoveredServices[uuid] = true
         self.isReady = self.fullyDiscoveredServices.filter({ entry in entry.value == false}).count == 0
-        if self.name == "" {
-            self.name = self.peripheral.name ?? ""
-        }
         if (self.isReady) {
             // Tap is Ready
             self.delegate?.TAPHandleIsReady(self)

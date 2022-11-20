@@ -1,4 +1,4 @@
-# TAP iOS SDK
+﻿# TAP iOS SDK
 
 ## What Is This ?
 
@@ -24,13 +24,20 @@ Functions available (all optional) in TAPKitDelegate:
 
 ```swift
     @objc public protocol TAPKitDelegate : class {
-        @objc optional func centralBluetoothState(poweredOn:Bool) -> Void
         @objc optional func tapConnected(withIdentifier identifier:String, name:String)
         @objc optional func tapDisconnected(withIdentifier identifier:String)
         @objc optional func tapFailedToConnect(withIdentifier identifier:String, name:String)
         @objc optional func tapped(identifier:String, combination:UInt8)
+        @objc optional func moused(identifier:String, velocityX:Int16, velocityY:Int16, isMouse:Bool)
+		@objc optional func rawSensorDataReceived(identifier:String, data:RawSensorData)
+		@objc optional func tapChangedAirGesturesState(identifier:String, isInAirGesturesState:Bool)
+		@objc optional func tapAirGestured(identifier:String, gesture:TAPAirGesture)
+        @objc optional func tapDidReadHardwareVersion(identifier:String, hw:Int)
+        @objc optional func tapDidReadFirmwareVersion(identifier:String, fw:Int)
     }
 ```
+### Deprecated:
+	@objc optional func centralBluetoothState(poweredOn:Bool) -> Void
 
 ### centralBluetoothState(poweredOn:Bool)
 
@@ -99,6 +106,19 @@ this function is called when a TAP is entering or leaving Air Gesture State.
 ### rawSensorDataReceived(identifier: String, data: RawSensorData)
 
 this function is called in a 200 calls per minute rate, and it's purpose is to stream the Sensors (Gyro and Accelerometers) values. More or that later....
+
+### tapDidReadHardwareVersion(identifier:String, hw:Int)
+
+This function is called when the TAP is connected and the Hardware version was read from the device.
+The format is Integer: MMmmbb
+MM for major, mm for minor, bb for build. 
+Example: 30200 Translates into hardware: 3.2 (30200 -> 03 02 00 -> 3.2)
+
+### tapDidReadFirmwareVersion(identifier:String, fw:Int)
+
+Same as Hardware version, but for Firmware version. 
+Same format, See above: **tapDidReadHardwareVersion**
+
 
 ## Adding a TAPKitDelegate :
 

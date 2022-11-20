@@ -174,7 +174,7 @@ extension TAPCentral : CBCentralManagerDelegate {
 
 extension TAPCentral : TAPHandleDelegate {
     func TAPHandleIsReady(_ handle: TAPHandle) {
-        self.delegate?.tapConnected?(identifier: handle.identifierString)
+        self.delegate?.tapConnected?(identifier: handle.identifierString, name:handle.name)
     }
     
     func TAPHandleDidUpdateCharacteristicValue(_ handle: TAPHandle, characteristic: CBUUID, value: Data) {

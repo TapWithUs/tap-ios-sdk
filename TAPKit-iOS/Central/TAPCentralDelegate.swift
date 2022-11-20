@@ -10,7 +10,7 @@ import Foundation
 import CoreBluetooth
 
 @objc protocol TAPCentralDelegate {
-    @objc optional func tapConnected(identifier uuid:String) -> Void
+    @objc optional func tapConnected(identifier uuid:String, name:String) -> Void
     @objc optional func tapDisconnected(identifier uuid:String) -> Void
     @objc optional func tapFailedToConnect(identifier uuid:String) -> Void
     @objc optional func tapDidReadCharacteristicValue(identifier uuid:String, characteristic:CBUUID, value:Data)

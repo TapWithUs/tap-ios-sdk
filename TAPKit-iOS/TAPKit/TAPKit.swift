@@ -11,7 +11,6 @@ import CoreBluetooth
 
 public class TAPKit : NSObject {
     @objc public static let sharedKit = TAPKit()
-    
     @objc public static let log = TAPKitLog.sharedLog
     private var delegatesController : DelegatesController<TAPKitDelegate>
     private var central : TAPCentral!
@@ -83,6 +82,19 @@ public class TAPKit : NSObject {
         if let p = self.parsers[characteristic] {
             p.forEach({ parser in
                 parser(identifier, characteristic, data)
+            })
+        }
+    }
+    
+    private func actionWithIdentifiers(action:((String)->Void), identifiers:[String]?=nil) {
+        if let identifiers = identifiers {
+            identifiers.forEach({ identifier in
+                action(identifier)
+            })
+        } else {
+            let taps = self.getConnectedTaps()
+            taps.forEach({ uuid, _ in
+                action(uuid)
             })
         }
     }
@@ -186,7 +198,7 @@ extension TAPKit : TAPCentralDelegate {
         self.inputModeController.pause(andSetMode: .text())
     }
     
-    func tapConnected(identifier uuid:String) -> Void {
+    func tapConnected(identifier uuid:String, name:String) -> Void {
         TAPKit.log.event(.info, message: "tap \(uuid) connected and ready")
         self.inputModeController.add(uuid)
     }
@@ -245,16 +257,22 @@ extension TAPKit {
     
     @objc public func vibrate(durations:Array<UInt16>, forIdentifiers identifiers:[String]? = nil) -> Void {
         if let data = TAPHaptic.toData(durations: durations) {
-            if let identifiers = identifiers {
-                identifiers.forEach( { uuid in
-                    self.central.write(identifier: uuid, characteristic: TAPCBUUID.characteristic__UICommands, value: data)
-                })
-            } else {
-                let taps = self.getConnectedTaps()
-                taps.forEach({ uuid, _ in
-                    self.central.write(identifier: uuid, characteristic: TAPCBUUID.characteristic__UICommands, value: data)
-                })
-            }
+            self.actionWithIdentifiers(action: { uuid in
+                self.central.write(identifier: uuid, characteristic: TAPCBUUID.characteristic__UICommands, value: data)
+            }, identifiers: identifiers)
         }
+    }
+    
+    @objc public func readHardwareVersion(forIdentifiers identifiers:[String]? = nil) -> Void {
+        
+        self.actionWithIdentifiers(action: { uuid in
+            self.central.read(identifier: uuid, characteristic: TAPCBUUID.characteristic__HW)
+        }, identifiers: identifiers)
+    }
+    
+    @objc public func readFirmwareVersion(forIdentifiers identifiers:[String]? = nil) -> Void {
+        self.actionWithIdentifiers(action: { uuid in
+            self.central.read(identifier: uuid, characteristic: TAPCBUUID.characteristic__FW)
+        }, identifiers: identifiers)
     }
 }
