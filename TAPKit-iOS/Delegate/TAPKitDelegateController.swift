@@ -18,11 +18,13 @@ import Foundation
     @objc optional func rawSensorDataReceived(identifier:String, data:RawSensorData)
     @objc optional func tapChangedAirGesturesState(identifier:String, isInAirGesturesState:Bool)
     @objc optional func tapAirGestured(identifier:String, gesture:TAPAirGesture)
+    
 }
 
 class TAPKitDelegateWeakRef {
     
     private weak var ref: TAPKitDelegate?
+    
     
     init(_ ref: TAPKitDelegate) {
         self.ref = ref
@@ -37,11 +39,14 @@ class TAPKitDelegateWeakRef {
     }
 }
 
+
+
 class TAPKitDelegatesController {
-    private var delegates : [TAPKitDelegateWeakRef]
+    private var delegates : [WeakRef<TAPKitDelegate>]
+    
     
     init() {
-        self.delegates = [TAPKitDelegateWeakRef]()
+        self.delegates = [WeakRef<TAPKitDelegate>]()
     }
     
     private func removeNullReferences() -> Void {
@@ -52,7 +57,7 @@ class TAPKitDelegatesController {
         self.removeNullReferences()
         if (!self.delegates.contains(where: { $0.get() === delegate })) {
             
-            self.delegates.append(TAPKitDelegateWeakRef(delegate))
+            self.delegates.append(WeakRef(delegate))
         }
     }
     

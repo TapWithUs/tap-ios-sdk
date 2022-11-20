@@ -7,6 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		323418A62924F6E5009CBA2B /* TAPAirGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */; };
+		325EFF8A2922899F00E2B478 /* TAPHaptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325EFF892922899F00E2B478 /* TAPHaptic.swift */; };
+		32EEBDCE2917EB30000AAA22 /* TAPHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */; };
+		32EEBDD02918EB64000AAA22 /* TAPHandleInit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDCF2918EB64000AAA22 /* TAPHandleInit.swift */; };
+		32EEBDD2291BC203000AAA22 /* ViewController2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDD1291BC203000AAA22 /* ViewController2.swift */; };
+		32EEBDD5291BD34A000AAA22 /* TAPCentral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDD3291BC50F000AAA22 /* TAPCentral.swift */; };
+		32EEBDD7291BD8FD000AAA22 /* TAPCentralDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDD6291BD8FD000AAA22 /* TAPCentralDelegate.swift */; };
+		32EEBDDD291D1485000AAA22 /* WeakRef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDDC291D1485000AAA22 /* WeakRef.swift */; };
+		32EEBDDF29211549000AAA22 /* DelegatesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDDE29211549000AAA22 /* DelegatesController.swift */; };
+		32EEBDE129212974000AAA22 /* DataConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDE029212974000AAA22 /* DataConverter.swift */; };
+		32EEBDE429224401000AAA22 /* TAPInputModeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDE329224401000AAA22 /* TAPInputModeController.swift */; };
 		5310518923E997090028ABCF /* RawSensorData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5310518823E997090028ABCF /* RawSensorData.swift */; };
 		5310518B23E9971A0028ABCF /* RawSensorDataParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5310518A23E9971A0028ABCF /* RawSensorDataParser.swift */; };
 		5329B3B523EADF11007C2B90 /* TAPRawSensorSensitivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5329B3B423EADF11007C2B90 /* TAPRawSensorSensitivity.swift */; };
@@ -93,6 +104,17 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPAirGestureController.swift; sourceTree = "<group>"; };
+		325EFF892922899F00E2B478 /* TAPHaptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHaptic.swift; sourceTree = "<group>"; };
+		32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHandle.swift; sourceTree = "<group>"; };
+		32EEBDCF2918EB64000AAA22 /* TAPHandleInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHandleInit.swift; sourceTree = "<group>"; };
+		32EEBDD1291BC203000AAA22 /* ViewController2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController2.swift; sourceTree = "<group>"; };
+		32EEBDD3291BC50F000AAA22 /* TAPCentral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPCentral.swift; sourceTree = "<group>"; };
+		32EEBDD6291BD8FD000AAA22 /* TAPCentralDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPCentralDelegate.swift; sourceTree = "<group>"; };
+		32EEBDDC291D1485000AAA22 /* WeakRef.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeakRef.swift; sourceTree = "<group>"; };
+		32EEBDDE29211549000AAA22 /* DelegatesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DelegatesController.swift; sourceTree = "<group>"; };
+		32EEBDE029212974000AAA22 /* DataConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataConverter.swift; sourceTree = "<group>"; };
+		32EEBDE329224401000AAA22 /* TAPInputModeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPInputModeController.swift; sourceTree = "<group>"; };
 		5310518823E997090028ABCF /* RawSensorData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawSensorData.swift; sourceTree = "<group>"; };
 		5310518A23E9971A0028ABCF /* RawSensorDataParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawSensorDataParser.swift; sourceTree = "<group>"; };
 		5310518D23E9A69D0028ABCF /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -157,6 +179,40 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		323418A42924F6C4009CBA2B /* AirGesture */ = {
+			isa = PBXGroup;
+			children = (
+				5329B3B623EAF6E2007C2B90 /* TAPAirGesture.swift */,
+				323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */,
+			);
+			path = AirGesture;
+			sourceTree = "<group>";
+		};
+		325EFF872922898100E2B478 /* Haptic */ = {
+			isa = PBXGroup;
+			children = (
+				325EFF892922899F00E2B478 /* TAPHaptic.swift */,
+			);
+			path = Haptic;
+			sourceTree = "<group>";
+		};
+		32EEBDD8291BEC4A000AAA22 /* TAPKit */ = {
+			isa = PBXGroup;
+			children = (
+				53E970B5206A662700F68262 /* TAPKit.swift */,
+			);
+			path = TAPKit;
+			sourceTree = "<group>";
+		};
+		32EEBDE229224096000AAA22 /* TAPInputMode */ = {
+			isa = PBXGroup;
+			children = (
+				53E970AF206927DF00F68262 /* TAPInputMode.swift */,
+				32EEBDE329224401000AAA22 /* TAPInputModeController.swift */,
+			);
+			path = TAPInputMode;
+			sourceTree = "<group>";
+		};
 		5310518723E31D650028ABCF /* RawSensorData */ = {
 			isa = PBXGroup;
 			children = (
@@ -191,6 +247,10 @@
 		532EB66520624D9F00B7B8BD /* TAPKit-iOS */ = {
 			isa = PBXGroup;
 			children = (
+				323418A42924F6C4009CBA2B /* AirGesture */,
+				325EFF872922898100E2B478 /* Haptic */,
+				32EEBDE229224096000AAA22 /* TAPInputMode */,
+				32EEBDD8291BEC4A000AAA22 /* TAPKit */,
 				5367F6F320E4D692007247C7 /* Common */,
 				53A84E6B207A3572008D0DC2 /* TAPDevice */,
 				53A84E6A207A3568008D0DC2 /* Delegate */,
@@ -199,7 +259,6 @@
 				53A84E67207A3544008D0DC2 /* Central */,
 				532EB66620624D9F00B7B8BD /* TAPKit.h */,
 				532EB66720624D9F00B7B8BD /* Info.plist */,
-				53E970B5206A662700F68262 /* TAPKit.swift */,
 			);
 			path = "TAPKit-iOS";
 			sourceTree = "<group>";
@@ -218,6 +277,8 @@
 			isa = PBXGroup;
 			children = (
 				532EB672206260F200B7B8BD /* TAPKitCentral.swift */,
+				32EEBDD3291BC50F000AAA22 /* TAPCentral.swift */,
+				32EEBDD6291BD8FD000AAA22 /* TAPCentralDelegate.swift */,
 			);
 			path = Central;
 			sourceTree = "<group>";
@@ -236,9 +297,8 @@
 				5310518723E31D650028ABCF /* RawSensorData */,
 				53E970B1206A2D2200F68262 /* TAPCombination.swift */,
 				532EB67020624F6800B7B8BD /* TAPCBUUID.swift */,
-				53E970AF206927DF00F68262 /* TAPInputMode.swift */,
-				5329B3B623EAF6E2007C2B90 /* TAPAirGesture.swift */,
 				53D550E823FDDBF00029474D /* VersionNumber.swift */,
+				32EEBDE029212974000AAA22 /* DataConverter.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -246,7 +306,9 @@
 		53A84E6A207A3568008D0DC2 /* Delegate */ = {
 			isa = PBXGroup;
 			children = (
+				32EEBDDC291D1485000AAA22 /* WeakRef.swift */,
 				53E970AD2067DAA600F68262 /* TAPKitDelegateController.swift */,
+				32EEBDDE29211549000AAA22 /* DelegatesController.swift */,
 			);
 			path = Delegate;
 			sourceTree = "<group>";
@@ -255,6 +317,8 @@
 			isa = PBXGroup;
 			children = (
 				532EB66E20624DBB00B7B8BD /* TAPDevice.swift */,
+				32EEBDCF2918EB64000AAA22 /* TAPHandleInit.swift */,
+				32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */,
 			);
 			path = TAPDevice;
 			sourceTree = "<group>";
@@ -264,6 +328,7 @@
 			children = (
 				53B1A13E207A58ED00025C59 /* AppDelegate.swift */,
 				53B1A140207A58ED00025C59 /* ViewController.swift */,
+				32EEBDD1291BC203000AAA22 /* ViewController2.swift */,
 				53B1A142207A58ED00025C59 /* Main.storyboard */,
 				53B1A145207A58ED00025C59 /* Assets.xcassets */,
 				53B1A147207A58ED00025C59 /* LaunchScreen.storyboard */,
@@ -458,16 +523,26 @@
 				532EB66F20624DBB00B7B8BD /* TAPDevice.swift in Sources */,
 				53D550E923FDDBF00029474D /* VersionNumber.swift in Sources */,
 				53E970B2206A2D2200F68262 /* TAPCombination.swift in Sources */,
+				325EFF8A2922899F00E2B478 /* TAPHaptic.swift in Sources */,
+				32EEBDD02918EB64000AAA22 /* TAPHandleInit.swift in Sources */,
+				32EEBDE429224401000AAA22 /* TAPInputModeController.swift in Sources */,
 				5310518923E997090028ABCF /* RawSensorData.swift in Sources */,
 				53E970B0206927DF00F68262 /* TAPInputMode.swift in Sources */,
 				532EB673206260F200B7B8BD /* TAPKitCentral.swift in Sources */,
 				5310518B23E9971A0028ABCF /* RawSensorDataParser.swift in Sources */,
 				5329B3B723EAF6E2007C2B90 /* TAPAirGesture.swift in Sources */,
 				53E970B6206A662700F68262 /* TAPKit.swift in Sources */,
+				323418A62924F6E5009CBA2B /* TAPAirGestureController.swift in Sources */,
+				32EEBDD7291BD8FD000AAA22 /* TAPCentralDelegate.swift in Sources */,
+				32EEBDD5291BD34A000AAA22 /* TAPCentral.swift in Sources */,
 				5329B3B523EADF11007C2B90 /* TAPRawSensorSensitivity.swift in Sources */,
 				53E970B4206A345A00F68262 /* TAPKitLog.swift in Sources */,
 				532EB67120624F6800B7B8BD /* TAPCBUUID.swift in Sources */,
+				32EEBDDD291D1485000AAA22 /* WeakRef.swift in Sources */,
+				32EEBDE129212974000AAA22 /* DataConverter.swift in Sources */,
+				32EEBDCE2917EB30000AAA22 /* TAPHandle.swift in Sources */,
 				53E970AE2067DAA600F68262 /* TAPKitDelegateController.swift in Sources */,
+				32EEBDDF29211549000AAA22 /* DelegatesController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -477,6 +552,7 @@
 			files = (
 				53B1A141207A58ED00025C59 /* ViewController.swift in Sources */,
 				53B1A13F207A58ED00025C59 /* AppDelegate.swift in Sources */,
+				32EEBDD2291BC203000AAA22 /* ViewController2.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -652,7 +728,6 @@
 				ARCHS = (
 					"$(ARCHS_STANDARD)",
 					arm64,
-					armv7,
 				);
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -691,7 +766,6 @@
 				ARCHS = (
 					"$(ARCHS_STANDARD)",
 					arm64,
-					armv7,
 				);
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";

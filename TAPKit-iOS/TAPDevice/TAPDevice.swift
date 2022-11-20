@@ -161,6 +161,7 @@ class TAPDevice : NSObject {
             }
         }
     }
+    
     private func requestReadAirMouseMode() -> Void {
         if let ch = self.airGestures {
             if self.peripheral.state == .connected {
