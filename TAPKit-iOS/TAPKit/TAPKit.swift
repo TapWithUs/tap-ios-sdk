@@ -9,8 +9,13 @@
 import Foundation
 import CoreBluetooth
 
-public class TAPKit : NSObject {
-    @objc public static let sharedKit = TAPKit()
+
+
+open class TAPKit : NSObject {
+    
+    @objc public static let sharedKit = TAPKit.instance()
+    private static var _instance : TAPKit? = nil
+    
     @objc public static let log = TAPKitLog.sharedLog
     private var delegatesController : DelegatesController<TAPKitDelegate>
     private var central : TAPCentral!
@@ -18,7 +23,15 @@ public class TAPKit : NSObject {
     private var airGestureController : TAPAirGestureController!
     private var parsers : [CBUUID : [((String, CBUUID, Data)->Void)]] // CharacteristicUUID : (TapIdentifierUUID, CharacteristicUUID, Data)
     
-    private override init() {
+    open class func instance() -> TAPKit {
+        if TAPKit._instance == nil {
+            TAPKit._instance = TAPKit()
+        }
+        return TAPKit._instance!
+    }
+    
+    public
+    override init() {
         self.parsers = [CBUUID : [((String, CBUUID, Data)->Void)]]()
         self.delegatesController = DelegatesController<TAPKitDelegate>()
         self.airGestureController = TAPAirGestureController()
@@ -29,7 +42,8 @@ public class TAPKit : NSObject {
         self.setupParsers()
     }
     
-    private func setupParsers() -> Void {
+    open
+    func setupParsers() -> Void {
         self.addParser(TAPCBUUID.characteristic__TAPData, parser: self.tapDataParser(identifier:characteristic:data:))
         self.addParser(TAPCBUUID.characteristic__MouseData, parser: self.tapMouseParser(identifier:characteristic:data:))
         self.addParser(TAPCBUUID.characteristic__TX, parser: self.tapRawSensorParser(identifier:characteristic:data:))
@@ -38,7 +52,7 @@ public class TAPKit : NSObject {
         self.addParser(TAPCBUUID.characteristic__FW, parser: self.tapDeviceInformationParser(identifier:characteristic:data:))
     }
                            
-    private func addParser(_ characteristic:CBUUID, parser: @escaping ((String, CBUUID, Data)->Void)) {
+    public func addParser(_ characteristic:CBUUID, parser: @escaping ((String, CBUUID, Data)->Void)) {
         if self.parsers[characteristic] == nil {
             self.parsers[characteristic] = [((String, CBUUID, Data)->Void)]()
         }
@@ -53,14 +67,15 @@ public class TAPKit : NSObject {
     }
 
     
-    private func getHandleConfig() -> TAPHandleConfig {
+    open
+    func getHandleConfig() -> TAPHandleConfig {
         let c = TAPHandleConfig()
         c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__TAPData, notify: true))
         c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__MouseData, notify: true))
         c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__RX))
         c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__TX))
-        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__HW, readOnDiscover: true))
-        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__FW, readOnDiscover: true))
+        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__HW, readOnDiscover: true, storeLastReadValue: true))
+        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__FW, readOnDiscover: true, storeLastReadValue: true))
         return c
     }
     
@@ -86,7 +101,11 @@ public class TAPKit : NSObject {
         }
     }
     
-    private func actionWithIdentifiers(action:((String)->Void), identifiers:[String]?=nil) {
+    public func getStoredValue(identifier:String, characteristic:CBUUID) -> Data? {
+        return self.central.getStoredValue(identifier: identifier, characteristic: characteristic)
+    }
+    
+    public func actionWithIdentifiers(action:((String)->Void), identifiers:[String]?=nil) {
         if let identifiers = identifiers {
             identifiers.forEach({ identifier in
                 action(identifier)
@@ -98,6 +117,13 @@ public class TAPKit : NSObject {
             })
         }
     }
+    
+    public func read(identifier:String, characteristic:CBUUID) -> Void {
+        self.central.read(identifier: identifier, characteristic: characteristic)
+        
+    }
+    
+    
 }
 
 extension TAPKit {
@@ -186,6 +212,7 @@ extension TAPKit {
             }
         }
     }
+    
 }
 
 
@@ -201,10 +228,16 @@ extension TAPKit : TAPCentralDelegate {
     func tapConnected(identifier uuid:String, name:String) -> Void {
         TAPKit.log.event(.info, message: "tap \(uuid) connected and ready")
         self.inputModeController.add(uuid)
+        self.delegatesController.run(action: { d in
+            d.tapConnected?(withIdentifier: uuid, name: name, fw: 0)
+        })
     }
     
     func tapDisconnected(identifier uuid:String) -> Void {
         self.inputModeController.remove(uuid)
+        self.delegatesController.run(action: { d in
+            d.tapDisconnected?(withIdentifier: uuid)
+        })
     }
     
     func tapDidReadCharacteristicValue(identifier uuid:String, characteristic:CBUUID, value:Data) {
@@ -266,13 +299,15 @@ extension TAPKit {
     @objc public func readHardwareVersion(forIdentifiers identifiers:[String]? = nil) -> Void {
         
         self.actionWithIdentifiers(action: { uuid in
-            self.central.read(identifier: uuid, characteristic: TAPCBUUID.characteristic__HW)
+            
+            self.read(identifier: uuid, characteristic: TAPCBUUID.characteristic__HW)
         }, identifiers: identifiers)
     }
     
     @objc public func readFirmwareVersion(forIdentifiers identifiers:[String]? = nil) -> Void {
         self.actionWithIdentifiers(action: { uuid in
-            self.central.read(identifier: uuid, characteristic: TAPCBUUID.characteristic__FW)
+            
+            self.read(identifier: uuid, characteristic: TAPCBUUID.characteristic__FW)
         }, identifiers: identifiers)
     }
 }

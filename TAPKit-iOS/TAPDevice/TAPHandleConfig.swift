@@ -9,23 +9,27 @@
 import Foundation
 import CoreBluetooth
 
-struct TAPHandleConfigCharacteristic {
+open
+class TAPHandleConfigCharacteristic {
     let uuid : CBUUID
     let readOnDiscover : Bool
     let defaultValueIfNotDiscovered : Data?
     let storeLastReadValue : Bool
     let notify:Bool
+    let valueIsMandatory:Bool
     
-    
-    init(uuid:CBUUID, readOnDiscover:Bool=false, defaultValueIfNotDiscovered : Data? = nil, storeLastReadValue : Bool=false, notify:Bool=false) {
+    public
+    init(uuid:CBUUID, readOnDiscover:Bool=false, defaultValueIfNotDiscovered : Data? = nil, storeLastReadValue : Bool=false, notify:Bool=false, valueIsMandatory:Bool = false) {
         self.uuid = uuid
         self.readOnDiscover = readOnDiscover
         self.defaultValueIfNotDiscovered = defaultValueIfNotDiscovered
         self.storeLastReadValue = storeLastReadValue;
         self.notify = notify
+        self.valueIsMandatory = valueIsMandatory
     }
 }
 
+open
 class TAPHandleConfig {
     private(set) var characteristics : [CBUUID : TAPHandleConfigCharacteristic]!
     
@@ -40,7 +44,7 @@ class TAPHandleConfig {
         })
     }
     
-    public func add(_ characteristic:TAPHandleConfigCharacteristic, overwrite:Bool=false) -> Void {
+    public func add(_ characteristic:TAPHandleConfigCharacteristic, overwrite:Bool=true) -> Void {
         
         if let _ = self.characteristics[characteristic.uuid] {
             if overwrite {
@@ -59,6 +63,12 @@ class TAPHandleConfig {
             }
         })
         return services
+    }
+    
+    public func forEach(_ action : ((CBUUID, TAPHandleConfigCharacteristic) -> Void)) {
+        self.characteristics.forEach({ uuid, hconfig in
+            action(uuid, hconfig)
+        })
     }
     
     public func getCharacteristics(forService serviceUUID : CBUUID) -> Set<CBUUID> {

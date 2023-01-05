@@ -8,17 +8,21 @@
 
 import Foundation
 
+public
 class DelegatesController<T> where T:AnyObject  {
     private var delegates : [WeakRef<T>]
     
+    public
     init() {
         self.delegates = [WeakRef<T>]()
     }
+    
     
     private func removeDeadReferences() -> Void {
         self.delegates = self.delegates.filter({ $0.isAlive() })
     }
     
+    public
     func add(_ delegate:T) -> Void {
         self.removeDeadReferences()
         if (!self.delegates.contains(where: { $0.get() === delegate })) {
@@ -26,11 +30,13 @@ class DelegatesController<T> where T:AnyObject  {
         }
     }
     
+    public
     func remove(_ delegate:T) -> Void {
         self.removeDeadReferences()
         self.delegates = self.delegates.filter({ $0.get() !== delegate })
     }
     
+    public
     func run(action:((T)->Void)) {
         self.delegates.forEach( { delegate in
             if (delegate.isAlive()) {

@@ -117,7 +117,13 @@ class TAPCentral : NSObject {
         return res
     }
     
-    
+    func getStoredValue(identifier:String, characteristic:CBUUID) -> Data? {
+        if let handle = self.getTapHandle(identifier) {
+            return handle.getStoredValue(characteristic: characteristic)
+        } else {
+            return nil
+        }
+    }
     
     func read(identifier:String, characteristic:CBUUID) -> Void {
         if let handle = self.getTapHandle(identifier) {

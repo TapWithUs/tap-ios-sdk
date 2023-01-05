@@ -8,6 +8,7 @@
 
 import Foundation
 
+public
 class VersionNumber {
     
     private static let delimiter = "."

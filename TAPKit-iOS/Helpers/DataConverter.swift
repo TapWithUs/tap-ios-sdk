@@ -8,6 +8,7 @@
 
 import Foundation
 
+public
 class DataConverter {
     
     static func toUInt8(data:Data, index:Int) -> UInt8? {

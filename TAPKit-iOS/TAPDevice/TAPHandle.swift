@@ -68,14 +68,37 @@ class TAPHandle : NSObject {
         
     }
     
-    private func serviceFullyDiscovered(_ uuid:CBUUID) {
-        self.fullyDiscoveredServices[uuid] = true
-        self.isReady = self.fullyDiscoveredServices.filter({ entry in entry.value == false}).count == 0
+    private func checkIfReady() -> Void {
+        guard !self.isReady else { return }
+        let servicesDiscovered : Bool = self.fullyDiscoveredServices.filter({ entry in entry.value == false}).count == 0
+        if (servicesDiscovered) {
+            // Check for mandatory values.
+            var hasMandatoryValues = true
+            self.handleConfig.forEach({ uuid, config in
+                if config.valueIsMandatory {
+                    if !self.values.keys.contains(uuid) {
+                        hasMandatoryValues = false
+                    }
+                }
+            })
+            self.isReady = hasMandatoryValues
+        }
+        
         if (self.isReady) {
-            // Tap is Ready
             self.delegate?.TAPHandleIsReady(self)
         }
         
+    }
+    
+    private func serviceFullyDiscovered(_ uuid:CBUUID) {
+        self.fullyDiscoveredServices[uuid] = true
+        self.checkIfReady()
+//        self.isReady = self.fullyDiscoveredServices.filter({ entry in entry.value == false}).count == 0
+//        if (self.isReady) {
+//            // Tap is Ready
+//            self.delegate?.TAPHandleIsReady(self)
+//        }
+//
     }
     
     func makeReady() -> Void {
@@ -84,14 +107,23 @@ class TAPHandle : NSObject {
     
     func read(_ uuid:CBUUID, forcePeripheralRead:Bool = false) {
         if let c = self.characteristics[uuid] {
+            print("FOUND CHARACTERISTIC!")
             if (!forcePeripheralRead) {
                 if let value = self.values[uuid] {
                     self.delegate?.TAPHandleDidUpdateCharacteristicValue(self, characteristic: uuid, value: value)
+                } else {
+                    self.peripheral.readValue(for: c)
                 }
             } else {
                 self.peripheral.readValue(for: c)
             }
+        } else {
+            print("CHARACTERISTIC \(uuid.uuidString) NOT FOUND ")
         }
+    }
+    
+    func getStoredValue(characteristic:CBUUID) -> Data? {
+        return self.values[characteristic]
     }
     
     func write(_ uuid:CBUUID, value:Data) {
@@ -174,6 +206,7 @@ extension TAPHandle : CBPeripheralDelegate {
             self.delegate?.TAPHandleDidUpdateCharacteristicValue(self, characteristic: characteristic.uuid, value: value)
         }
         
+        self.checkIfReady()
     }
     
     
