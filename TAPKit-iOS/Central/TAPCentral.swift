@@ -14,21 +14,24 @@ class TAPCentral : NSObject {
 
     
     private var centralManager : CBCentralManager!
-    
+     
     private var pending : Set<CBPeripheral>!
     private var taps : Set<TAPHandle>!
-    private var started : Bool!
+    private(set) var started : Bool!
     private var isBluetoothOn : Bool!
     private var appActive : Bool = true
     private var handleConfig : TAPHandleConfig!
+    private var handleValidator : TAPHandleValidator!
+    
     private weak var delegate : TAPCentralDelegate?
     private var connectionTimer : Timer?
     
     
-    convenience init(handleInit:TAPHandleConfig, delegate:TAPCentralDelegate?) {
+    convenience init(handleInit:TAPHandleConfig, handleValidator:TAPHandleValidator, delegate:TAPCentralDelegate?) {
         self.init()
         
         self.delegate = delegate
+        self.handleValidator = handleValidator
         self.handleConfig = handleInit
         self.isBluetoothOn = false
         self.pending = Set<CBPeripheral>()
@@ -119,7 +122,8 @@ class TAPCentral : NSObject {
     
     func getStoredValue(identifier:String, characteristic:CBUUID) -> Data? {
         if let handle = self.getTapHandle(identifier) {
-            return handle.getStoredValue(characteristic: characteristic)
+            return handle.getStoredValue(
+                characteristic)
         } else {
             return nil
         }
@@ -127,6 +131,7 @@ class TAPCentral : NSObject {
     
     func read(identifier:String, characteristic:CBUUID) -> Void {
         if let handle = self.getTapHandle(identifier) {
+            print("READING \(characteristic.uuidString)")
             handle.read(characteristic)
         }
     }
@@ -153,7 +158,6 @@ extension TAPCentral : CBCentralManagerDelegate {
         let tap = TAPHandle(peripheral: peripheral, handleConfig: self.handleConfig, delegate: self)
         self.taps.insert(tap)
         tap.makeReady()
-        
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
@@ -184,7 +188,17 @@ extension TAPCentral : TAPHandleDelegate {
     }
     
     func TAPHandleDidUpdateCharacteristicValue(_ handle: TAPHandle, characteristic: CBUUID, value: Data) {
+        TAPKit.log.event(.info, message: "TAPHandleDidUpdateCharacteristicValue: characteristic(\(characteristic.uuidString) value(\(value)")
         self.delegate?.tapDidReadCharacteristicValue?(identifier: handle.identifierString, characteristic: characteristic, value: value)
+    }
+    
+    func TAPValidate(_ handle: TAPHandle) -> Bool {
+        return self.handleValidator.validate(handle)
+    }
+    
+    func TAPHandleDidWriteCharacteristicValue(_ handle: TAPHandle, characteristic: CBUUID, value: Data?) {
+        TAPKit.log.event(.info, message: "TAPHandleDidWriteCharacteristicValue: characteristic(\(characteristic.uuidString)")
+        self.delegate?.tapDidWriteCharacteristicValue?(identifier: handle.identifierString, characteristic: characteristic, value: value)
     }
 }
 
@@ -197,7 +211,10 @@ extension TAPCentral {
         self.started = true
         if (self.isBluetoothOn) {
             self.startConnectionTimer()
-//            self.startModeTimer()
         }
     }
+    
+    
+    
+    
 }

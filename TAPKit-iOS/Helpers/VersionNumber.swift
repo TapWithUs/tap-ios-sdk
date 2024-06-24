@@ -16,12 +16,17 @@ class VersionNumber {
     private static let multHigh = Int(pow(Double(10), Double(VersionNumber.digits*2)))
     private static let multLow = Int(pow(Double(10), Double(VersionNumber.digits)))
     
-    public static func data2Int(data:Data) -> Int? {
-        if let str = DataConverter.toString(data) {
-            return VersionNumber.string2Int(str: str)
+    public static func data2Int(data:Data?) -> Int? {
+        if let data = data {
+            if let str = DataConverter.toString(data) {
+                return VersionNumber.string2Int(str: str)
+            } else {
+                return nil
+            }
         } else {
             return nil
         }
+        
         
     }
     

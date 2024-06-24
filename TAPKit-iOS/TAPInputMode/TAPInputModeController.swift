@@ -8,15 +8,15 @@
 
 import Foundation
 
-protocol TAPInputModeControllerDelegate : AnyObject {
-    func TAPInputModeUpdate(modes:[String:TAPInputMode]) -> Void
+@objc protocol TAPInputModeControllerDelegate : AnyObject {
+    @objc func TAPInputModeUpdate(modes:[String:TAPInputMode]) -> Void
 }
 
 class TAPInputModeController : NSObject {
     
     private var timer:Timer?
     private var defaultInputMode : TAPInputMode
-    private var modes : [String : TAPInputMode]
+    public var modes : [String : TAPInputMode]
     weak var delegate : TAPInputModeControllerDelegate?
     private var interval : TimeInterval
     private var isActive : Bool
@@ -38,6 +38,7 @@ class TAPInputModeController : NSObject {
     }
     
     func set(defaultInputMode:TAPInputMode, immediate:Bool) -> Void {
+        
         self.defaultInputMode = defaultInputMode
         self.modes.keys.forEach({ uuid in
             self.modes[uuid] = defaultInputMode
@@ -57,8 +58,8 @@ class TAPInputModeController : NSObject {
         self.delegate?.TAPInputModeUpdate(modes: self.modes)
     }
     
-    func get(identifier:String) -> TAPInputMode {
-        return self.modes[identifier] ?? self.defaultInputMode
+    func get(identifier:String) -> TAPInputMode? {
+        return self.modes[identifier]
     }
     
     func add(_ uuid:String) -> Void {
@@ -78,6 +79,12 @@ class TAPInputModeController : NSObject {
         self.modeTimerTick(timer: self.timer)
     }
     
+    func refresh() -> Void {
+        if self.isActive {
+            self.delegate?.TAPInputModeUpdate(modes: self.modes)
+        }
+    }
+    
     @objc func modeTimerTick(timer: Timer?) -> Void {
         if self.isActive {
             self.delegate?.TAPInputModeUpdate(modes: self.modes)
@@ -86,7 +93,6 @@ class TAPInputModeController : NSObject {
     }
     
     func stop() {
-        
         self.isActive = false
         self.timer?.invalidate()
     }

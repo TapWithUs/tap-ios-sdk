@@ -12,19 +12,21 @@ import CoreBluetooth
 protocol TAPHandleDelegate : class {
     func TAPHandleIsReady(_ handle:TAPHandle)
     func TAPHandleDidUpdateCharacteristicValue(_ handle:TAPHandle, characteristic:CBUUID, value:Data)
+    func TAPHandleDidWriteCharacteristicValue(_ handle:TAPHandle, characteristic:CBUUID, value:Data?)
+    func TAPValidate(_ handle:TAPHandle) -> Bool
 }
 
+open
 class TAPHandle : NSObject {
     
     
     private(set) var isReady : Bool
     
     private var peripheral : CBPeripheral!
-    private var handleConfig : TAPHandleConfig!
+    private var handleConfig : TAPHandleConfig
     private var values : [CBUUID: Data]
     private var characteristics : [CBUUID : CBCharacteristic]
     private var fullyDiscoveredServices : [CBUUID : Bool]
-    
     
     private weak var delegate : TAPHandleDelegate?
     
@@ -63,7 +65,6 @@ class TAPHandle : NSObject {
         self.isReady = false
         self.delegate = delegate
         super.init()
-        
         self.peripheral.delegate = self
         
     }
@@ -72,16 +73,9 @@ class TAPHandle : NSObject {
         guard !self.isReady else { return }
         let servicesDiscovered : Bool = self.fullyDiscoveredServices.filter({ entry in entry.value == false}).count == 0
         if (servicesDiscovered) {
-            // Check for mandatory values.
-            var hasMandatoryValues = true
-            self.handleConfig.forEach({ uuid, config in
-                if config.valueIsMandatory {
-                    if !self.values.keys.contains(uuid) {
-                        hasMandatoryValues = false
-                    }
-                }
-            })
-            self.isReady = hasMandatoryValues
+            
+            self.isReady = self.delegate?.TAPValidate(self) ?? false
+            
         }
         
         if (self.isReady) {
@@ -102,12 +96,13 @@ class TAPHandle : NSObject {
     }
     
     func makeReady() -> Void {
+
         self.peripheral.discoverServices(Array(self.handleConfig.getServices()))
     }
     
     func read(_ uuid:CBUUID, forcePeripheralRead:Bool = false) {
         if let c = self.characteristics[uuid] {
-            print("FOUND CHARACTERISTIC!")
+            
             if (!forcePeripheralRead) {
                 if let value = self.values[uuid] {
                     self.delegate?.TAPHandleDidUpdateCharacteristicValue(self, characteristic: uuid, value: value)
@@ -117,25 +112,29 @@ class TAPHandle : NSObject {
             } else {
                 self.peripheral.readValue(for: c)
             }
-        } else {
-            print("CHARACTERISTIC \(uuid.uuidString) NOT FOUND ")
         }
     }
     
-    func getStoredValue(characteristic:CBUUID) -> Data? {
+    public func hasCharacteristic(_ uuid:CBUUID) -> Bool {
+        return self.characteristics.keys.contains(uuid)
+    }
+    
+    public
+    func getStoredValue(_ characteristic:CBUUID) -> Data? {
         return self.values[characteristic]
     }
     
-    func write(_ uuid:CBUUID, value:Data) {
+    public func write(_ uuid:CBUUID, value:Data) {
         if let c = self.characteristics[uuid] {
-            self.peripheral.writeValue(value, for: c, type: .withoutResponse)
+//            let x = [UInt8](value)
+            self.peripheral.writeValue(value, for: c, type: TAPCBUUIDManager.sharedManager.getWriteType(for: uuid))
         }
     }
     
 }
 
 extension TAPHandle : CBPeripheralDelegate {
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let error = error {
             TAPKit.log.event(.error, message: error.localizedDescription)
         }
@@ -150,7 +149,8 @@ extension TAPHandle : CBPeripheralDelegate {
             peripheral.discoverCharacteristics(Array(self.handleConfig.getCharacteristics(forService: service.uuid)), for: service)
         })
     }
-    
+     
+    public
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         if let error = error {
             TAPKit.log.event(.error, message: error.localizedDescription)
@@ -189,8 +189,9 @@ extension TAPHandle : CBPeripheralDelegate {
         self.serviceFullyDiscovered(service.uuid)
     }
     
+    public
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        
+
         if let error = error {
             TAPKit.log.event(.error, message: error.localizedDescription)
         }
@@ -202,12 +203,21 @@ extension TAPHandle : CBPeripheralDelegate {
                     self.values[characteristic.uuid] = value
                 }
             }
-            
             self.delegate?.TAPHandleDidUpdateCharacteristicValue(self, characteristic: characteristic.uuid, value: value)
         }
         
         self.checkIfReady()
     }
     
+    
+    public
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            TAPKit.log.event(.error, message: error.localizedDescription)
+        }
+        
+        guard error == nil && peripheral.identifier == self.identifier else { return }
+        self.delegate?.TAPHandleDidWriteCharacteristicValue(self, characteristic: characteristic.uuid, value: characteristic.value)
+    }
     
 }

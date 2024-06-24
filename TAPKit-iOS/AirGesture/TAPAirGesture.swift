@@ -8,6 +8,7 @@
 
 import Foundation
 
+
 @objc public enum TAPAirGesture : Int {
     case OneFingerUp = 2
     case TwoFingersUp = 3

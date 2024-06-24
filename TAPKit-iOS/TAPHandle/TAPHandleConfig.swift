@@ -16,16 +16,13 @@ class TAPHandleConfigCharacteristic {
     let defaultValueIfNotDiscovered : Data?
     let storeLastReadValue : Bool
     let notify:Bool
-    let valueIsMandatory:Bool
-    
     public
-    init(uuid:CBUUID, readOnDiscover:Bool=false, defaultValueIfNotDiscovered : Data? = nil, storeLastReadValue : Bool=false, notify:Bool=false, valueIsMandatory:Bool = false) {
+    init(uuid:CBUUID, readOnDiscover:Bool=false, defaultValueIfNotDiscovered : Data? = nil, storeLastReadValue : Bool=false, notify:Bool=false) {
         self.uuid = uuid
         self.readOnDiscover = readOnDiscover
         self.defaultValueIfNotDiscovered = defaultValueIfNotDiscovered
         self.storeLastReadValue = storeLastReadValue;
         self.notify = notify
-        self.valueIsMandatory = valueIsMandatory
     }
 }
 

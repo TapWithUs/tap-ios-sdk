@@ -9,10 +9,10 @@
 import Foundation
 
 @objc public protocol TAPKitDelegate : class {
-    @objc optional func tapConnected(withIdentifier identifier:String, name:String, fw:Int)
+    @objc optional func tapConnected(withIdentifier identifier:String, name:String)
     @objc optional func tapDisconnected(withIdentifier identifier:String)
     @objc optional func tapFailedToConnect(withIdentifier identifier:String, name:String)
-    @objc optional func tapped(identifier:String, combination:UInt8)
+    @objc optional func tapped(identifier:String, combination:UInt8, multitap:UInt8)
     @objc optional func moused(identifier:String, velocityX:Int16, velocityY:Int16, isMouse:Bool)
     @objc optional func rawSensorDataReceived(identifier:String, data:RawSensorData)
     @objc optional func tapChangedAirGesturesState(identifier:String, isInAirGesturesState:Bool)

@@ -12,6 +12,7 @@ import CoreBluetooth
 public
 protocol TAPCBUUIDProtocol : AnyObject {
     func getService(for characteristic:CBUUID) -> CBUUID?
+    func getWriteType(for characteristic:CBUUID) -> CBCharacteristicWriteType
 }
 
 
@@ -35,6 +36,11 @@ class TAPCBUUIDManager {
     public
     func getService(for characteristic:CBUUID) -> CBUUID? {
         return self.UUIDS.getService(for: characteristic)
+    }
+    
+    public
+    func getWriteType(for characteristic:CBUUID) -> CBCharacteristicWriteType {
+        return self.UUIDS.getWriteType(for: characteristic)
     }
 }
 
@@ -78,6 +84,13 @@ class TAPCBUUID : TAPCBUUIDProtocol {
         return nil
     }
     
+    open
+    func getWriteType(for characteristic:CBUUID) -> CBCharacteristicWriteType {
+        if characteristic == TAPCBUUID.characteristic__RX {
+            return .withResponse
+        } 
+        return .withoutResponse
+    }
     
 }
 

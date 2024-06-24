@@ -20,12 +20,14 @@ class ViewController: UIViewController {
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
         TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode.controller(), immediate: true)
+//        TAPKit.sharedKit.setDefaultTAPInputMode(.rawSensor(sensitivity: .init(deviceAccelerometer: 1, imuGyro: 1, imuAccelerometer: 1)), immediate: true)
+        
         // You can enable/disable logs for specific events, or all events
         // TAPKitLogEvent.error, TAPKitLogEvent.fatal, TAPKitLogEvent.info, TAPKitLogEvent.warning
         // For example, to enable only errors logs:
         // TAPKit.log.enable(event: .error)
         TAPKit.log.disable(event: .warning)
-        TAPKit.log.enableAllEvents()
+        TAPKit.log.disableAllEvents()
         
         // start should be called typically in the main screen, after the delegate was being set earlier.
         TAPKit.sharedKit.start()
@@ -94,6 +96,10 @@ class ViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    @IBAction func buttonTouched(_ sender: Any) {
+        print("button touched")
+        TAPKit.sharedKit.vibrate(durations: [100,100,100])
+    }
 }
 
 extension ViewController : TAPKitDelegate {
@@ -110,6 +116,11 @@ extension ViewController : TAPKitDelegate {
         print("TAP \(identifier) did read hw: \(hw)")
     }
     
+    
+    
+    func tapped(identifier: String, combination: UInt8, multitap: UInt8) {
+        print("tapped: \(combination)")
+    }
     func tapped(identifier: String, combination: UInt8) {
         // Called when a user tap, only when the TAP device is in controller mode.
         print("TAP \(identifier) tapped combination: \(combination)")
@@ -143,6 +154,7 @@ extension ViewController : TAPKitDelegate {
         print("TAP \(identifier) disconnected.")
     }
     
+    
     func tapConnected(withIdentifier identifier: String, name: String) {
         // TAP device connected
         // We recomend that you'll keep track of the taps' identifier, if you're developing a multiplayer game and you need to keep track of all the players,
@@ -156,7 +168,7 @@ extension ViewController : TAPKitDelegate {
     }
     
     func moused(identifier: String, velocityX: Int16, velocityY: Int16, isMouse: Bool) {
-        
+        print("moused!")
         // Added isMouse parameter:
         // A boolean that determines if the TAP is really using the mouse (true) or is it a dummy mouse movement (false)
         

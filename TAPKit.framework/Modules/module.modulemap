@@ -1,0 +1,11 @@
+framework module TAPKit {
+  umbrella header "TAPKit.h"
+  export *
+
+  module * { export * }
+}
+
+module TAPKit.Swift {
+  header "TAPKit-Swift.h"
+  requires objc
+}

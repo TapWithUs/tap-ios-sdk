@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3204C2052970560700DB7628 /* TAPHandleValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3204C2042970560700DB7628 /* TAPHandleValidator.swift */; };
 		323418A62924F6E5009CBA2B /* TAPAirGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */; };
 		325EFF8A2922899F00E2B478 /* TAPHaptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325EFF892922899F00E2B478 /* TAPHaptic.swift */; };
 		32EEBDCE2917EB30000AAA22 /* TAPHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */; };
@@ -104,6 +105,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		3204C2042970560700DB7628 /* TAPHandleValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHandleValidator.swift; sourceTree = "<group>"; };
 		323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPAirGestureController.swift; sourceTree = "<group>"; };
 		325EFF892922899F00E2B478 /* TAPHaptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHaptic.swift; sourceTree = "<group>"; };
 		32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHandle.swift; sourceTree = "<group>"; };
@@ -252,7 +254,7 @@
 				32EEBDE229224096000AAA22 /* TAPInputMode */,
 				32EEBDD8291BEC4A000AAA22 /* TAPKit */,
 				5367F6F320E4D692007247C7 /* Common */,
-				53A84E6B207A3572008D0DC2 /* TAPDevice */,
+				53A84E6B207A3572008D0DC2 /* TAPHandle */,
 				53A84E6A207A3568008D0DC2 /* Delegate */,
 				53A84E69207A3555008D0DC2 /* Helpers */,
 				53A84E68207A354D008D0DC2 /* Log */,
@@ -313,14 +315,15 @@
 			path = Delegate;
 			sourceTree = "<group>";
 		};
-		53A84E6B207A3572008D0DC2 /* TAPDevice */ = {
+		53A84E6B207A3572008D0DC2 /* TAPHandle */ = {
 			isa = PBXGroup;
 			children = (
 				532EB66E20624DBB00B7B8BD /* TAPDevice.swift */,
 				32EEBDCF2918EB64000AAA22 /* TAPHandleConfig.swift */,
 				32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */,
+				3204C2042970560700DB7628 /* TAPHandleValidator.swift */,
 			);
-			path = TAPDevice;
+			path = TAPHandle;
 			sourceTree = "<group>";
 		};
 		53B1A13D207A58ED00025C59 /* TAPKit-Example */ = {
@@ -393,6 +396,7 @@
 				532EB65F20624D9F00B7B8BD /* Frameworks */,
 				532EB66020624D9F00B7B8BD /* Headers */,
 				532EB66120624D9F00B7B8BD /* Resources */,
+				32666CDD2A498D5300E0FC4B /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -515,6 +519,27 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		32666CDD2A498D5300E0FC4B /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 12;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "
+";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		532EB65E20624D9F00B7B8BD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -538,6 +563,7 @@
 				5329B3B523EADF11007C2B90 /* TAPRawSensorSensitivity.swift in Sources */,
 				53E970B4206A345A00F68262 /* TAPKitLog.swift in Sources */,
 				532EB67120624F6800B7B8BD /* TAPCBUUID.swift in Sources */,
+				3204C2052970560700DB7628 /* TAPHandleValidator.swift in Sources */,
 				32EEBDDD291D1485000AAA22 /* WeakRef.swift in Sources */,
 				32EEBDE129212974000AAA22 /* DataConverter.swift in Sources */,
 				32EEBDCE2917EB30000AAA22 /* TAPHandle.swift in Sources */,
@@ -725,10 +751,7 @@
 		532EB66C20624D9F00B7B8BD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					"$(ARCHS_STANDARD)",
-					arm64,
-				);
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -742,7 +765,7 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/TAPKit-iOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MODULEMAP_FILE = "";
 				ONLY_ACTIVE_ARCH = NO;
@@ -763,10 +786,7 @@
 		532EB66D20624D9F00B7B8BD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					"$(ARCHS_STANDARD)",
-					arm64,
-				);
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -780,7 +800,7 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/TAPKit-iOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MODULEMAP_FILE = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tapwithus.TAPKit-iOS";
@@ -803,11 +823,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1.1.3;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 6BH9T6C7E7;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "TAPKit-Example/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.--USER-.TAPKit-Example";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = WILDCARD_DEV;
@@ -824,11 +846,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1.1.3;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 6BH9T6C7E7;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "TAPKit-Example/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.--USER-.TAPKit-Example";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = WILDCARD_DEV;
