@@ -20,6 +20,11 @@ class ViewController: UIViewController {
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
         TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode.controller(), immediate: true)
+        TAPKit.sharedKit.setDefaultTAPXRState(.airMouse(), applyImmediate: true)
+        
+        
+        
+        
 //        TAPKit.sharedKit.setDefaultTAPInputMode(.rawSensor(sensitivity: .init(deviceAccelerometer: 1, imuGyro: 1, imuAccelerometer: 1)), immediate: true)
         
         // You can enable/disable logs for specific events, or all events
@@ -116,7 +121,7 @@ extension ViewController : TAPKitDelegate {
         print("TAP \(identifier) did read hw: \(hw)")
     }
     
-    
+
     
     func tapped(identifier: String, combination: UInt8, multitap: UInt8) {
         print("tapped: \(combination)")

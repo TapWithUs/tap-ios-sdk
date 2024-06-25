@@ -21,6 +21,7 @@ open class TAPKit : NSObject {
     private var central : TAPCentral!
     private var inputModeController : TAPInputModeController!
     private var airGestureController : TAPAirGestureController!
+    private var tapxrStateController : TAPXRStateController!
     private var parsers : [CBUUID : [((String, CBUUID, Data)->Void)]] // CharacteristicUUID : (TapIdentifierUUID, CharacteristicUUID, Data)
     private var didWriteParsers : [CBUUID : [((String, CBUUID, Data?)->Void)]]
     private var modesEnabled : Bool
@@ -39,10 +40,11 @@ open class TAPKit : NSObject {
         self.didWriteParsers = [CBUUID : [((String, CBUUID, Data?)->Void)]]()
         self.delegatesController = DelegatesController<TAPKitDelegate>()
         self.airGestureController = TAPAirGestureController()
-
+        self.tapxrStateController = TAPXRStateController()
         super.init()
         self.central = TAPCentral(handleInit: self.getHandleConfig(), handleValidator: self.getHandleValidator(), delegate: self)
         self.inputModeController = TAPInputModeController(interval: 10.0, delegate: self)
+        self.tapxrStateController.delegate = self
         self.setupObservers()
         self.setupParsers()
 
@@ -115,12 +117,14 @@ open class TAPKit : NSObject {
         
         TAPKit.log.event(.info, message: "appDidBecomeActive notification")
         self.inputModeController.resume()
+        self.tapxrStateController.resume()
     }
     
     @objc func appWillResignActive(notification:NSNotification) -> Void {
         
         TAPKit.log.event(.info, message: "appWillResignActive notification")
         self.inputModeController.pause(andSetMode: .text())
+        self.tapxrStateController.pause(andSetState: .userControl())
         
     }
     
@@ -172,6 +176,14 @@ open class TAPKit : NSObject {
     
     public func refreshModes() -> Void {
         self.inputModeController.refresh()
+    }
+    
+    public func writeState(identifier:String) -> Void {
+        if let state = self.tapxrStateController.get(identifier: identifier) {
+            if let data = state.data() {
+                self.central.write(identifier: identifier, characteristic: TAPCBUUID.characteristic__RX, value: data)
+            }
+        }
     }
     
 }
@@ -254,6 +266,10 @@ extension TAPKit {
             switch characteristic {
             case TAPCBUUID.characteristic__HW :
                 if let hw = VersionNumber.string2Int(str: str) {
+                    if hw >= 40000 {
+                        self.tapxrStateController.add(identifier: identifier)
+                    }
+                    
                     self.delegatesController.run(action: { d in
                         d.tapDidReadHardwareVersion?(identifier: identifier, hw: hw)
                     })
@@ -311,6 +327,18 @@ extension TAPKit : TAPCentralDelegate {
 //        self.parseDidWriteValue(identifier: uuid, characteristic: characteristic)
 //    }
 }
+extension TAPKit : TAPXRStateControllerDelegate {
+    func tapxrStateControllerUpdate(states: [String : TAPXRState]) {
+        guard self.modesEnabled else { return }
+        states.forEach({ uuid, state in
+            if let data = state.data() {
+                self.central.write(identifier: uuid, characteristic: TAPCBUUID.characteristic__RX, value: data)
+            }
+        })
+    }
+    
+    
+}
 
 extension TAPKit : TAPInputModeControllerDelegate {
     open func TAPInputModeUpdate(modes: [String : TAPInputMode]) {
@@ -328,6 +356,7 @@ extension TAPKit {
     
     @objc public func start() -> Void {
         self.inputModeController.start()
+        self.tapxrStateController.start()
         self.airGestureController.reset()
         self.central.start()
         
@@ -396,5 +425,16 @@ extension TAPKit {
     
     @objc public func disableModes() -> Void {
         self.modesEnabled = false
+    }
+    
+    @objc public func setTAPXRState(_ state:TAPXRState, forIdentifiers identifiers:[String]? = nil) -> Void {
+        self.actionWithIdentifiers(action: { uuid in
+            self.tapxrStateController.set(state: state, for: uuid)
+        }, identifiers: identifiers)
+        
+    }
+    
+    @objc public func setDefaultTAPXRState(_ state:TAPXRState, applyImmediate:Bool) -> Void {
+        self.tapxrStateController.setDefault(state: state, applyImmediate: applyImmediate)
     }
 }

@@ -8,6 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		3204C2052970560700DB7628 /* TAPHandleValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3204C2042970560700DB7628 /* TAPHandleValidator.swift */; };
+		3211B16F2C299DA7007F1631 /* TAPXRState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B16E2C299DA7007F1631 /* TAPXRState.swift */; };
+		3211B1722C29A5EC007F1631 /* TAPXRStateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1712C29A5EC007F1631 /* TAPXRStateController.swift */; };
+		3211B17A2C2AF5CF007F1631 /* MouseEventsInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1742C2AF5CE007F1631 /* MouseEventsInterpreter.swift */; };
+		3211B17B2C2AF5CF007F1631 /* MajorityVoting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1752C2AF5CE007F1631 /* MajorityVoting.swift */; };
+		3211B17C2C2AF5CF007F1631 /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1762C2AF5CE007F1631 /* Queue.swift */; };
+		3211B17D2C2AF5CF007F1631 /* Deque.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1772C2AF5CE007F1631 /* Deque.swift */; };
+		3211B17E2C2AF5CF007F1631 /* XRGesturesMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1782C2AF5CF007F1631 /* XRGesturesMain.swift */; };
+		3211B17F2C2AF5CF007F1631 /* MouseEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1792C2AF5CF007F1631 /* MouseEvents.swift */; };
 		323418A62924F6E5009CBA2B /* TAPAirGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */; };
 		325EFF8A2922899F00E2B478 /* TAPHaptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325EFF892922899F00E2B478 /* TAPHaptic.swift */; };
 		32EEBDCE2917EB30000AAA22 /* TAPHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */; };
@@ -106,6 +114,14 @@
 
 /* Begin PBXFileReference section */
 		3204C2042970560700DB7628 /* TAPHandleValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHandleValidator.swift; sourceTree = "<group>"; };
+		3211B16E2C299DA7007F1631 /* TAPXRState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPXRState.swift; sourceTree = "<group>"; };
+		3211B1712C29A5EC007F1631 /* TAPXRStateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPXRStateController.swift; sourceTree = "<group>"; };
+		3211B1742C2AF5CE007F1631 /* MouseEventsInterpreter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MouseEventsInterpreter.swift; sourceTree = "<group>"; };
+		3211B1752C2AF5CE007F1631 /* MajorityVoting.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MajorityVoting.swift; sourceTree = "<group>"; };
+		3211B1762C2AF5CE007F1631 /* Queue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Queue.swift; sourceTree = "<group>"; };
+		3211B1772C2AF5CE007F1631 /* Deque.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deque.swift; sourceTree = "<group>"; };
+		3211B1782C2AF5CF007F1631 /* XRGesturesMain.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XRGesturesMain.swift; sourceTree = "<group>"; };
+		3211B1792C2AF5CF007F1631 /* MouseEvents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MouseEvents.swift; sourceTree = "<group>"; };
 		323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPAirGestureController.swift; sourceTree = "<group>"; };
 		325EFF892922899F00E2B478 /* TAPHaptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHaptic.swift; sourceTree = "<group>"; };
 		32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHandle.swift; sourceTree = "<group>"; };
@@ -181,6 +197,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3211B1702C29A5DC007F1631 /* TAPXRState */ = {
+			isa = PBXGroup;
+			children = (
+				3211B16E2C299DA7007F1631 /* TAPXRState.swift */,
+				3211B1712C29A5EC007F1631 /* TAPXRStateController.swift */,
+			);
+			path = TAPXRState;
+			sourceTree = "<group>";
+		};
+		3211B1732C2AF43B007F1631 /* TAPXRGestures */ = {
+			isa = PBXGroup;
+			children = (
+				3211B1772C2AF5CE007F1631 /* Deque.swift */,
+				3211B1752C2AF5CE007F1631 /* MajorityVoting.swift */,
+				3211B1792C2AF5CF007F1631 /* MouseEvents.swift */,
+				3211B1742C2AF5CE007F1631 /* MouseEventsInterpreter.swift */,
+				3211B1762C2AF5CE007F1631 /* Queue.swift */,
+				3211B1782C2AF5CF007F1631 /* XRGesturesMain.swift */,
+			);
+			path = TAPXRGestures;
+			sourceTree = "<group>";
+		};
 		323418A42924F6C4009CBA2B /* AirGesture */ = {
 			isa = PBXGroup;
 			children = (
@@ -249,6 +287,8 @@
 		532EB66520624D9F00B7B8BD /* TAPKit-iOS */ = {
 			isa = PBXGroup;
 			children = (
+				3211B1732C2AF43B007F1631 /* TAPXRGestures */,
+				3211B1702C29A5DC007F1631 /* TAPXRState */,
 				323418A42924F6C4009CBA2B /* AirGesture */,
 				325EFF872922898100E2B478 /* Haptic */,
 				32EEBDE229224096000AAA22 /* TAPInputMode */,
@@ -553,21 +593,29 @@
 				32EEBDE429224401000AAA22 /* TAPInputModeController.swift in Sources */,
 				5310518923E997090028ABCF /* RawSensorData.swift in Sources */,
 				53E970B0206927DF00F68262 /* TAPInputMode.swift in Sources */,
+				3211B17D2C2AF5CF007F1631 /* Deque.swift in Sources */,
 				532EB673206260F200B7B8BD /* TAPKitCentral.swift in Sources */,
+				3211B17F2C2AF5CF007F1631 /* MouseEvents.swift in Sources */,
 				5310518B23E9971A0028ABCF /* RawSensorDataParser.swift in Sources */,
 				5329B3B723EAF6E2007C2B90 /* TAPAirGesture.swift in Sources */,
 				53E970B6206A662700F68262 /* TAPKit.swift in Sources */,
 				323418A62924F6E5009CBA2B /* TAPAirGestureController.swift in Sources */,
+				3211B17B2C2AF5CF007F1631 /* MajorityVoting.swift in Sources */,
 				32EEBDD7291BD8FD000AAA22 /* TAPCentralDelegate.swift in Sources */,
 				32EEBDD5291BD34A000AAA22 /* TAPCentral.swift in Sources */,
 				5329B3B523EADF11007C2B90 /* TAPRawSensorSensitivity.swift in Sources */,
+				3211B17C2C2AF5CF007F1631 /* Queue.swift in Sources */,
+				3211B16F2C299DA7007F1631 /* TAPXRState.swift in Sources */,
 				53E970B4206A345A00F68262 /* TAPKitLog.swift in Sources */,
 				532EB67120624F6800B7B8BD /* TAPCBUUID.swift in Sources */,
 				3204C2052970560700DB7628 /* TAPHandleValidator.swift in Sources */,
 				32EEBDDD291D1485000AAA22 /* WeakRef.swift in Sources */,
+				3211B17A2C2AF5CF007F1631 /* MouseEventsInterpreter.swift in Sources */,
 				32EEBDE129212974000AAA22 /* DataConverter.swift in Sources */,
 				32EEBDCE2917EB30000AAA22 /* TAPHandle.swift in Sources */,
+				3211B1722C29A5EC007F1631 /* TAPXRStateController.swift in Sources */,
 				53E970AE2067DAA600F68262 /* TAPKitDelegateController.swift in Sources */,
+				3211B17E2C2AF5CF007F1631 /* XRGesturesMain.swift in Sources */,
 				32EEBDDF29211549000AAA22 /* DelegatesController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
