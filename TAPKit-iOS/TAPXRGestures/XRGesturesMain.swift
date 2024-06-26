@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum XRGestureState : Int {
+@objc public enum XRGestureState : Int {
     case none = 100
     case thumb_finger = 101
     case thumb_middle = 102

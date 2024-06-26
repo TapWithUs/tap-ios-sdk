@@ -13,14 +13,16 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var mouse: UIImageView!
     private var devCount = 0
-    private var imuCount = 0;
+    private var imuCount = 0
+    
+    private var prevGesture : XRGestureState = .none
     override func viewDidLoad() {
         super.viewDidLoad()
         
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
         TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode.controller(), immediate: true)
-        TAPKit.sharedKit.setDefaultTAPXRState(.airMouse(), applyImmediate: true)
+        
         
         
         
@@ -173,7 +175,7 @@ extension ViewController : TAPKitDelegate {
     }
     
     func moused(identifier: String, velocityX: Int16, velocityY: Int16, isMouse: Bool) {
-        print("moused!")
+        
         // Added isMouse parameter:
         // A boolean that determines if the TAP is really using the mouse (true) or is it a dummy mouse movement (false)
         
@@ -222,6 +224,14 @@ extension ViewController : TAPKitDelegate {
         // -------------------------------------------------
         // -- Please refer readme.md for more information --
         // -------------------------------------------------
+    }
+    
+    func tapXRAirGestureState(identifier: String, gesture: XRGestureState) {
+        if gesture != self.prevGesture {
+            self.prevGesture = gesture
+            print("XRAirGestureStateChanged \(gesture)")
+        }
+        
     }
     
     func tapAirGestured(identifier: String, gesture: TAPAirGesture) {

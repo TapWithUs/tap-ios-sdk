@@ -256,6 +256,13 @@ extension TAPKit {
                     self.delegatesController.run(action:  { d in
                         d.tapAirGestured?(identifier: identifier, gesture: gesture)
                     })
+                } else {
+                    // Try XR Gesture
+                    if let xrGestureState = XRGestureState(rawValue: Int(first)) {
+                        self.delegatesController.run(action: { d in
+                            d.tapXRAirGestureState?(identifier: identifier, gesture: xrGestureState)
+                        })
+                    }
                 }
             }
         }

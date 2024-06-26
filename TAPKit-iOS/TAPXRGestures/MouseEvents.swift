@@ -73,6 +73,7 @@ class MouseEvents {
     }
     
     private func doFlick(mm:Double) -> Void {
+        // Flick is not implemented yet.
         self.inFlick = true
         let delta = mm > 0 ? 1 : -1
         
