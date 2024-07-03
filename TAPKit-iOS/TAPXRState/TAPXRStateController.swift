@@ -40,6 +40,7 @@ class TAPXRStateController {
         if (self.isActive ) {
             DispatchQueue.main.async {
                 self.delegate?.tapxrStateControllerUpdate(states: [identifier: self.states[identifier] ?? self.defaultState ])
+                self.setDontSend(identifiers: [identifier])
             }
         }
     }
@@ -55,6 +56,7 @@ class TAPXRStateController {
             if let state = self.get(identifier: identifier) {
                 DispatchQueue.main.async {
                     self.delegate?.tapxrStateControllerUpdate(states: [identifier:state])
+                    self.setDontSend(identifiers: [identifier])
                 }
             }
         }
@@ -77,6 +79,7 @@ class TAPXRStateController {
         self.stop()
         let newStates = self.states.mapValues({ _ in state })
         self.delegate?.tapxrStateControllerUpdate(states: newStates)
+        self.setDontSend(identifiers: Array<String>(self.states.keys))
     }
     
     func stop() -> Void {
@@ -87,7 +90,19 @@ class TAPXRStateController {
     @objc private func updateAll() -> Void {
         DispatchQueue.main.async {
             self.delegate?.tapxrStateControllerUpdate(states: self.states.filter({ self.verified.contains($0.key)}))
+            self.setDontSend(identifiers: Array<String>(self.states.filter({ self.verified.contains($0.key)}).keys))
+            
         }
+    }
+    
+    private func setDontSend(identifiers : [String]) -> Void {
+        identifiers.forEach( { uuid in
+            if let state = self.states[uuid] {
+                if state.type == TAPXRState.kUserControl {
+                    self.states[uuid] = TAPXRState.dontSend()
+                }
+            }
+        })
     }
     
     func setDefault(state:TAPXRState, applyImmediate:Bool) -> Void {

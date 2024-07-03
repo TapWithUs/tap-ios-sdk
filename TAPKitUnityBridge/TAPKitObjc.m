@@ -106,12 +106,49 @@ static TAPKitObjc* instance = nil;
     [_tapKit setTAPInputMode:[TAPInputMode rawSensorWithSensitivity:[[TAPRawSensorSensitivity alloc] initWithDeviceAccelerometer:devAccel imuGyro:imuGyro imuAccelerometer:imuAccel]] forIdentifiers:@[tapIdentifier]];
 }
 
+- (void)setDefaultControllerModeAndApplyImmediate:(BOOL)applyImmediate {
+    [_tapKit setDefaultTAPInputMode:[TAPInputMode controller] immediate:applyImmediate];
+}
+
+- (void)setDefaultTextModeAndApplyImmediate:(BOOL)applyImmediate {
+    [_tapKit setDefaultTAPInputMode:[TAPInputMode text] immediate:applyImmediate];
+}
+
+- (void)setDefaultControllerWithMouseHIDModeAndApplyImmediate:(BOOL)applyImmediate {
+    [_tapKit setDefaultTAPInputMode:[TAPInputMode controllerWithMouseHID] immediate: applyImmediate];
+}
+
+- (void)setXRTappingStateForTapIdentifier:(NSString*)tapIdentifier {
+    [_tapKit setTAPXRState:[TAPXRState tapping] forIdentifiers:@[tapIdentifier]];
+}
+
+- (void)setXRAirMouseStateForTapIdentifier:(NSString*)tapIdentifier {
+    [_tapKit setTAPXRState:[TAPXRState airMouse] forIdentifiers:@[tapIdentifier]];
+}
+
+- (void)setXRUserControlStateForTapIdentifier:(NSString*)tapIdentifier {
+    [_tapKit setTAPXRState:[TAPXRState userControl] forIdentifiers:@[tapIdentifier]];
+}
+
+- (void)setDefaultXRAirMouseStateAndApplyImmediate:(BOOL)applyImmediate {
+    [_tapKit setDefaultTAPXRState:[TAPXRState airMouse] applyImmediate:applyImmediate];
+}
+
+- (void)setDefaultXRTappingStateAndApplyImmediate:(BOOL)applyImmediate {
+    [_tapKit setDefaultTAPXRState:[TAPXRState tapping] applyImmediate:applyImmediate];
+}
+
+- (void)setDefaultXRUserControlStateAndApplyImmediate:(BOOL)applyImmediate {
+    [_tapKit setDefaultTAPXRState:[TAPXRState userControl] applyImmediate:applyImmediate];
+}
 
 - (void)tapDisconnectedWithIdentifier:(NSString *)identifier {
     if (self->_unityCallbackTapDisconnected) {
         _unityCallbackTapDisconnected([identifier cStringUsingEncoding:NSUTF8StringEncoding]);
     }
 }
+
+
 
 - (void)tapConnectedWithIdentifier:(NSString *)identifier name:(NSString *)name fw:(NSInteger)fw {
     if (self->_unityCallbackTapConnected) {
@@ -122,6 +159,12 @@ static TAPKitObjc* instance = nil;
 - (void)tapFailedToConnectWithIdentifier:(NSString *)identifier name:(NSString *)name {
     if (self->_unityCallbackTapFailedToConnect) {
         _unityCallbackTapFailedToConnect([identifier cStringUsingEncoding:NSUTF8StringEncoding], [name cStringUsingEncoding:NSUTF8StringEncoding]);
+    }
+}
+
+- (void)tappedWithIdentifier:(NSString *)identifier combination:(uint8_t)combination multitap:(uint8_t)multitap {
+    if (self->_unityCallbackTapped) {
+        _unityCallbackTapped([identifier cStringUsingEncoding:NSUTF8StringEncoding], (int)combination);
     }
 }
 

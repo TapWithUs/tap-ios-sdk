@@ -15,10 +15,10 @@ class MouseEventsInterpreter {
     private var prevts : TimeInterval
     private var dragTimer : Timer?
     
-    var onClick : (() -> Void)?
-    var onDrag : (() -> Void)?
+    var onClick : ((MouseEventFinger) -> Void)?
+    var onDrag : ((MouseEventFinger) -> Void)?
     var onDrop : (() -> Void)?
-    var onPotentialDragOrClick : (() -> Void)?
+    var onPotentialDragOrClick : ((MouseEventFinger) -> Void)?
     init() {
         self.prevts = Date().timeIntervalSince1970
         self.prev = .release
@@ -29,18 +29,18 @@ class MouseEventsInterpreter {
     func action(_ m : MouseEventsAction) {
         let ts = Date().timeIntervalSince1970
         switch (self.prev, m) {
-        case (.release, .press) :
+        case (.release, .press(let finger)) :
             self.dragTimer = Timer.scheduledTimer(withTimeInterval: self.clickTimeInterval, repeats: false, block: {
                 _ in
                 self.prev = .drag
                 self.prevts = Date().timeIntervalSince1970
-                DispatchQueue.main.async { self.onDrag?() }
+                DispatchQueue.main.async { self.onDrag?(finger) }
             })
-            DispatchQueue.main.async { self.onPotentialDragOrClick?() }
+            DispatchQueue.main.async { self.onPotentialDragOrClick?(finger) }
             break
-        case (.press, .release) :
+        case (.press(let finger), .release) :
             self.dragTimer?.invalidate()
-            DispatchQueue.main.async { self.onClick?() }
+            DispatchQueue.main.async { self.onClick?(finger) }
             break
         case (.drag, .release) :
             DispatchQueue.main.async { self.onDrop?() }

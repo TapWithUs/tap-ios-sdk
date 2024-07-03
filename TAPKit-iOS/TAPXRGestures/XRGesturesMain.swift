@@ -8,20 +8,8 @@
 
 import Foundation
 
-@objc public enum XRGestureState : Int {
-    case none = 100
-    case thumb_finger = 101
-    case thumb_middle = 102
-}
 
-@objc public enum TAPXRAirGesture : Int {
-    case Click = 1
-    case Drag = 2
-    case Drop = 3
-    case PotentialDragOrClick = 4
-}
-
-class XRGesturesMain {
+public class XRGesturesMain {
 
     
     
@@ -31,11 +19,11 @@ class XRGesturesMain {
     private var clickMajorityVoting : MajorityVoting<Int>
     
     
-    var onXRAirGestured : ((TAPXRAirGesture) -> Void)?
+    public var onXRAirGestured : ((TAPXRAirGesture) -> Void)?
     
     private let cursorFillTimeInterval : TimeInterval = 0.1
     
-    init() {
+    public init() {
         self.clickMajorityVoting = MajorityVoting(len: 3, defaultValue: XRGestureState.none.rawValue)
         self.mouseEvents = MouseEvents()
         self.mouseEventsInterpreter = MouseEventsInterpreter()
@@ -63,17 +51,37 @@ extension XRGesturesMain : MouseEventsDelegate {
 
 extension XRGesturesMain {
     // Mouse events interpreter callbacks.
+    private func getClick(finger:MouseEventFinger) -> TAPXRAirGesture {
+        switch finger {
+        case .index : return .ClickIndex
+        case .middle : return .ClickMiddle
+        }
+    }
     
-    func mouseEventsInterpreterOnClick() {
+    private func getDrag(finger:MouseEventFinger) -> TAPXRAirGesture {
+        switch finger {
+        case .index : return .DragIndex
+        case .middle : return .DragMiddle
+        }
+    }
+    
+    private func getPotentialDragOrClick(finger:MouseEventFinger) -> TAPXRAirGesture {
+        switch finger {
+        case .index : return .PotentialDragOrClickIndex
+        case .middle : return .PotentialDragOrClickMiddle
+        }
+    }
+    
+    func mouseEventsInterpreterOnClick(finger:MouseEventFinger) {
         DispatchQueue.main.async {
-            self.onXRAirGestured?(.Click)
+            self.onXRAirGestured?(self.getClick(finger: finger))
         }
         
     }
     
-    func mouseEventsInterpreterOnDrag() {
+    func mouseEventsInterpreterOnDrag(finger:MouseEventFinger) {
         DispatchQueue.main.async {
-            self.onXRAirGestured?(.Drag)
+            self.onXRAirGestured?(self.getDrag(finger: finger))
         }
         
         
@@ -86,9 +94,9 @@ extension XRGesturesMain {
         
     }
     
-    func mouseEventsInterpreterOnPotientialDragOrClick() {
+    func mouseEventsInterpreterOnPotientialDragOrClick(finger:MouseEventFinger) {
         DispatchQueue.main.async {
-            self.onXRAirGestured?(.PotentialDragOrClick)
+            self.onXRAirGestured?(self.getPotentialDragOrClick(finger: finger))
         }
         
     }
@@ -96,7 +104,7 @@ extension XRGesturesMain {
 
 extension XRGesturesMain {
     // Public interface.
-    func onMouse(vx:Int, vy:Int) {
+    public func onMouse(vx:Int, vy:Int) {
         self.cursorThreadTimer?.invalidate()
         self.mouseEvents.put(.cursor(vx: vx, vy: vy, ts: self.timestamp()))
         self.cursorThreadTimer = Timer.scheduledTimer(withTimeInterval: self.cursorFillTimeInterval, repeats: false, block: { _ in
@@ -104,7 +112,7 @@ extension XRGesturesMain {
         })
     }
     
-    func onGesture(gesture:Int) {
+    public func onGestureState(gesture:Int) {
         if let g = self.clickMajorityVoting.call(gesture) {
             self.mouseEvents.put(.click(gesture: g, ts: self.timestamp()))
         }

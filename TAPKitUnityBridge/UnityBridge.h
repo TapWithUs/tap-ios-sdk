@@ -27,9 +27,18 @@ extern "C" {
     void TAPKit_setTextMode(const char* identifier);
     void TAPKit_setControllerWithMouseHIDMode(const char* identifier);
     void TAPKit_setRawSensorMode(const char* identifier, int devAccel, int imuGyro, int imuAccel);
+
+    void TAPKit_setDefaultControllerMode(bool applyImmediate);
+    void TAPKit_setDefaultTextMode(bool applyImmediate);
+    void TAPKit_setDefaultControllerWithMouseHIDMode(bool applyImmediate);
+    void TAPKit_setXRTappingState(const char* identifier);
+    void TAPKit_setXRAirMouseState(const char* identifier);
+    void TAPKit_setXRUserControlState(const char* identifier);
+    void TAPKit_setDefaultXRAirMouseState(bool applyImmediate);
+    void TAPKit_setDefaultXRTappingState(bool applyImmediate);
+    void TAPKit_setDefaultXRUserControlState(bool applyImmediate);
+
     void TAPKit_vibrate(const char* identifier, const char* durationsString, const char* delimeter);
-//    void TAPKit_vibrate(const char* identifier, int durations[], int length);
-//    void TAPKit_vibrateAllTaps(int durations[], int length);
     void TAPKit_enableDebug();
     void TAPKit_disableDebug();
 #ifdef __cplusplus

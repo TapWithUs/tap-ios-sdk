@@ -18,6 +18,7 @@
 		3211B17F2C2AF5CF007F1631 /* MouseEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1792C2AF5CF007F1631 /* MouseEvents.swift */; };
 		323418A62924F6E5009CBA2B /* TAPAirGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */; };
 		325EFF8A2922899F00E2B478 /* TAPHaptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325EFF892922899F00E2B478 /* TAPHaptic.swift */; };
+		32B54EFE2C2D64420098990D /* TAPXRAirGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32B54EFD2C2D64420098990D /* TAPXRAirGesture.swift */; };
 		32EEBDCE2917EB30000AAA22 /* TAPHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */; };
 		32EEBDD02918EB64000AAA22 /* TAPHandleConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDCF2918EB64000AAA22 /* TAPHandleConfig.swift */; };
 		32EEBDD2291BC203000AAA22 /* ViewController2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDD1291BC203000AAA22 /* ViewController2.swift */; };
@@ -124,6 +125,7 @@
 		3211B1792C2AF5CF007F1631 /* MouseEvents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MouseEvents.swift; sourceTree = "<group>"; };
 		323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPAirGestureController.swift; sourceTree = "<group>"; };
 		325EFF892922899F00E2B478 /* TAPHaptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHaptic.swift; sourceTree = "<group>"; };
+		32B54EFD2C2D64420098990D /* TAPXRAirGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPXRAirGesture.swift; sourceTree = "<group>"; };
 		32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHandle.swift; sourceTree = "<group>"; };
 		32EEBDCF2918EB64000AAA22 /* TAPHandleConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHandleConfig.swift; sourceTree = "<group>"; };
 		32EEBDD1291BC203000AAA22 /* ViewController2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController2.swift; sourceTree = "<group>"; };
@@ -224,6 +226,7 @@
 			children = (
 				5329B3B623EAF6E2007C2B90 /* TAPAirGesture.swift */,
 				323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */,
+				32B54EFD2C2D64420098990D /* TAPXRAirGesture.swift */,
 			);
 			path = AirGesture;
 			sourceTree = "<group>";
@@ -592,6 +595,7 @@
 				32EEBDD02918EB64000AAA22 /* TAPHandleConfig.swift in Sources */,
 				32EEBDE429224401000AAA22 /* TAPInputModeController.swift in Sources */,
 				5310518923E997090028ABCF /* RawSensorData.swift in Sources */,
+				32B54EFE2C2D64420098990D /* TAPXRAirGesture.swift in Sources */,
 				53E970B0206927DF00F68262 /* TAPInputMode.swift in Sources */,
 				3211B17D2C2AF5CF007F1631 /* Deque.swift in Sources */,
 				532EB673206260F200B7B8BD /* TAPKitCentral.swift in Sources */,

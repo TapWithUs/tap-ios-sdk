@@ -12,7 +12,7 @@ import Foundation
     @objc public static let kUserControl : String = "User"
     @objc public static let kAirMouse : String = "AirMouse"
     @objc public static let kTapping : String = "Tapping"
-    
+    @objc public static let kDontSend : String = "DontSend"
     private static let stateByte : [String:UInt8] = [TAPXRState.kUserControl : 0x3, TAPXRState.kTapping : 0x2, TAPXRState.kAirMouse : 0x1]
     
     public let type:String
@@ -32,6 +32,10 @@ import Foundation
     
     @objc public static func tapping() -> TAPXRState {
         return TAPXRState(type: TAPXRState.kTapping)
+    }
+    
+    @objc public static func dontSend() -> TAPXRState {
+        return TAPXRState(type: TAPXRState.kDontSend)
     }
     
     func data() -> Data? {

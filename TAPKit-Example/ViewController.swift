@@ -22,8 +22,8 @@ class ViewController: UIViewController {
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
         TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode.controller(), immediate: true)
-        
-        
+        TAPKit.sharedKit.setDefaultTAPXRState(TAPXRState.userControl(), applyImmediate: true)
+        TAPKit.sharedKit.setTAPXRState(TAPXRState.airMouse(), forIdentifiers: ["identifier..."])
         
         
         
@@ -226,13 +226,13 @@ extension ViewController : TAPKitDelegate {
         // -------------------------------------------------
     }
     
-    func tapXRAirGestureState(identifier: String, gesture: XRGestureState) {
-        if gesture != self.prevGesture {
-            self.prevGesture = gesture
-            print("XRAirGestureStateChanged \(gesture)")
-        }
-        
-    }
+//    func tapXRAirGestureState(identifier: String, gesture: XRGestureState) {
+//        if gesture != self.prevGesture {
+//            self.prevGesture = gesture
+//            print("XRAirGestureStateChanged \(gesture)")
+//        }
+//        
+//    }
     
     func tapAirGestured(identifier: String, gesture: TAPAirGesture) {
         switch (gesture) {

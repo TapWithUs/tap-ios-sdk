@@ -14,10 +14,15 @@ enum MouseEventType {
     
 }
 
+enum MouseEventFinger {
+    case index
+    case middle
+}
+
 enum MouseEventsAction {
     case release
     case flick
-    case press
+    case press(finger:MouseEventFinger)
     case drag
     case scroll(vy:Double)
 }
@@ -97,26 +102,29 @@ class MouseEvents {
                     if g == .none {
                         self.dispatchAction(.release)
                         
-                        if self.prevGesture == .thumb_middle && !self.inFlick {
-                            if self.meanMotion > self.flickMotionThreshold {
-                                self.meanMotion = self.meanMotion * ( self.meanDirection.vy < 0 ? 1.0 : -1.0 )
-                            }
-                        }
+//                        if self.prevGesture == .thumb_middle && !self.inFlick {
+//                            if self.meanMotion > self.flickMotionThreshold {
+//                                self.meanMotion = self.meanMotion * ( self.meanDirection.vy < 0 ? 1.0 : -1.0 )
+//                            }
+//                        }
                     } else {
-                        self.inFlick = false
-                        if g == .thumb_middle {
-                            self.dispatchAction(.release)
-                        }
+//                        self.inFlick = false
+//                        if g == .thumb_middle {
+//                            self.dispatchAction(.release)
+//                        }
                     }
                     self.prevGesture = g
 
                 }
-                if self.gestureDuration == 1 && self.prevGesture == .thumb_finger {
-                    self.dispatchAction(.press)
+                if self.gestureDuration == 1 && self.prevGesture == .thumb_index {
+                    self.dispatchAction(.press(finger: .index))
                 }
-                if gestureDuration > 2 && self.prevGesture == .thumb_middle {
-                    self.dispatchAction(.scroll(vy: self.vy))
+                if self.gestureDuration == 1 && self.prevGesture == .thumb_middle {
+                    self.dispatchAction(.press(finger: .middle))
                 }
+//                if gestureDuration > 2 && self.prevGesture == .thumb_middle {
+//                    self.dispatchAction(.scroll(vy: self.vy))
+//                }
             }
             break
             

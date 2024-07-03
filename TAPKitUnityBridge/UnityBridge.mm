@@ -65,6 +65,43 @@ void TAPKit_setRawSensorMode(const char* identifier, int devAccel, int imuGyro, 
     [[TAPKitObjc sharedKit] setRawSensorModeForTapIdentifier:[NSString stringWithUTF8String:identifier] sensitivitiesDeviceAccelerometer:devAccel imuGyro:imuGyro imuAccelerometer:imuAccel];
 }
 
+void TAPKit_setDefaultControllerMode(bool applyImmediate) {
+    [[TAPKitObjc sharedKit] setDefaultControllerModeAndApplyImmediate:applyImmediate];
+}
+
+void TAPKit_setDefaultTextMode(bool applyImmediate) {
+    [[TAPKitObjc sharedKit] setDefaultTextModeAndApplyImmediate:applyImmediate];
+}
+
+void TAPKit_setDefaultControllerWithMouseHIDMode(bool applyImmediate) {
+    [[TAPKitObjc sharedKit] setDefaultControllerWithMouseHIDModeAndApplyImmediate:applyImmediate];
+}
+
+void TAPKit_setXRTappingState(const char* identifier) {
+    [[TAPKitObjc sharedKit] setXRTappingStateForTapIdentifier:[NSString stringWithUTF8String:identifier]];
+}
+
+void TAPKit_setXRAirMouseState(const char* identifier) {
+    [[TAPKitObjc sharedKit] setXRAirMouseStateForTapIdentifier:[NSString stringWithUTF8String:identifier]];
+}
+
+void TAPKit_setXRUserControlState(const char* identifier) {
+    [[TAPKitObjc sharedKit] setXRUserControlStateForTapIdentifier:[NSString stringWithUTF8String:identifier]];
+}
+
+void TAPKit_setDefaultXRAirMouseState(bool applyImmediate) {
+    [[TAPKitObjc sharedKit] setDefaultXRAirMouseStateAndApplyImmediate:applyImmediate];
+}
+
+void TAPKit_setDefaultXRTappingState(bool applyImmediate) {
+    [[TAPKitObjc sharedKit] setDefaultXRTappingStateAndApplyImmediate:applyImmediate];
+}
+
+void TAPKit_setDefaultXRUserControlState(bool applyImmediate) {
+    [[TAPKitObjc sharedKit] setDefaultXRUserControlStateAndApplyImmediate:applyImmediate];
+}
+
+
 void TAPKit_vibrate(const char* identifier, const char* durationsString, const char* delimeter) {
     [[TAPKitObjc sharedKit] vibrateTapIdentifier:[NSString stringWithUTF8String:identifier] durations:[NSString stringWithUTF8String:durationsString] delimeter:[NSString stringWithUTF8String:delimeter]];
 }

@@ -1,5 +1,8 @@
-﻿# TAP iOS SDK
+# TAP iOS SDK
 
+## Updates 
+July 2024 - Added **TAPXR Gestures** (See below).
+    
 ## What Is This ?
 
 TAP iOS SDK allows you to build a a native iOS app that can receive input from TAP devices,
@@ -213,6 +216,57 @@ If you wish - You can change the default TAPInputMode so new connected devices w
 TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode..., immediate: bool)
 ```
 
+# TAPXR Gestures (July 2024)
+
+Added support to read the hand state while in AirMouse mode, for the TapXR device.
+
+## TAPAirGesture
+
+Added 3 states for the enum TAPAirGesture:
+
+```swift
+@objc public enum TAPAirGesture : Int {
+    .
+    .
+    .
+    case XRAirGestureNone = 100
+    case XRAirGestureThumbIndex = 101
+    case XRAirGestureThumbMiddle = 102
+}
+```
+
+XRAirGestureNone: The hand is in resting state.
+XRAirGestureThumbIndex : the thumb is touching the index finger.
+XRAirGestureThumbMiddle : the thumb is touching the middle finger. 
+
+These states will be sent continously multiple times per second.
+
+The best practice is the take the most common one out of the last 3 events received to allow margin for errors.
+
+This will allow you to combine these states and the mouse-move event into "Drag and Drop" Gesture for example.
+
+##TAPXRState
+
+In addition to TAPInputMode, the new TAPXR has input states.
+
+You can force TAPXR to switch to input state as follows:
+
+AIRMOUSE - The TAPXR will operate in AIRMOUSE mode ONLY.
+TAPPING - The TAPXR will operate in TAPPING mode only.
+USERCONTROL - The user will freely switch states as wished.
+
+Examples:
+
+```swift
+TAPKit.sharedKit.setDefaultTAPXRState(TAPXRState.userControl(), applyImmediate: true)
+TAPKit.sharedKit.setDefaultTAPXRState(TAPXRState.tapping(), applyImmediate: true)
+TAPKit.sharedKit.setTAPXRState(TAPXRState.airMouse(), forIdentifiers: ["identifier..."])
+```
+
+You can change the state of individual connected device or devices by calling setTAPXRState(.., forIdentifiers: []) which accepts an array of identifiers to apply the new state to.
+
+While calling setDefaultTAPXRState, it'll set the default state that will be applied to newly connected devices. 
+If you wish to apply this state to already-connected devices, call with "applyImmediate": true.
 
 ## Vibrations/Haptic
 

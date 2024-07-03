@@ -19,7 +19,7 @@ import Foundation
     @objc optional func tapAirGestured(identifier:String, gesture:TAPAirGesture)
     @objc optional func tapDidReadHardwareVersion(identifier:String, hw:Int)
     @objc optional func tapDidReadFirmwareVersion(identifier:String, fw:Int)
-    @objc optional func tapXRAirGestureState(identifier:String, gesture:XRGestureState)
+//    @objc optional func tapXRAirGestureState(identifier:String, gesture:XRGestureState)
 }
 
 //class TAPKitDelegateWeakRef {

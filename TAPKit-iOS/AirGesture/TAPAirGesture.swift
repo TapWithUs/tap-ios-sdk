@@ -20,6 +20,9 @@ import Foundation
     case TwoFingersRight = 9
     case IndexToThumbTouch = 10
     case MiddleToThumbTouch = 11
+    case XRAirGestureNone = 100
+    case XRAirGestureThumbIndex = 101
+    case XRAirGestureThumbMiddle = 102
 }
 
 class TAPAirGestureHelper {

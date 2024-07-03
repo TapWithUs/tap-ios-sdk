@@ -41,6 +41,16 @@ typedef void (*UnityCallbackRawSensorDataReceived)(const char* identifier, const
 - (void)setTextModeForTapIdentifier:(NSString*)tapIdentifier;
 - (void)setControllerWithMouseHIDModeForTapIdentifier:(NSString*)tapIdentifier;
 - (void)setRawSensorModeForTapIdentifier:(NSString*)tapIdentifier sensitivitiesDeviceAccelerometer:(int)devAccel imuGyro:(int)imuGyro imuAccelerometer:(int)imuAccel;
+- (void)setDefaultControllerModeAndApplyImmediate:(BOOL)applyImmediate;
+- (void)setDefaultTextModeAndApplyImmediate:(BOOL)applyImmediate;
+- (void)setDefaultControllerWithMouseHIDModeAndApplyImmediate:(BOOL)applyImmediate;
+- (void)setXRTappingStateForTapIdentifier:(NSString*)tapIdentifier;
+- (void)setXRAirMouseStateForTapIdentifier:(NSString*)tapIdentifier;
+- (void)setXRUserControlStateForTapIdentifier:(NSString*)tapIdentifier;
+- (void)setDefaultXRAirMouseStateAndApplyImmediate:(BOOL)applyImmediate;
+- (void)setDefaultXRTappingStateAndApplyImmediate:(BOOL)applyImmediate;
+- (void)setDefaultXRUserControlStateAndApplyImmediate:(BOOL)applyImmediate;
+
 - (void)vibrateTapIdentifier:(NSString*)tapIdentifier durations:(NSString*)durationsString delimeter:(NSString*)delimeter;
 NS_ASSUME_NONNULL_END
 
