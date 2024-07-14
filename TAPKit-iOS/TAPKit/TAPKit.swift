@@ -209,7 +209,6 @@ extension TAPKit {
                 }
                 self.delegatesController.run(action: { d in
                     d.tapped?(identifier: identifier, combination: first, multitap: keyboardState?.multitap ?? 1)
-                    d.tapped?(identifier: identifier, combination: first, multitap: keyboardState?.multitap ?? 1)
                 })
             }
         }
