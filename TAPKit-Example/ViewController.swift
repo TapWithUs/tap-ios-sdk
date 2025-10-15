@@ -11,6 +11,7 @@ import TAPKit
 
 class ViewController: UIViewController {
 
+    var xrGesturesMain : XRGesturesMain = XRGesturesMain()
     @IBOutlet weak var mouse: UIImageView!
     private var devCount = 0
     private var imuCount = 0
@@ -18,12 +19,13 @@ class ViewController: UIViewController {
     private var prevGesture : XRGestureState = .none
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        TAPKit.log.enableAllEvents()
+        self.xrGesturesMain.onXRAirGestured = { gesture in print("XR AIR GESTURE \(gesture.rawValue)")}
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
         TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode.controller(), immediate: true)
-        TAPKit.sharedKit.setDefaultTAPXRState(TAPXRState.userControl(), applyImmediate: true)
-        TAPKit.sharedKit.setTAPXRState(TAPXRState.airMouse(), forIdentifiers: ["identifier..."])
+        TAPKit.sharedKit.setDefaultTAPXRState(TAPXRState.airMouse(), applyImmediate: true)
+//        TAPKit.sharedKit.setTAPXRState(TAPXRState.airMouse(), forIdentifiers: ["identifier..."])
         
         
         
@@ -32,9 +34,9 @@ class ViewController: UIViewController {
         // You can enable/disable logs for specific events, or all events
         // TAPKitLogEvent.error, TAPKitLogEvent.fatal, TAPKitLogEvent.info, TAPKitLogEvent.warning
         // For example, to enable only errors logs:
-        // TAPKit.log.enable(event: .error)
-        TAPKit.log.disable(event: .warning)
-        TAPKit.log.disableAllEvents()
+        // TAPKit.log.enable(event: .error)h
+//        TAPKit.log.disable(event: .warning)
+//        TAPKit.log.disableAllEvents()
         
         // start should be called typically in the main screen, after the delegate was being set earlier.
         TAPKit.sharedKit.start()
@@ -226,6 +228,8 @@ extension ViewController : TAPKitDelegate {
         // -------------------------------------------------
     }
     
+     
+    
 //    func tapXRAirGestureState(identifier: String, gesture: XRGestureState) {
 //        if gesture != self.prevGesture {
 //            self.prevGesture = gesture
@@ -235,6 +239,7 @@ extension ViewController : TAPKitDelegate {
 //    }
     
     func tapAirGestured(identifier: String, gesture: TAPAirGesture) {
+        print("g: \(gesture.rawValue)")
         switch (gesture) {
         case .OneFingerDown : print("Air Gestured: One Finger Down")
         case .OneFingerLeft : print("Air Gestured: One Finger Left")
@@ -246,12 +251,14 @@ extension ViewController : TAPKitDelegate {
         case .TwoFingersRight : print("Air Gestured: Two Fingers Right")
         case .IndexToThumbTouch : print("Air Gestured: Index finger tapping the Thumb")
         case .MiddleToThumbTouch : print("Air Gestured: Middle finger tapping the Thumb")
+        default : self.xrGesturesMain.onGestureState(gesture: gesture.rawValue)
         }
     }
     
     func tapChangedAirGesturesState(identifier: String, isInAirGesturesState: Bool) {
         print("Tap is in Air Gesture State: \(isInAirGesturesState)")
     }
+    
     
     
 }

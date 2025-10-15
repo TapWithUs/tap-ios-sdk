@@ -32,6 +32,8 @@ public class XRGesturesMain {
         self.mouseEventsInterpreter.onClick = self.mouseEventsInterpreterOnClick
         self.mouseEventsInterpreter.onDrop = self.mouseEventsInterpreterOnDrop
         self.mouseEventsInterpreter.onPotentialDragOrClick = self.mouseEventsInterpreterOnPotientialDragOrClick
+        self.mouseEventsInterpreter.onFistBegin = self.mouseEventsInterpreterOnFistBegin
+        self.mouseEventsInterpreter.onFistEnd = self.mouseEventsInterpreterOnFistEnd
     }
     
     private func timestamp() -> TimeInterval {
@@ -55,6 +57,7 @@ extension XRGesturesMain {
         switch finger {
         case .index : return .ClickIndex
         case .middle : return .ClickMiddle
+        case .ring : return .ClickRing
         }
     }
     
@@ -62,6 +65,7 @@ extension XRGesturesMain {
         switch finger {
         case .index : return .DragIndex
         case .middle : return .DragMiddle
+        case .ring : return .DragRing
         }
     }
     
@@ -69,6 +73,7 @@ extension XRGesturesMain {
         switch finger {
         case .index : return .PotentialDragOrClickIndex
         case .middle : return .PotentialDragOrClickMiddle
+        case .ring : return .PotentialDragOrClickRing
         }
     }
     
@@ -100,6 +105,18 @@ extension XRGesturesMain {
         }
         
     }
+    
+    func mouseEventsInterpreterOnFistBegin() {
+        DispatchQueue.main.async {
+            self.onXRAirGestured?(.FistBegin)
+        }
+    }
+    
+    func mouseEventsInterpreterOnFistEnd() {
+        DispatchQueue.main.async {
+            self.onXRAirGestured?(.FistEnd)
+        }
+    }
 }
 
 extension XRGesturesMain {
@@ -113,6 +130,7 @@ extension XRGesturesMain {
     }
     
     public func onGestureState(gesture:Int) {
+        
         if let g = self.clickMajorityVoting.call(gesture) {
             self.mouseEvents.put(.click(gesture: g, ts: self.timestamp()))
         }

@@ -17,6 +17,7 @@ enum MouseEventType {
 enum MouseEventFinger {
     case index
     case middle
+    case ring
 }
 
 enum MouseEventsAction {
@@ -25,6 +26,7 @@ enum MouseEventsAction {
     case press(finger:MouseEventFinger)
     case drag
     case scroll(vy:Double)
+    case fist
 }
 
 protocol MouseEventsDelegate : class {
@@ -121,6 +123,13 @@ class MouseEvents {
                 }
                 if self.gestureDuration == 1 && self.prevGesture == .thumb_middle {
                     self.dispatchAction(.press(finger: .middle))
+                }
+                if self.gestureDuration == 1 && self.prevGesture == .thumb_ring {
+                    self.dispatchAction(.press(finger: .ring))
+                }
+                
+                if self.gestureDuration == 1 && self.prevGesture == .fist {
+                    self.dispatchAction(.fist)
                 }
 //                if gestureDuration > 2 && self.prevGesture == .thumb_middle {
 //                    self.dispatchAction(.scroll(vy: self.vy))

@@ -54,7 +54,6 @@
 		53D550DB23FDB8050029474D /* UnityBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 53D550D723FDB8050029474D /* UnityBridge.h */; };
 		53D550DC23FDB8050029474D /* TAPKitObjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 53D550D823FDB8050029474D /* TAPKitObjc.m */; };
 		53D550E323FDC0AF0029474D /* TAPKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 532EB66320624D9F00B7B8BD /* TAPKit.framework */; };
-		53D550E423FDC0AF0029474D /* TAPKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 532EB66320624D9F00B7B8BD /* TAPKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		53D550E923FDDBF00029474D /* VersionNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D550E823FDDBF00029474D /* VersionNumber.swift */; };
 		53E970AE2067DAA600F68262 /* TAPKitDelegateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E970AD2067DAA600F68262 /* TAPKitDelegateController.swift */; };
 		53E970B0206927DF00F68262 /* TAPInputMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E970AF206927DF00F68262 /* TAPInputMode.swift */; };
@@ -96,17 +95,6 @@
 			files = (
 				53D550D123FDB7DF0029474D /* TAPKitUnityBridge.framework in Embed Frameworks */,
 				53B1A14F207A5B8700025C59 /* TAPKit.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		53D550E723FDC0AF0029474D /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				53D550E423FDC0AF0029474D /* TAPKit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -478,7 +466,6 @@
 				53D550C523FDB7DF0029474D /* Sources */,
 				53D550C623FDB7DF0029474D /* Frameworks */,
 				53D550C723FDB7DF0029474D /* Resources */,
-				53D550E723FDC0AF0029474D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -811,6 +798,7 @@
 				DEFINES_MODULE = YES;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_TEAM = 6BH9T6C7E7;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 6BH9T6C7E7;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -846,6 +834,7 @@
 				DEFINES_MODULE = YES;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_TEAM = 6BH9T6C7E7;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 6BH9T6C7E7;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -878,6 +867,7 @@
 				CURRENT_PROJECT_VERSION = 1.1.3;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 6BH9T6C7E7;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 6BH9T6C7E7;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "TAPKit-Example/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -885,6 +875,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.--USER-.TAPKit-Example";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = WILDCARD_DEV;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = WILDCARD_DEV;
 				SWIFT_OBJC_BRIDGING_HEADER = "TAPKit-iOS/Common/bridge-header.h";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -901,6 +892,7 @@
 				CURRENT_PROJECT_VERSION = 1.1.3;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 6BH9T6C7E7;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 6BH9T6C7E7;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "TAPKit-Example/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -908,6 +900,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.--USER-.TAPKit-Example";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = WILDCARD_DEV;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = WILDCARD_DEV;
 				SWIFT_OBJC_BRIDGING_HEADER = "TAPKit-iOS/Common/bridge-header.h";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

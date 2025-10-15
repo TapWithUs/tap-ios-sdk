@@ -19,6 +19,9 @@ class MouseEventsInterpreter {
     var onDrag : ((MouseEventFinger) -> Void)?
     var onDrop : (() -> Void)?
     var onPotentialDragOrClick : ((MouseEventFinger) -> Void)?
+    var onFistBegin : (() -> Void)?
+    var onFistEnd : (() -> Void)?
+    
     init() {
         self.prevts = Date().timeIntervalSince1970
         self.prev = .release
@@ -45,6 +48,12 @@ class MouseEventsInterpreter {
         case (.drag, .release) :
             DispatchQueue.main.async { self.onDrop?() }
             break
+        case (.release, .fist):
+            DispatchQueue.main.async { self.onFistBegin?() }
+            break
+        case (.fist, .release):
+            DispatchQueue.main.async { self.onFistEnd?()}
+        
         default : break
         }
         self.prev = m

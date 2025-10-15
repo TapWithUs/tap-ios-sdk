@@ -26,6 +26,8 @@ open class TAPKit : NSObject {
     private var didWriteParsers : [CBUUID : [((String, CBUUID, Data?)->Void)]]
     private var modesEnabled : Bool
     
+    public var sendModeInBackground : Bool
+    
     open class func instance() -> TAPKit {
         if TAPKit._instance == nil {
             TAPKit._instance = TAPKit()
@@ -41,6 +43,7 @@ open class TAPKit : NSObject {
         self.delegatesController = DelegatesController<TAPKitDelegate>()
         self.airGestureController = TAPAirGestureController()
         self.tapxrStateController = TAPXRStateController()
+        self.sendModeInBackground = false
         super.init()
         self.central = TAPCentral(handleInit: self.getHandleConfig(), handleValidator: self.getHandleValidator(), delegate: self)
         self.inputModeController = TAPInputModeController(interval: 10.0, delegate: self)
@@ -114,17 +117,23 @@ open class TAPKit : NSObject {
     }
     
     @objc func appDidBecomeActive(notification:NSNotification) -> Void {
+        TAPKit.log.event(.info, message: "appDidBecomeActive notification. sendModeInBackground = \(self.sendModeInBackground)")
+        if (!self.sendModeInBackground) {
+            self.inputModeController.resume()
+            self.tapxrStateController.resume()
+        }
         
-        TAPKit.log.event(.info, message: "appDidBecomeActive notification")
-        self.inputModeController.resume()
-        self.tapxrStateController.resume()
     }
     
     @objc func appWillResignActive(notification:NSNotification) -> Void {
+        TAPKit.log.event(.info, message: "appWillResignActive notification. sendModeInBackground = \(self.sendModeInBackground)")
+        if (!self.sendModeInBackground) {
+            self.tapxrStateController.pause(andSetState: .tapping())
+            self.inputModeController.pause(andSetMode: .text())
+            self.tapxrStateController.pause(andSetState: .userControl())
+            
+        }
         
-        TAPKit.log.event(.info, message: "appWillResignActive notification")
-        self.inputModeController.pause(andSetMode: .text())
-        self.tapxrStateController.pause(andSetState: .userControl())
         
     }
     
@@ -297,13 +306,13 @@ extension TAPKit {
 
 
 extension TAPKit : TAPCentralDelegate {
-    func appDidBecomeActive() -> Void {
-        self.inputModeController.start()
-    }
-    
-    func appWillResignActive() -> Void {
-        self.inputModeController.pause(andSetMode: .text())
-    }
+//    func appDidBecomeActive() -> Void {
+//        self.inputModeController.start()
+//    }
+//    
+//    func appWillResignActive() -> Void {
+//        self.inputModeController.pause(andSetMode: .text())
+//    }
     
     func tapConnected(identifier uuid:String, name:String) -> Void {
         TAPKit.log.event(.info, message: "tap \(uuid) connected and ready")

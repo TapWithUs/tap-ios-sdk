@@ -8,7 +8,7 @@
 
 import Foundation
 
-
+// OBSOLETE!!!
 @objc public enum TAPAirGesture : Int {
     case OneFingerUp = 2
     case TwoFingersUp = 3
@@ -23,6 +23,8 @@ import Foundation
     case XRAirGestureNone = 100
     case XRAirGestureThumbIndex = 101
     case XRAirGestureThumbMiddle = 102
+    case XRAirGestureThumbRing = 103
+    case XRAirGestureFist = 105
 }
 
 class TAPAirGestureHelper {
