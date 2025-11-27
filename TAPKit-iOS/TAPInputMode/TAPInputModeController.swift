@@ -43,6 +43,9 @@ class TAPInputModeController : NSObject {
         self.modes.keys.forEach({ uuid in
             self.modes[uuid] = defaultInputMode
         })
+        if (immediate) {
+            self.delegate?.TAPInputModeUpdate(modes: self.modes)
+        }
     }
     
     func set(inputMode:TAPInputMode, identifiers:[String]? = nil) {
@@ -75,6 +78,7 @@ class TAPInputModeController : NSObject {
     
     func start() {
         self.isActive = true
+        self.timer?.invalidate()
         self.timer = Timer.scheduledTimer(timeInterval: self.interval, target: self, selector: #selector(modeTimerTick(timer:)), userInfo: nil, repeats: true)
         self.modeTimerTick(timer: self.timer)
     }

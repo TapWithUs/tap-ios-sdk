@@ -18,6 +18,7 @@
 		3211B17F2C2AF5CF007F1631 /* MouseEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1792C2AF5CF007F1631 /* MouseEvents.swift */; };
 		323418A62924F6E5009CBA2B /* TAPAirGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */; };
 		325EFF8A2922899F00E2B478 /* TAPHaptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325EFF892922899F00E2B478 /* TAPHaptic.swift */; };
+		327029812E9FCFA1007C71F6 /* TapHoldController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327029802E9FCFA1007C71F6 /* TapHoldController.swift */; };
 		32B54EFE2C2D64420098990D /* TAPXRAirGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32B54EFD2C2D64420098990D /* TAPXRAirGesture.swift */; };
 		32EEBDCE2917EB30000AAA22 /* TAPHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */; };
 		32EEBDD02918EB64000AAA22 /* TAPHandleConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EEBDCF2918EB64000AAA22 /* TAPHandleConfig.swift */; };
@@ -113,6 +114,7 @@
 		3211B1792C2AF5CF007F1631 /* MouseEvents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MouseEvents.swift; sourceTree = "<group>"; };
 		323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPAirGestureController.swift; sourceTree = "<group>"; };
 		325EFF892922899F00E2B478 /* TAPHaptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHaptic.swift; sourceTree = "<group>"; };
+		327029802E9FCFA1007C71F6 /* TapHoldController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapHoldController.swift; sourceTree = "<group>"; };
 		32B54EFD2C2D64420098990D /* TAPXRAirGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPXRAirGesture.swift; sourceTree = "<group>"; };
 		32EEBDCD2917EB30000AAA22 /* TAPHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHandle.swift; sourceTree = "<group>"; };
 		32EEBDCF2918EB64000AAA22 /* TAPHandleConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHandleConfig.swift; sourceTree = "<group>"; };
@@ -227,6 +229,14 @@
 			path = Haptic;
 			sourceTree = "<group>";
 		};
+		3270297F2E9FCF90007C71F6 /* TapHold */ = {
+			isa = PBXGroup;
+			children = (
+				327029802E9FCFA1007C71F6 /* TapHoldController.swift */,
+			);
+			path = TapHold;
+			sourceTree = "<group>";
+		};
 		32EEBDD8291BEC4A000AAA22 /* TAPKit */ = {
 			isa = PBXGroup;
 			children = (
@@ -278,6 +288,7 @@
 		532EB66520624D9F00B7B8BD /* TAPKit-iOS */ = {
 			isa = PBXGroup;
 			children = (
+				3270297F2E9FCF90007C71F6 /* TapHold */,
 				3211B1732C2AF43B007F1631 /* TAPXRGestures */,
 				3211B1702C29A5DC007F1631 /* TAPXRState */,
 				323418A42924F6C4009CBA2B /* AirGesture */,
@@ -593,6 +604,7 @@
 				323418A62924F6E5009CBA2B /* TAPAirGestureController.swift in Sources */,
 				3211B17B2C2AF5CF007F1631 /* MajorityVoting.swift in Sources */,
 				32EEBDD7291BD8FD000AAA22 /* TAPCentralDelegate.swift in Sources */,
+				327029812E9FCFA1007C71F6 /* TapHoldController.swift in Sources */,
 				32EEBDD5291BD34A000AAA22 /* TAPCentral.swift in Sources */,
 				5329B3B523EADF11007C2B90 /* TAPRawSensorSensitivity.swift in Sources */,
 				3211B17C2C2AF5CF007F1631 /* Queue.swift in Sources */,

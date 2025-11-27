@@ -136,9 +136,9 @@ class TAPCentral : NSObject {
     }
     
     func write(identifier:String, characteristic:CBUUID, value:Data) -> Void {
-//        if characteristic == TAPCBUUID.characteristic__RX {
-//            print("Writing RX: \([UInt8](value))")
-//        }
+        if characteristic == TAPCBUUID.characteristic__RX {
+            print("Writing RX: \([UInt8](value))")
+        }
         
         if let handle = self.getTapHandle(identifier) {
             handle.write(characteristic, value: value)

@@ -63,16 +63,21 @@ class TAPXRStateController {
         
     }
     
-    func start() -> Void {
+    func start(withDelay:TimeInterval) -> Void {
         self.isActive = true
-        self.timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { _ in
+        DispatchQueue.main.asyncAfter(deadline: .now() + max(0,withDelay), execute: {
             self.updateAll()
+            self.timer?.invalidate()
+            self.timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { _ in
+                self.updateAll()
+            })
         })
-        self.updateAll()
+        
+        
     }
     
-    func resume() -> Void {
-        self.start()
+    func resume(withDelay:TimeInterval) -> Void {
+        self.start(withDelay: withDelay)
     }
     
     func pause(andSetState state:TAPXRState) -> Void {

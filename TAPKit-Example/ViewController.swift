@@ -19,12 +19,15 @@ class ViewController: UIViewController {
     private var prevGesture : XRGestureState = .none
     override func viewDidLoad() {
         super.viewDidLoad()
-        TAPKit.log.enableAllEvents()
-        self.xrGesturesMain.onXRAirGestured = { gesture in print("XR AIR GESTURE \(gesture.rawValue)")}
+        TAPKit.log.disableAllEvents()
+//        TAPKit.sharedKit.setDefaultTAPInputMode(.rawSensor(sensitivity: TAPRawSensorSensitivity(deviceAccelerometer: 1, imuGyro: 1, imuAccelerometer: 1)), immediate: true)
+        
+//        self.xrGesturesMain.onXRAirGestured = { gesture in print("XR AIR GESTURE \(gesture.rawValue)")}
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
-        TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode.controller(), immediate: true)
-        TAPKit.sharedKit.setDefaultTAPXRState(TAPXRState.airMouse(), applyImmediate: true)
+        
+//        TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode.controller(), immediate: true)
+//        TAPKit.sharedKit.setDefaultTAPXRState(TAPXRState.airMouse(), applyImmediate: true)
 //        TAPKit.sharedKit.setTAPXRState(TAPXRState.airMouse(), forIdentifiers: ["identifier..."])
         
         
@@ -125,7 +128,13 @@ extension ViewController : TAPKitDelegate {
         print("TAP \(identifier) did read hw: \(hw)")
     }
     
-
+    func tapHoldStarted(identifier: String, combination: UInt8) {
+        print("tap hold started \(combination)")
+    }
+    
+    func tapHoldEnded(identifier: String, combination: UInt8) {
+        print("tap hold ended \(combination)")
+    }
     
     func tapped(identifier: String, combination: UInt8, multitap: UInt8) {
         print("tapped: \(combination)")
@@ -169,6 +178,16 @@ extension ViewController : TAPKitDelegate {
         // We recomend that you'll keep track of the taps' identifier, if you're developing a multiplayer game and you need to keep track of all the players,
         // As multiple taps can be connected to the same iOS device.
         print("TAP \(identifier), \(name) connected!")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: {
+            TAPKit.sharedKit.setDefaultTAPXRState(.airMouse(), applyImmediate: true)
+            TAPKit.sharedKit.setDefaultTAPInputMode(.controller(), immediate: true)
+        })
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0, execute: {
+            TAPKit.sharedKit.setDefaultTAPXRState(.tapping(), applyImmediate: true)
+            TAPKit.sharedKit.setDefaultTAPInputMode(.tapHold(), immediate: true)
+            
+        })
+        
     }
     
     func tapFailedToConnect(withIdentifier identifier: String, name: String) {

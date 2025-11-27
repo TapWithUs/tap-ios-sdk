@@ -25,7 +25,7 @@ open class TAPKit : NSObject {
     private var parsers : [CBUUID : [((String, CBUUID, Data)->Void)]] // CharacteristicUUID : (TapIdentifierUUID, CharacteristicUUID, Data)
     private var didWriteParsers : [CBUUID : [((String, CBUUID, Data?)->Void)]]
     private var modesEnabled : Bool
-    
+    private var tapHoldController :TapHoldController
     public var sendModeInBackground : Bool
     
     open class func instance() -> TAPKit {
@@ -44,10 +44,13 @@ open class TAPKit : NSObject {
         self.airGestureController = TAPAirGestureController()
         self.tapxrStateController = TAPXRStateController()
         self.sendModeInBackground = false
+        self.tapHoldController = TapHoldController()
+        
         super.init()
         self.central = TAPCentral(handleInit: self.getHandleConfig(), handleValidator: self.getHandleValidator(), delegate: self)
         self.inputModeController = TAPInputModeController(interval: 10.0, delegate: self)
         self.tapxrStateController.delegate = self
+        self.tapHoldController.delegate = self
         self.setupObservers()
         self.setupParsers()
 
@@ -120,7 +123,7 @@ open class TAPKit : NSObject {
         TAPKit.log.event(.info, message: "appDidBecomeActive notification. sendModeInBackground = \(self.sendModeInBackground)")
         if (!self.sendModeInBackground) {
             self.inputModeController.resume()
-            self.tapxrStateController.resume()
+            self.tapxrStateController.resume(withDelay: 3.0)
         }
         
     }
@@ -128,7 +131,7 @@ open class TAPKit : NSObject {
     @objc func appWillResignActive(notification:NSNotification) -> Void {
         TAPKit.log.event(.info, message: "appWillResignActive notification. sendModeInBackground = \(self.sendModeInBackground)")
         if (!self.sendModeInBackground) {
-            self.tapxrStateController.pause(andSetState: .tapping())
+//            self.tapxrStateController.pause(andSetState: .tapping())
             self.inputModeController.pause(andSetMode: .text())
             self.tapxrStateController.pause(andSetState: .userControl())
             
@@ -201,25 +204,33 @@ extension TAPKit {
     // Parsers
     private func tapDataParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
         
+        
         if let first = DataConverter.toUInt8(data: data, index: 0) {
             
-            if self.airGestureController.isInState(uuid: identifier) {
-                if let gesture = TAPAirGestureHelper.tapToAirGesture(first) {
+            let use_tap_hold = (self.inputModeController.get(identifier: identifier) ?? .defaultMode()).type == TAPInputMode.kTapHold
+            
+            if (use_tap_hold) {
+                self.tapHoldController.tapped(identifier: identifier, combination: first)
+            } else {
+                if self.airGestureController.isInState(uuid: identifier) {
+                    if let gesture = TAPAirGestureHelper.tapToAirGesture(first) {
+                        self.delegatesController.run(action: { d in
+                            d.tapAirGestured?(identifier: identifier, gesture: gesture)
+                        })
+                    }
+                } else {
+                    
+                    var keyboardState : (shiftState:UInt8, switchState:UInt8, multitap:UInt8)? = nil
+                    if let byte = DataConverter.toUInt8(data: data, index: 3) {
+                        keyboardState = (shiftState: byte & 0b00000011, switchState: (byte >> 2) & 0b00000011, multitap:  min(((byte >> 4) & 0b00000011)+1,3))
+                    }
                     self.delegatesController.run(action: { d in
-                        d.tapAirGestured?(identifier: identifier, gesture: gesture)
+                        d.tapped?(identifier: identifier, combination: first, multitap: keyboardState?.multitap ?? 1)
                     })
                 }
-            } else {
-                
-                var keyboardState : (shiftState:UInt8, switchState:UInt8, multitap:UInt8)? = nil
-                if let byte = DataConverter.toUInt8(data: data, index: 3) {
-//                    let mTapDecoded = min(mTap+1,3)
-                    keyboardState = (shiftState: byte & 0b00000011, switchState: (byte >> 2) & 0b00000011, multitap:  min(((byte >> 4) & 0b00000011)+1,3))
-                }
-                self.delegatesController.run(action: { d in
-                    d.tapped?(identifier: identifier, combination: first, multitap: keyboardState?.multitap ?? 1)
-                })
             }
+            
+            
         }
     }
     
@@ -360,6 +371,7 @@ extension TAPKit : TAPInputModeControllerDelegate {
         guard self.modesEnabled else { return }
         modes.forEach({ uuid, mode in
             if let data = mode.data() {
+                
                 self.central.write(identifier: uuid, characteristic: TAPCBUUID.characteristic__RX, value: data)
             }
         })
@@ -371,7 +383,7 @@ extension TAPKit {
     
     @objc public func start() -> Void {
         self.inputModeController.start()
-        self.tapxrStateController.start()
+        self.tapxrStateController.start(withDelay: 3.0)
         self.airGestureController.reset()
         self.central.start()
         
@@ -452,4 +464,20 @@ extension TAPKit {
     @objc public func setDefaultTAPXRState(_ state:TAPXRState, applyImmediate:Bool) -> Void {
         self.tapxrStateController.setDefault(state: state, applyImmediate: applyImmediate)
     }
+}
+
+extension TAPKit : TapHoldControllerDelegate {
+    func tapHoldSingleTap(identifier: String, combination: UInt8) {
+        self.delegatesController.run(action: { d in d.tapped?(identifier: identifier, combination: combination, multitap: 1)})
+    }
+    
+    func tapHoldStarted(identifier: String, combination: UInt8) {
+        self.delegatesController.run(action: { d in d.tapHoldStarted?(identifier: identifier, combination: combination)})
+    }
+    
+    func tapHoldEnded(identifier: String, combination: UInt8) {
+        self.delegatesController.run(action: { d in d.tapHoldEnded?(identifier: identifier, combination:  combination)})
+    }
+    
+    
 }

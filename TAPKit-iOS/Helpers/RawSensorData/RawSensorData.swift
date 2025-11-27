@@ -45,6 +45,10 @@ import Foundation
     public func rawString(delimeter:String) -> String {
         return "\(self.x)\(delimeter)\(self.y)\(delimeter)\(self.z)\(delimeter)"
     }
+    
+    public func toFloatArray() -> [Float] {
+        return [(Float)(self.x), (Float)(self.y), (Float)(self.z)]
+    }
 }
 
 @objc public enum RawSensorDataType : Int {
