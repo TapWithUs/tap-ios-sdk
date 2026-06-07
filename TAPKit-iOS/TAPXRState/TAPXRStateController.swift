@@ -34,6 +34,10 @@ class TAPXRStateController {
         return self.states[identifier] ?? self.defaultState
     }
     
+    func getAll() -> [String : TAPXRState] {
+        return self.states.filter({ self.verified.contains($0.key)})
+    }
+    
     func add(identifier:String) -> Void {
         self.verified.insert(identifier)
         self.states[identifier] = self.defaultState
@@ -65,13 +69,13 @@ class TAPXRStateController {
     
     func start(withDelay:TimeInterval) -> Void {
         self.isActive = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + max(0,withDelay), execute: {
-            self.updateAll()
-            self.timer?.invalidate()
-            self.timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { _ in
-                self.updateAll()
-            })
-        })
+//        DispatchQueue.main.asyncAfter(deadline: .now() + max(0,withDelay), execute: {
+//            self.updateAll()
+//            self.timer?.invalidate()
+//            self.timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { _ in
+//                self.updateAll()
+//            })
+//        })
         
         
     }

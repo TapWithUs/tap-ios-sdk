@@ -24,7 +24,12 @@ import Foundation
     case XRAirGestureThumbIndex = 101
     case XRAirGestureThumbMiddle = 102
     case XRAirGestureThumbRing = 103
+    case XRAirGestureThumbPinky = 104
     case XRAirGestureFist = 105
+    case XRAirGestureSwipeLeft = 301
+    case XRAirGestureSwipeTop = 302
+    case XRAirGestureSwipeRight = 303
+    case XRAirGestureSwipeBottom = 304
 }
 
 class TAPAirGestureHelper {
@@ -39,5 +44,21 @@ class TAPAirGestureHelper {
             return .MiddleToThumbTouch
         }
         return nil
+    }
+    
+    static func isSwipe(_ tapAirGesture:TAPAirGesture) -> Bool {
+        switch tapAirGesture {
+        case .XRAirGestureSwipeLeft : fallthrough
+        case .XRAirGestureSwipeTop : fallthrough
+        case .XRAirGestureSwipeRight : fallthrough
+        case .XRAirGestureSwipeBottom :
+            return true
+        default:
+            return false
+        }
+    }
+    
+    static func isXRGesture(_ gesture:TAPAirGesture) -> Bool {
+        return gesture.rawValue >= 100
     }
 }

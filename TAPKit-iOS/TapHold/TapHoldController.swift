@@ -18,7 +18,7 @@ class TapHoldController {
     private var t : [String:TapStateStruct]
     
     weak var delegate : TapHoldControllerDelegate?
-    
+    private var ma : [String:MajorityVoting<UInt8>]
     private enum TapStateEnum {
         case tappedOnce
         case tappedMore
@@ -31,11 +31,13 @@ class TapHoldController {
     
     init() {
         self.t = [String:TapStateStruct]()
+        self.ma = [String:MajorityVoting<UInt8>]()
     }
     
     init(delegate:TapHoldControllerDelegate) {
         self.t = [String:TapStateStruct]()
         self.delegate = delegate
+        self.ma = [String:MajorityVoting<UInt8>]()
     }
     
     func delegateFunc(f:(TapHoldControllerDelegate)->Void) -> Void {
@@ -44,8 +46,15 @@ class TapHoldController {
         }
     }
     
-    func tapped(identifier:String, combination:UInt8) {
+    private func getMajority(identifier:String, combination:UInt8) -> UInt8? {
         
+        if !self.ma.keys.contains(identifier) {
+            self.ma[identifier] = MajorityVoting(len: 3, defaultValue: 0)
+        }
+        return self.ma[identifier]?.call(combination)
+    }
+    
+    func tapped(identifier:String, combination:UInt8) {
         // Old state can be: nil, TappedOnce, TappedMore.
         // New state can be: None (Combination == 0), Tapped (Combination > 0)
         
@@ -64,25 +73,28 @@ class TapHoldController {
         //      Fire tapHoldEndEvent with old combination.
         //      Set old state to nil.
         //      Recursive call with same parameters.
+
         
-        var oldState = self.t[identifier]
-        var newStateTapped = combination > 0
-        print("TAPPED COMBINATION \(combination)")
+        
+        guard let comb = self.getMajority(identifier: identifier, combination: combination) else { return }
+        let oldState = self.t[identifier]
+        let newStateTapped = comb > 0
+        
         if newStateTapped {
             if let oldState {
-                if oldState.combination == combination {
+                if oldState.combination == comb {
                     if oldState.state == .tappedOnce {
                         self.t[identifier]?.state = .tappedMore
-                        self.delegateFunc(f: { f in f.tapHoldStarted(identifier: identifier, combination: combination)})
+                        self.delegateFunc(f: { f in f.tapHoldStarted(identifier: identifier, combination: comb)})
                     }
                 } else {
                     self.delegateFunc(f: { f in f.tapHoldEnded(identifier: identifier, combination: oldState.combination)})
                     self.t.removeValue(forKey: identifier)
-                    self.tapped(identifier: identifier, combination: combination)
+                    self.tapped(identifier: identifier, combination: comb)
                 }
             } else {
-                self.t[identifier] = TapStateStruct(combination: combination, state: .tappedOnce)
-                self.delegateFunc(f: { f in f.tapHoldSingleTap(identifier: identifier, combination: combination)})
+                self.t[identifier] = TapStateStruct(combination: comb, state: .tappedOnce)
+                self.delegateFunc(f: { f in f.tapHoldSingleTap(identifier: identifier, combination: comb)})
             }
         } else {
             if let oldState {

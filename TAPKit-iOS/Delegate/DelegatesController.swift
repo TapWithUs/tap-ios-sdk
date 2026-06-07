@@ -37,12 +37,26 @@ class DelegatesController<T> where T:AnyObject  {
     }
     
     public
-    func run(action:((T)->Void)) {
-        self.delegates.forEach( { delegate in
-            if (delegate.isAlive()) {
-                action(delegate.get()!)
+    func run(action:@escaping ((T)->Void)) {
+        if #available(iOS 13.0, *) {
+            Task {
+                self.delegates.forEach( { delegate in
+                    if (delegate.isAlive()) {
+                        action(delegate.get()!)
+                    }
+                })
             }
-        })
+        } else {
+            // Fallback on earlier versions
+            DispatchQueue.main.async {
+                self.delegates.forEach( { delegate in
+                    if (delegate.isAlive()) {
+                        action(delegate.get()!)
+                    }
+                })
+            }
+        }
+        
     }
     
     

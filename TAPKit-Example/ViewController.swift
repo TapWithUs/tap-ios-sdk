@@ -11,7 +11,6 @@ import TAPKit
 
 class ViewController: UIViewController {
 
-    var xrGesturesMain : XRGesturesMain = XRGesturesMain()
     @IBOutlet weak var mouse: UIImageView!
     private var devCount = 0
     private var imuCount = 0
@@ -20,19 +19,16 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         TAPKit.log.disableAllEvents()
-//        TAPKit.sharedKit.setDefaultTAPInputMode(.rawSensor(sensitivity: TAPRawSensorSensitivity(deviceAccelerometer: 1, imuGyro: 1, imuAccelerometer: 1)), immediate: true)
+
         
 //        self.xrGesturesMain.onXRAirGestured = { gesture in print("XR AIR GESTURE \(gesture.rawValue)")}
         // Any class that wish to get taps related callbacks, must add itself as a delegate:
         TAPKit.sharedKit.addDelegate(self)
+
+
+        TAPKit.sharedKit.setDefaultTAPInputMode(.controller(), immediate: true)
+        TAPKit.sharedKit.setDefaultTAPXRState(.airMouse(), applyImmediate: true)
         
-//        TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode.controller(), immediate: true)
-//        TAPKit.sharedKit.setDefaultTAPXRState(TAPXRState.airMouse(), applyImmediate: true)
-//        TAPKit.sharedKit.setTAPXRState(TAPXRState.airMouse(), forIdentifiers: ["identifier..."])
-        
-        
-        
-//        TAPKit.sharedKit.setDefaultTAPInputMode(.rawSensor(sensitivity: .init(deviceAccelerometer: 1, imuGyro: 1, imuAccelerometer: 1)), immediate: true)
         
         // You can enable/disable logs for specific events, or all events
         // TAPKitLogEvent.error, TAPKitLogEvent.fatal, TAPKitLogEvent.info, TAPKitLogEvent.warning
@@ -167,6 +163,10 @@ extension ViewController : TAPKitDelegate {
         print("---combination fingers : \(fingersString)")
     }
     
+    func tapDidSwipe(identifier: String, direction: Int) {
+        print("example did swipe \(identifier), direction \(direction)")
+    }
+    
     func tapDisconnected(withIdentifier identifier: String) {
         // TAP device disconnected
         print("TAP \(identifier) disconnected.")
@@ -177,17 +177,7 @@ extension ViewController : TAPKitDelegate {
         // TAP device connected
         // We recomend that you'll keep track of the taps' identifier, if you're developing a multiplayer game and you need to keep track of all the players,
         // As multiple taps can be connected to the same iOS device.
-        print("TAP \(identifier), \(name) connected!")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: {
-            TAPKit.sharedKit.setDefaultTAPXRState(.airMouse(), applyImmediate: true)
-            TAPKit.sharedKit.setDefaultTAPInputMode(.controller(), immediate: true)
-        })
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0, execute: {
-            TAPKit.sharedKit.setDefaultTAPXRState(.tapping(), applyImmediate: true)
-            TAPKit.sharedKit.setDefaultTAPInputMode(.tapHold(), immediate: true)
-            
-        })
-        
+//        print("TAP \(identifier), \(name) connected!")
     }
     
     func tapFailedToConnect(withIdentifier identifier: String, name: String) {
@@ -211,18 +201,21 @@ extension ViewController : TAPKitDelegate {
         //   twice as fast.
         
         // Example: Moving the mouse image :
-        if (isMouse) {
-            let newPoint = CGPoint(x: self.mouse.frame.origin.x + CGFloat(velocityX), y: self.mouse.frame.origin.y + CGFloat(velocityY))
-            var dx : CGFloat = 0
-            var dy : CGFloat = 0
-            if self.view.frame.contains(CGPoint(x: 0, y: newPoint.y)) {
-                dy = CGFloat(velocityY)
+        DispatchQueue.main.async {
+            if (isMouse) {
+                let newPoint = CGPoint(x: self.mouse.frame.origin.x + CGFloat(velocityX), y: self.mouse.frame.origin.y + CGFloat(velocityY))
+                var dx : CGFloat = 0
+                var dy : CGFloat = 0
+                if self.view.frame.contains(CGPoint(x: 0, y: newPoint.y)) {
+                    dy = CGFloat(velocityY)
+                }
+                if self.view.frame.contains(CGPoint(x: newPoint.x, y: 0)) {
+                    dx = CGFloat(velocityX)
+                }
+                self.mouse.frame = self.mouse.frame.offsetBy(dx: dx, dy: dy)
             }
-            if self.view.frame.contains(CGPoint(x: newPoint.x, y: 0)) {
-                dx = CGFloat(velocityX)
-            }
-            mouse.frame = mouse.frame.offsetBy(dx: dx, dy: dy)
         }
+        
     }
     
     func rawSensorDataReceived(identifier: String, data: RawSensorData) {
@@ -258,7 +251,6 @@ extension ViewController : TAPKitDelegate {
 //    }
     
     func tapAirGestured(identifier: String, gesture: TAPAirGesture) {
-        print("g: \(gesture.rawValue)")
         switch (gesture) {
         case .OneFingerDown : print("Air Gestured: One Finger Down")
         case .OneFingerLeft : print("Air Gestured: One Finger Left")
@@ -270,8 +262,12 @@ extension ViewController : TAPKitDelegate {
         case .TwoFingersRight : print("Air Gestured: Two Fingers Right")
         case .IndexToThumbTouch : print("Air Gestured: Index finger tapping the Thumb")
         case .MiddleToThumbTouch : print("Air Gestured: Middle finger tapping the Thumb")
-        default : self.xrGesturesMain.onGestureState(gesture: gesture.rawValue)
+        default : break
         }
+    }
+    
+    func tapXRAirGestured(identifier: String, gesture: TAPXRAirGesture) {
+        print("XR GESTURED \(gesture)")
     }
     
     func tapChangedAirGesturesState(identifier: String, isInAirGesturesState: Bool) {

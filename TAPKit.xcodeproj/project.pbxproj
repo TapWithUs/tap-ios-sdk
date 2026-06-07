@@ -16,6 +16,7 @@
 		3211B17D2C2AF5CF007F1631 /* Deque.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1772C2AF5CE007F1631 /* Deque.swift */; };
 		3211B17E2C2AF5CF007F1631 /* XRGesturesMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1782C2AF5CF007F1631 /* XRGesturesMain.swift */; };
 		3211B17F2C2AF5CF007F1631 /* MouseEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3211B1792C2AF5CF007F1631 /* MouseEvents.swift */; };
+		322B4C5F2F06CC74008213F9 /* TapSwipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 322B4C5E2F06CC74008213F9 /* TapSwipe.swift */; };
 		323418A62924F6E5009CBA2B /* TAPAirGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */; };
 		325EFF8A2922899F00E2B478 /* TAPHaptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325EFF892922899F00E2B478 /* TAPHaptic.swift */; };
 		327029812E9FCFA1007C71F6 /* TapHoldController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327029802E9FCFA1007C71F6 /* TapHoldController.swift */; };
@@ -112,6 +113,7 @@
 		3211B1772C2AF5CE007F1631 /* Deque.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deque.swift; sourceTree = "<group>"; };
 		3211B1782C2AF5CF007F1631 /* XRGesturesMain.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XRGesturesMain.swift; sourceTree = "<group>"; };
 		3211B1792C2AF5CF007F1631 /* MouseEvents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MouseEvents.swift; sourceTree = "<group>"; };
+		322B4C5E2F06CC74008213F9 /* TapSwipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapSwipe.swift; sourceTree = "<group>"; };
 		323418A52924F6E5009CBA2B /* TAPAirGestureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPAirGestureController.swift; sourceTree = "<group>"; };
 		325EFF892922899F00E2B478 /* TAPHaptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPHaptic.swift; sourceTree = "<group>"; };
 		327029802E9FCFA1007C71F6 /* TapHoldController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapHoldController.swift; sourceTree = "<group>"; };
@@ -211,6 +213,14 @@
 			path = TAPXRGestures;
 			sourceTree = "<group>";
 		};
+		322B4C5D2F06CC6B008213F9 /* TapSwipe */ = {
+			isa = PBXGroup;
+			children = (
+				322B4C5E2F06CC74008213F9 /* TapSwipe.swift */,
+			);
+			path = TapSwipe;
+			sourceTree = "<group>";
+		};
 		323418A42924F6C4009CBA2B /* AirGesture */ = {
 			isa = PBXGroup;
 			children = (
@@ -288,6 +298,7 @@
 		532EB66520624D9F00B7B8BD /* TAPKit-iOS */ = {
 			isa = PBXGroup;
 			children = (
+				322B4C5D2F06CC6B008213F9 /* TapSwipe */,
 				3270297F2E9FCF90007C71F6 /* TapHold */,
 				3211B1732C2AF43B007F1631 /* TAPXRGestures */,
 				3211B1702C29A5DC007F1631 /* TAPXRState */,
@@ -611,6 +622,7 @@
 				3211B16F2C299DA7007F1631 /* TAPXRState.swift in Sources */,
 				53E970B4206A345A00F68262 /* TAPKitLog.swift in Sources */,
 				532EB67120624F6800B7B8BD /* TAPCBUUID.swift in Sources */,
+				322B4C5F2F06CC74008213F9 /* TapSwipe.swift in Sources */,
 				3204C2052970560700DB7628 /* TAPHandleValidator.swift in Sources */,
 				32EEBDDD291D1485000AAA22 /* WeakRef.swift in Sources */,
 				3211B17A2C2AF5CF007F1631 /* MouseEventsInterpreter.swift in Sources */,
@@ -882,6 +894,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 6BH9T6C7E7;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "TAPKit-Example/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.--USER-.TAPKit-Example";
@@ -907,6 +920,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 6BH9T6C7E7;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "TAPKit-Example/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.--USER-.TAPKit-Example";

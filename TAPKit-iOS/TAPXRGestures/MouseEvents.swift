@@ -18,6 +18,16 @@ enum MouseEventFinger {
     case index
     case middle
     case ring
+    case pinky
+    
+    func descriptionString() -> String {
+        switch self {
+        case .index : return "index"
+        case .middle : return "middle"
+        case .ring : return "ring"
+        case .pinky : return "pinky"
+        }
+    }
 }
 
 enum MouseEventsAction {
@@ -27,6 +37,26 @@ enum MouseEventsAction {
     case drag
     case scroll(vy:Double)
     case fist
+    case swipe(direction:Int)
+    
+    func isRelease() -> Bool {
+        switch self {
+        case .release : return true
+        default : return false
+        }
+    }
+    
+    func descriptionString() -> String {
+        switch self {
+        case .release : return "release"
+        case .drag : return "drag"
+        case .fist : return "fist"
+        case .press(let finger): return "press \(finger.descriptionString())"
+        case .swipe(let direction) : return "swipe \(direction)"
+        default : return ""
+        }
+    }
+    
 }
 
 protocol MouseEventsDelegate : class {
@@ -45,6 +75,7 @@ class MouseEvents {
     private var inFlick : Bool
     private var vy : Double
     private let flickMotionThreshold : Double = 10
+
     
     weak var delegate : MouseEventsDelegate?
     
@@ -74,9 +105,11 @@ class MouseEvents {
     }
     
     func dispatchAction(_ a:MouseEventsAction) {
-        DispatchQueue.main.async {
-            self.delegate?.mouseEventsAction(a)
-        }
+
+            DispatchQueue.main.async {
+                self.delegate?.mouseEventsAction(a)
+            }
+
     }
     
     private func doFlick(mm:Double) -> Void {
@@ -84,6 +117,10 @@ class MouseEvents {
         self.inFlick = true
         let delta = mm > 0 ? 1 : -1
         
+    }
+    
+    func resetGestures() {
+        self.prevGesture = .none
     }
     
     func put(_ m : MouseEventType) {
@@ -100,7 +137,7 @@ class MouseEvents {
             if let g = XRGestureState(rawValue: gesture) {
                 self.gestureDuration = self.gestureDuration + 1
                 if self.prevGesture != g {
-                    self.gestureDuration = 0
+                    
                     if g == .none {
                         self.dispatchAction(.release)
                         
@@ -115,8 +152,10 @@ class MouseEvents {
 //                            self.dispatchAction(.release)
 //                        }
                     }
-                    self.prevGesture = g
-
+                    if self.prevGesture == .none || g == .none {
+                        self.gestureDuration = 0
+                        self.prevGesture = g
+                    }
                 }
                 if self.gestureDuration == 1 && self.prevGesture == .thumb_index {
                     self.dispatchAction(.press(finger: .index))
@@ -126,6 +165,10 @@ class MouseEvents {
                 }
                 if self.gestureDuration == 1 && self.prevGesture == .thumb_ring {
                     self.dispatchAction(.press(finger: .ring))
+                }
+                
+                if self.gestureDuration == 1 && self.prevGesture == .thumb_pinky {
+                    self.dispatchAction(.press(finger: .pinky))
                 }
                 
                 if self.gestureDuration == 1 && self.prevGesture == .fist {

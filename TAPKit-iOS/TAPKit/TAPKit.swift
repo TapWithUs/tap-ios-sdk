@@ -15,6 +15,9 @@ open class TAPKit : NSObject {
     
     @objc public static let sharedKit = TAPKit.instance()
     private static var _instance : TAPKit? = nil
+
+    private let tapSwipe : TapSwipe
+    
     
     @objc public static let log = TAPKitLog.sharedLog
     private var delegatesController : DelegatesController<TAPKitDelegate>
@@ -22,11 +25,14 @@ open class TAPKit : NSObject {
     private var inputModeController : TAPInputModeController!
     private var airGestureController : TAPAirGestureController!
     private var tapxrStateController : TAPXRStateController!
+    private var tapxrGesturesMain : [String : XRGesturesMain]
     private var parsers : [CBUUID : [((String, CBUUID, Data)->Void)]] // CharacteristicUUID : (TapIdentifierUUID, CharacteristicUUID, Data)
     private var didWriteParsers : [CBUUID : [((String, CBUUID, Data?)->Void)]]
     private var modesEnabled : Bool
     private var tapHoldController :TapHoldController
     public var sendModeInBackground : Bool
+    
+    private var modesTimer : Timer?
     
     open class func instance() -> TAPKit {
         if TAPKit._instance == nil {
@@ -35,9 +41,11 @@ open class TAPKit : NSObject {
         return TAPKit._instance!
     }
     
+    
     public
     override init() {
         self.modesEnabled = true
+        self.tapSwipe = TapSwipe()
         self.parsers = [CBUUID : [((String, CBUUID, Data)->Void)]]()
         self.didWriteParsers = [CBUUID : [((String, CBUUID, Data?)->Void)]]()
         self.delegatesController = DelegatesController<TAPKitDelegate>()
@@ -45,7 +53,7 @@ open class TAPKit : NSObject {
         self.tapxrStateController = TAPXRStateController()
         self.sendModeInBackground = false
         self.tapHoldController = TapHoldController()
-        
+        self.tapxrGesturesMain = [String : XRGesturesMain]()
         super.init()
         self.central = TAPCentral(handleInit: self.getHandleConfig(), handleValidator: self.getHandleValidator(), delegate: self)
         self.inputModeController = TAPInputModeController(interval: 10.0, delegate: self)
@@ -71,6 +79,7 @@ open class TAPKit : NSObject {
         self.addParser(TAPCBUUID.characteristic__AirGestures, parser: self.tapAirGestureParser(identifier:characteristic:data:))
         self.addParser(TAPCBUUID.characteristic__HW, parser: self.tapDeviceInformationParser(identifier:characteristic:data:))
         self.addParser(TAPCBUUID.characteristic__FW, parser: self.tapDeviceInformationParser(identifier:characteristic:data:))
+        self.addParser(TAPCBUUID.characteristic__BatteryLevel, parser: self.batteryLevelDataParser(identifier:characteristic:data:))
     }
                            
     public func addParser(_ characteristic:CBUUID, parser: @escaping ((String, CBUUID, Data)->Void), replaceExistsing:Bool = false) {
@@ -116,6 +125,7 @@ open class TAPKit : NSObject {
         c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__TX,notify: true))
         c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__HW, readOnDiscover: true, storeLastReadValue: true))
         c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__FW, readOnDiscover: true, storeLastReadValue: true))
+        c.add(TAPHandleConfigCharacteristic(uuid: TAPCBUUID.characteristic__BatteryLevel, readOnDiscover: true, storeLastReadValue: true))
         return c
     }
     
@@ -140,13 +150,39 @@ open class TAPKit : NSObject {
         
     }
     
+    private func xrGestured(identifier: String, gesture:Int) {
+        if !self.tapxrGesturesMain.keys.contains(identifier) {
+            self.tapxrGesturesMain[identifier] = XRGesturesMain()
+            self.tapxrGesturesMain[identifier]?.onXRAirGestured = { [weak self] gesture in
+                self?.delegatesController.run(action: { d in
+                    d.tapXRAirGestured?(identifier: identifier, gesture: gesture)
+                })
+            }
+        }
+        self.tapxrGesturesMain[identifier]?.onGestureState(gesture: gesture)
+    }
+    
     private func parseCharacteristicValue(identifier:String, characteristic:CBUUID, data:Data) -> Void {
         
-        if let p = self.parsers[characteristic] {
-            p.forEach({ parser in
-                parser(identifier, characteristic, data)
-            })
+        if #available(iOS 13.0, *) {
+            Task {
+                if let p = self.parsers[characteristic] {
+                    p.forEach({ parser in
+                        parser(identifier, characteristic, data)
+                    })
+                }
+            }
+        } else {
+            // Fallback on earlier versions
+            DispatchQueue.main.async {
+                if let p = self.parsers[characteristic] {
+                    p.forEach({ parser in
+                        parser(identifier, characteristic, data)
+                    })
+                }
+            }
         }
+        
     }
     
     private func parseDidWriteValue(identifier:String, characteristic:CBUUID, value:Data?) -> Void {
@@ -198,10 +234,56 @@ open class TAPKit : NSObject {
         }
     }
     
+    func modeUpdate(identifier:String) {
+        guard self.modesEnabled else { return }
+        if let state = self.tapxrStateController.get(identifier: identifier) {
+            if let data = state.data() {
+                self.central.write(identifier: identifier, characteristic: TAPCBUUID.characteristic__RX, value: data)
+            }
+        }
+        if let mode = self.inputModeController.get(identifier: identifier) {
+            if let data = mode.data() {
+                self.central.write(identifier: identifier, characteristic: TAPCBUUID.characteristic__RX, value: data)
+            }
+        }
+        
+    }
+    
+    func modesUpdate() -> Void {
+        
+        guard self.modesEnabled else { return }
+        self.getConnectedTaps().forEach({ k, _ in
+            self.modeUpdate(identifier: k)
+            
+        })
+    }
+    
+    func startModesTimer() -> Void {
+        self.modesTimer?.invalidate()
+        self.modesTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true, block: { t in
+            self.modesUpdate()
+        })
+        
+    }
+    
+    func stopModesTimer() -> Void {
+        self.modesTimer?.invalidate()
+    }
+    
 }
 
 extension TAPKit {
     // Parsers
+    
+    private func batteryLevelDataParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
+        
+        if let first = ([UInt8](data)).first {
+            self.delegatesController.run(action: { d in
+                d.tapDidReadBatteryLevel?(identifier: identifier, batteryLevel: Int(first))
+            })
+        }
+    }
+    
     private func tapDataParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
         
         
@@ -242,6 +324,13 @@ extension TAPKit {
                         d.moused?(identifier: identifier, velocityX: vX, velocityY: vY, isMouse: mouse==1)
                     })
                 }
+                if let roll = DataConverter.toInt16(data: data, index: 10), let pitch = DataConverter.toInt16(data: data, index: 12), let yaw = DataConverter.toInt16(data: data, index: 14) {
+                    // TODO:
+                    self.delegatesController.run(action: {
+                        d in d.tapDidChangeOrientation?(roll: Int(roll), pitch: Int(pitch), yaw: Int(yaw))
+                    })
+                }
+                
             }
         }
         
@@ -262,6 +351,34 @@ extension TAPKit {
     }
     
     private func tapAirGestureParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
+        var didSwipe : Bool = false
+        
+//        if let first = DataConverter.toUInt8(data: data, index: 0), let third = DataConverter.toUInt8(data: data, index: 3) {
+//            print("Gesture = \(first), Swipe = \(third)")
+//        }
+        
+//        if let f = DataConverter.toUInt8(data: data, index: 0) {
+//            print("First = \(f)")
+//        }
+        if let swipe = DataConverter.toUInt8(data: data, index: 3) {
+            if swipe != 0 {
+                print("sdk swipe = \(swipe)")
+                if self.tapSwipe.swipe(identifier: identifier) {
+                    print("can swipe")
+                    self.delegatesController.run(action: { d in
+                        
+                        d.tapDidSwipe?(identifier: identifier, direction: Int(swipe))
+                    })
+                    
+                    didSwipe = true
+                } else {
+                    print("Cant swipe")
+                }
+                
+            }
+        }
+        guard !didSwipe else { return }
+            
         if let first = DataConverter.toUInt8(data: data, index: 0) {
             if first == 20 {
                 if let second = DataConverter.toUInt8(data: data, index: 1) {
@@ -272,9 +389,13 @@ extension TAPKit {
                 }
             } else {
                 if let gesture = TAPAirGesture(rawValue: Int(first)) {
-                    self.delegatesController.run(action:  { d in
-                        d.tapAirGestured?(identifier: identifier, gesture: gesture)
-                    })
+                    if TAPAirGestureHelper.isXRGesture(gesture) {
+                        self.xrGestured(identifier: identifier, gesture: gesture.rawValue)
+                    } else {
+                        self.delegatesController.run(action:  { d in
+                            d.tapAirGestured?(identifier: identifier, gesture: gesture)
+                        })
+                    }
                 } else {
                     
 //                    if let xrGestureState = XRGestureState(rawValue: Int(first)) {
@@ -357,9 +478,10 @@ extension TAPKit : TAPXRStateControllerDelegate {
     func tapxrStateControllerUpdate(states: [String : TAPXRState]) {
         guard self.modesEnabled else { return }
         states.forEach({ uuid, state in
-            if let data = state.data() {
-                self.central.write(identifier: uuid, characteristic: TAPCBUUID.characteristic__RX, value: data)
-            }
+            self.modeUpdate(identifier: uuid)
+//            if let data = state.data() {
+//                self.central.write(identifier: uuid, characteristic: TAPCBUUID.characteristic__RX, value: data)
+//            }
         })
     }
     
@@ -370,10 +492,11 @@ extension TAPKit : TAPInputModeControllerDelegate {
     open func TAPInputModeUpdate(modes: [String : TAPInputMode]) {
         guard self.modesEnabled else { return }
         modes.forEach({ uuid, mode in
-            if let data = mode.data() {
-                
-                self.central.write(identifier: uuid, characteristic: TAPCBUUID.characteristic__RX, value: data)
-            }
+            self.modeUpdate(identifier: uuid)
+//            if let data = mode.data() {
+//                
+//                self.central.write(identifier: uuid, characteristic: TAPCBUUID.characteristic__RX, value: data)
+//            }
         })
     }
 }
@@ -386,6 +509,7 @@ extension TAPKit {
         self.tapxrStateController.start(withDelay: 3.0)
         self.airGestureController.reset()
         self.central.start()
+        self.startModesTimer()
         
         
     }
@@ -430,6 +554,12 @@ extension TAPKit {
         }
     }
     
+    @objc public func readBatteryLevel(forIdentifiers identifiers:[String]? = nil) -> Void {
+        self.actionWithIdentifiers(action: { uuid in
+            self.read(identifier: uuid, characteristic: TAPCBUUID.characteristic__BatteryLevel)
+        }, identifiers: identifiers)
+    }
+    
     @objc public func readHardwareVersion(forIdentifiers identifiers:[String]? = nil) -> Void {
         
         self.actionWithIdentifiers(action: { uuid in
@@ -446,11 +576,13 @@ extension TAPKit {
     }
     
     @objc public func enableModes() -> Void {
+        print("TAPKIT enable modes")
         self.modesEnabled = true
 
     }
     
     @objc public func disableModes() -> Void {
+        print("TAPKIT disable modes")
         self.modesEnabled = false
     }
     

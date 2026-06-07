@@ -9,7 +9,7 @@
 import Foundation
 
 class MouseEventsInterpreter {
-    let clickTimeInterval : TimeInterval = 0.13
+    let clickTimeInterval : TimeInterval = 0.2
     
     private var prev : MouseEventsAction
     private var prevts : TimeInterval
@@ -30,29 +30,30 @@ class MouseEventsInterpreter {
     
     
     func action(_ m : MouseEventsAction) {
+        print("current action: \(m.descriptionString()), prev-action: \(self.prev.descriptionString())")
         let ts = Date().timeIntervalSince1970
+        self.dragTimer?.invalidate()
         switch (self.prev, m) {
         case (.release, .press(let finger)) :
-            self.dragTimer = Timer.scheduledTimer(withTimeInterval: self.clickTimeInterval, repeats: false, block: {
-                _ in
-                self.prev = .drag
-                self.prevts = Date().timeIntervalSince1970
-                DispatchQueue.main.async { self.onDrag?(finger) }
-            })
-            DispatchQueue.main.async { self.onPotentialDragOrClick?(finger) }
+                self.dragTimer = Timer.scheduledTimer(withTimeInterval: self.clickTimeInterval, repeats: false, block: {
+                    _ in
+                    self.prev = .drag
+                    self.prevts = Date().timeIntervalSince1970
+                    self.onDrag?(finger)
+                })
+            self.onPotentialDragOrClick?(finger)
             break
         case (.press(let finger), .release) :
-            self.dragTimer?.invalidate()
-            DispatchQueue.main.async { self.onClick?(finger) }
+            self.onClick?(finger)
             break
         case (.drag, .release) :
-            DispatchQueue.main.async { self.onDrop?() }
+            self.onDrop?()
             break
         case (.release, .fist):
-            DispatchQueue.main.async { self.onFistBegin?() }
+            self.onFistBegin?()
             break
         case (.fist, .release):
-            DispatchQueue.main.async { self.onFistEnd?()}
+            self.onFistEnd?()
         
         default : break
         }

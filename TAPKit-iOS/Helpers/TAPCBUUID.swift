@@ -56,6 +56,8 @@ class TAPCBUUID : TAPCBUUIDProtocol {
     public static var service__DeviceInformation = CBUUID(string: "180A")
     public static var service__TAP = CBUUID(string: "C3FF0001-1D8B-40FD-A56F-C7BD5D0F3370")
     public static var service__NUS = CBUUID(string: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E")
+    public static var service_Battery = CBUUID(string: "180F")
+    
     public static var characteristic__TAPData = CBUUID(string: "C3FF0005-1D8B-40FD-A56F-C7BD5D0F3370")
     public static var characteristic__MouseData = CBUUID(string: "C3FF0006-1D8B-40FD-A56F-C7BD5D0F3370")
     public static var characteristic__AirGestures = CBUUID(string: "C3FF000A-1D8B-40FD-A56F-C7BD5D0F3370")
@@ -64,6 +66,7 @@ class TAPCBUUID : TAPCBUUIDProtocol {
     public static var characteristic__TX = CBUUID(string:"6E400003-B5A3-F393-E0A9-E50E24DCCA9E")
     public static var characteristic__HW = CBUUID(string: "2A27")
     public static var characteristic__FW = CBUUID(string: "2A26")
+    public static var characteristic__BatteryLevel = CBUUID(string: "2A19")
 
     
     open
@@ -80,7 +83,9 @@ class TAPCBUUID : TAPCBUUIDProtocol {
             return TAPCBUUID.service__TAP
         } else if characteristic == TAPCBUUID.characteristic__FW || characteristic == TAPCBUUID.characteristic__HW {
             return TAPCBUUID.service__DeviceInformation
-        } 
+        } else if characteristic == TAPCBUUID.characteristic__BatteryLevel {
+            return TAPCBUUID.service_Battery
+        }
         return nil
     }
     

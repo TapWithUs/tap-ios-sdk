@@ -19,8 +19,12 @@ import Foundation
     @objc optional func tapAirGestured(identifier:String, gesture:TAPAirGesture)
     @objc optional func tapDidReadHardwareVersion(identifier:String, hw:Int)
     @objc optional func tapDidReadFirmwareVersion(identifier:String, fw:Int)
+    @objc optional func tapDidReadBatteryLevel(identifier:String, batteryLevel:Int)
     @objc optional func tapHoldStarted(identifier:String, combination:UInt8)
     @objc optional func tapHoldEnded(identifier:String, combination:UInt8)
+    @objc optional func tapDidSwipe(identifier:String, direction:Int)
+    @objc optional func tapDidChangeOrientation(roll:Int, pitch:Int, yaw:Int)
+    @objc optional func tapXRAirGestured(identifier:String, gesture:TAPXRAirGesture)
 //    @objc optional func tapXRAirGestureState(identifier:String, gesture:XRGestureState)
 }
 
