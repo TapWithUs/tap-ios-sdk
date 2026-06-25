@@ -21,12 +21,14 @@ class TAPHandle : NSObject {
     
     
     private(set) var isReady : Bool
+    private(set) var protocolAdapter : TAPProtocolAdapter?
     
     private var peripheral : CBPeripheral!
     private var handleConfig : TAPHandleConfig
     private var values : [CBUUID: Data]
     private var characteristics : [CBUUID : CBCharacteristic]
     private var fullyDiscoveredServices : [CBUUID : Bool]
+    private var protocolActivated : Bool
     
     private weak var delegate : TAPHandleDelegate?
     
@@ -63,6 +65,7 @@ class TAPHandle : NSObject {
         self.fullyDiscoveredServices = [CBUUID : Bool]()
         self.characteristics = [CBUUID : CBCharacteristic]()
         self.isReady = false
+        self.protocolActivated = false
         self.delegate = delegate
         super.init()
         self.peripheral.delegate = self
@@ -73,9 +76,10 @@ class TAPHandle : NSObject {
         guard !self.isReady else { return }
         let servicesDiscovered : Bool = self.fullyDiscoveredServices.filter({ entry in entry.value == false}).count == 0
         if (servicesDiscovered) {
-            
+            if !self.protocolActivated {
+                self.activateProtocolAdapter()
+            }
             self.isReady = self.delegate?.TAPValidate(self) ?? false
-            
         }
         
         if (self.isReady) {
@@ -84,15 +88,25 @@ class TAPHandle : NSObject {
         
     }
     
+    private func activateProtocolAdapter() {
+        self.protocolAdapter = TAPProtocolDetector.detect(handle: self)
+        self.protocolActivated = true
+        guard let adapter = self.protocolAdapter else { return }
+        adapter.characteristicInstructions().forEach { uuid, instructions in
+            if let characteristic = self.characteristics[uuid] {
+                if instructions.readOnDiscover {
+                    self.peripheral.readValue(for: characteristic)
+                }
+                if instructions.notify {
+                    self.peripheral.setNotifyValue(true, for: characteristic)
+                }
+            }
+        }
+    }
+    
     private func serviceFullyDiscovered(_ uuid:CBUUID) {
         self.fullyDiscoveredServices[uuid] = true
         self.checkIfReady()
-//        self.isReady = self.fullyDiscoveredServices.filter({ entry in entry.value == false}).count == 0
-//        if (self.isReady) {
-//            // Tap is Ready
-//            self.delegate?.TAPHandleIsReady(self)
-//        }
-//
     }
     
     func makeReady() -> Void {
@@ -126,8 +140,13 @@ class TAPHandle : NSObject {
     
     public func write(_ uuid:CBUUID, value:Data) {
         if let c = self.characteristics[uuid] {
-//            let x = [UInt8](value)
             self.peripheral.writeValue(value, for: c, type: TAPCBUUIDManager.sharedManager.getWriteType(for: uuid))
+        }
+    }
+    
+    public func write(_ writes: [TAPProtocolWrite]) {
+        writes.forEach { write in
+            self.write(write.characteristic, value: write.data)
         }
     }
     
@@ -144,7 +163,6 @@ extension TAPHandle : CBPeripheralDelegate {
             TAPKit.log.event(.info, message: "tap \(peripheral.identifier.uuidString) discovered service \(service.uuid.uuidString)")
             self.fullyDiscoveredServices[service.uuid] = false
         })
-        // Twice. So we'll know which services are expected to be fully discovered
         peripheral.services?.forEach({ service in
             peripheral.discoverCharacteristics(Array(self.handleConfig.getCharacteristics(forService: service.uuid)), for: service)
         })
@@ -164,17 +182,13 @@ extension TAPHandle : CBPeripheralDelegate {
         var discovered = Set<CBUUID>()
         
         service.characteristics?.forEach({ c in
+            let isNew = !self.characteristics.keys.contains(c.uuid)
+//            if isNew {
+//                print("TAPHandle: discovered characteristic \(c.uuid.uuidString) on service \(service.uuid.uuidString) for tap \(peripheral.identifier.uuidString)")
+//            }
             TAPKit.log.event(.info, message: "tap \(peripheral.identifier.uuidString) discovered characteristic \(c.uuid.uuidString) for service \(service.uuid.uuidString)")
             discovered.insert(c.uuid)
             self.characteristics[c.uuid] = c
-            if let instructions = self.handleConfig.get(c.uuid) {
-                if instructions.readOnDiscover {
-                    self.peripheral.readValue(for: c)
-                }
-                if instructions.notify {
-                    self.peripheral.setNotifyValue(true, for: c)
-                }
-            }
         })
         let shouldBeDiscovered = self.handleConfig.getCharacteristics(forService: service.uuid)
         shouldBeDiscovered.forEach( { uuid in
@@ -198,12 +212,21 @@ extension TAPHandle : CBPeripheralDelegate {
         guard error == nil && peripheral.identifier == self.identifier else { return }
         
         if let value = characteristic.value {
-            if let instructions = self.handleConfig.get(characteristic.uuid) {
-                if (instructions.storeLastReadValue || instructions.readOnDiscover) {
-                    self.values[characteristic.uuid] = value
+            if let adapter = self.protocolAdapter,
+               characteristic.uuid == TAPCBUUID.characteristic__V2Read {
+                adapter.parseNotification(value).forEach { message in
+                    self.delegate?.TAPHandleDidUpdateCharacteristicValue(self, characteristic: message.characteristic, value: message.payload)
                 }
+            } else {
+                let instructions = self.protocolAdapter?.characteristicInstructions()[characteristic.uuid]
+                    ?? self.handleConfig.get(characteristic.uuid)
+                if let instructions = instructions {
+                    if (instructions.storeLastReadValue || instructions.readOnDiscover) {
+                        self.values[characteristic.uuid] = value
+                    }
+                }
+                self.delegate?.TAPHandleDidUpdateCharacteristicValue(self, characteristic: characteristic.uuid, value: value)
             }
-            self.delegate?.TAPHandleDidUpdateCharacteristicValue(self, characteristic: characteristic.uuid, value: value)
         }
         
         self.checkIfReady()

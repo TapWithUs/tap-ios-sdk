@@ -108,6 +108,12 @@ class ViewController: UIViewController {
         print("button touched")
         TAPKit.sharedKit.vibrate(durations: [100,100,100])
     }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        
+        TAPKit.sharedKit.vibrate(durations: [0,20,80])
+    }
 }
 
 extension ViewController : TAPKitDelegate {
@@ -172,12 +178,18 @@ extension ViewController : TAPKitDelegate {
         print("TAP \(identifier) disconnected.")
     }
     
+    func tapDidReadBatteryLevel(identifier: String, batteryLevel: Int) {
+        print("BATT LEVEL \(batteryLevel)")
+    }
     
     func tapConnected(withIdentifier identifier: String, name: String) {
         // TAP device connected
         // We recomend that you'll keep track of the taps' identifier, if you're developing a multiplayer game and you need to keep track of all the players,
         // As multiple taps can be connected to the same iOS device.
-//        print("TAP \(identifier), \(name) connected!")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: {
+            TAPKit.sharedKit.readBatteryLevel()
+        })
+        print("TAP \(identifier), \(name) connected!")
     }
     
     func tapFailedToConnect(withIdentifier identifier: String, name: String) {
@@ -265,6 +277,9 @@ extension ViewController : TAPKitDelegate {
         default : break
         }
     }
+    
+    
+    
     
     func tapXRAirGestured(identifier: String, gesture: TAPXRAirGesture) {
         print("XR GESTURED \(gesture)")

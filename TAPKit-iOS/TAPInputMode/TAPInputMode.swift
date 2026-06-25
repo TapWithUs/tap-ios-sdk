@@ -17,6 +17,7 @@ import Foundation
     @objc public static let kControllerWithMouseHID : String = "ControllerWithMouseHID"
     @objc public static let kControllerWithFullHID : String = "ControllerWithFullHID"
     @objc public static let kTapHold : String = "TapHold"
+    @objc public static let kV2Debug : String = "V2Debug"
     
     private static let modeByte : [String:UInt8] = [TAPInputMode.kController : 0x1, TAPInputMode.kText : 0x0, TAPInputMode.kRawSensor : 0xa, TAPInputMode.kControllerWithMouseHID : 0x3, TAPInputMode.kControllerWithFullHID : 0x5, TAPInputMode.kTapHold : 0xb ]
     
@@ -61,6 +62,14 @@ import Foundation
         return TAPInputMode(type: TAPInputMode.kTapHold)
     }
     
+    @objc public static func v2Debug() -> TAPInputMode {
+        return TAPInputMode(type: TAPInputMode.kV2Debug, sensitivity: TAPRawSensorSensitivity())
+    }
+    
+    @objc public static func v2Debug(sensitivity: TAPRawSensorSensitivity) -> TAPInputMode {
+        return TAPInputMode(type: TAPInputMode.kV2Debug, sensitivity: sensitivity)
+    }
+    
     func data() -> Data? {
         guard let modeValue = TAPInputMode.modeByte[self.type] else {
             return nil
@@ -81,6 +90,9 @@ import Foundation
     }
     
     func title() -> String {
+        if self.type == TAPInputMode.kV2Debug {
+            return "V2 Debug Mode (stream + airGesture + all features), Sensitivities: \(TAPRawSensorSensitivity.title(rawSensorSensitivity: self.sensitivity))"
+        }
         if self.type != TAPInputMode.kRawSensor {
             return self.type
         } else {

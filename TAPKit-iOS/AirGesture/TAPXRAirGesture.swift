@@ -17,7 +17,25 @@ import Foundation
     case fist = 105
 }
 
+@objc public enum TAPXRV2AirGesture : Int {
+    case None = 0
+    case ClickIndex = 1
+    case ClickMiddle = 2
+    case ClickRing = 3
+    case ClickPinky = 4
+    case DragIndex = 5
+    case DragMiddle = 6
+    case DragRing = 7
+    case DragPinky = 8
+    case SwipeLeft = 17
+    case SwipeRight = 18
+    case SwipeUp = 19
+    case SwipeDown = 20
+    case Fist = 30
+}
+
 @objc public enum TAPXRAirGesture : Int {
+    case None = 0
     case ClickIndex = 1
     case ClickMiddle = 2
     case ClickRing = 3
@@ -33,9 +51,14 @@ import Foundation
     case PotentialDragOrClickPinky = 13
     case FistBegin = 14
     case FistEnd = 15
+    case SwipeLeft = 17
+    case SwipeRight = 18
+    case SwipeUp = 19
+    case SwipeDown = 20
     
     public func descriptionString() -> String {
         switch self {
+        case .None : return "None"
         case .ClickRing : return "ClickRing"
         case .ClickIndex : return "ClickIndex"
         case .ClickPinky : return "ClickPinky"
@@ -51,6 +74,10 @@ import Foundation
         case .PotentialDragOrClickMiddle : return "PotentialDragOrClickMiddle"
         case .PotentialDragOrClickPinky : return "PotentialDragOrClickPinky"
         case .PotentialDragOrClickRing : return "PotentialDragOrClickRing"
+        case .SwipeUp : return "SwipeUp"
+        case .SwipeDown : return "SwipeDown"
+        case .SwipeLeft : return   "SwipeLeft"
+        case .SwipeRight : return "SwipeRight"
         }
     }
 }

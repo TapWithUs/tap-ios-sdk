@@ -32,6 +32,8 @@ import Foundation
     case XRAirGestureSwipeBottom = 304
 }
 
+
+
 class TAPAirGestureHelper {
     private init() {
         
@@ -61,4 +63,5 @@ class TAPAirGestureHelper {
     static func isXRGesture(_ gesture:TAPAirGesture) -> Bool {
         return gesture.rawValue >= 100
     }
+    
 }

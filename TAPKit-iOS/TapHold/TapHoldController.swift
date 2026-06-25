@@ -36,8 +36,9 @@ class TapHoldController {
     
     init(delegate:TapHoldControllerDelegate) {
         self.t = [String:TapStateStruct]()
-        self.delegate = delegate
         self.ma = [String:MajorityVoting<UInt8>]()
+        self.delegate = delegate
+        
     }
     
     func delegateFunc(f:(TapHoldControllerDelegate)->Void) -> Void {

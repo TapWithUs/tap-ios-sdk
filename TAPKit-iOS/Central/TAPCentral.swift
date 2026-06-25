@@ -84,6 +84,16 @@ class TAPCentral : NSObject {
         return self.taps.filter({ handle in handle.identifierString == identifier}).first
     }
     
+    func getProtocolAdapter(_ identifier:String) -> TAPProtocolAdapter? {
+        return self.getTapHandle(identifier)?.protocolAdapter
+    }
+    
+    func writeThroughAdapter(identifier:String, writes:[TAPProtocolWrite]) -> Void {
+        if let handle = self.getTapHandle(identifier) {
+            handle.write(writes)
+        }
+    }
+    
     private func stopConnectionTimer() -> Void {
         self.connectionTimer?.invalidate()
         TAPKit.log.event(.info, message: "connection timer stopped")

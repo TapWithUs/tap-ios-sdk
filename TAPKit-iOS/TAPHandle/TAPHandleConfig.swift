@@ -84,4 +84,26 @@ class TAPHandleConfig {
         return self.characteristics[uuid]
     }
     
+    public static func unionDiscoveryConfig() -> TAPHandleConfig {
+        let c = TAPHandleConfig()
+        let discoveryUUIDs: [CBUUID] = [
+            TAPCBUUID.characteristic__TAPData,
+            TAPCBUUID.characteristic__MouseData,
+            TAPCBUUID.characteristic__AirGestures,
+            TAPCBUUID.characteristic__UICommands,
+            TAPCBUUID.characteristic__RX,
+            TAPCBUUID.characteristic__TX,
+            TAPCBUUID.characteristic__HW,
+            TAPCBUUID.characteristic__FW,
+            TAPCBUUID.characteristic__BatteryLevel,
+            TAPCBUUID.characteristic__V2Read,
+            TAPCBUUID.characteristic__V2Write,
+            TAPCBUUID.characteristic__SerialNumber
+        ]
+        discoveryUUIDs.forEach { uuid in
+            c.add(TAPHandleConfigCharacteristic(uuid: uuid))
+        }
+        return c
+    }
+    
 }

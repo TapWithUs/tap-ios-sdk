@@ -67,6 +67,9 @@ class TAPCBUUID : TAPCBUUIDProtocol {
     public static var characteristic__HW = CBUUID(string: "2A27")
     public static var characteristic__FW = CBUUID(string: "2A26")
     public static var characteristic__BatteryLevel = CBUUID(string: "2A19")
+    public static var characteristic__V2Read = CBUUID(string: "C3FF000E-1D8B-40FD-A56F-C7BD5D0F3370")
+    public static var characteristic__V2Write = CBUUID(string: "C3FF000F-1D8B-40FD-A56F-C7BD5D0F3370")
+    public static var characteristic__SerialNumber = CBUUID(string: "2A25")
 
     
     open
@@ -81,7 +84,9 @@ class TAPCBUUID : TAPCBUUIDProtocol {
             return TAPCBUUID.service__TAP
         } else if characteristic == TAPCBUUID.characteristic__AirGestures {
             return TAPCBUUID.service__TAP
-        } else if characteristic == TAPCBUUID.characteristic__FW || characteristic == TAPCBUUID.characteristic__HW {
+        } else if characteristic == TAPCBUUID.characteristic__V2Read || characteristic == TAPCBUUID.characteristic__V2Write {
+            return TAPCBUUID.service__TAP
+        } else if characteristic == TAPCBUUID.characteristic__FW || characteristic == TAPCBUUID.characteristic__HW || characteristic == TAPCBUUID.characteristic__SerialNumber {
             return TAPCBUUID.service__DeviceInformation
         } else if characteristic == TAPCBUUID.characteristic__BatteryLevel {
             return TAPCBUUID.service_Battery
@@ -91,7 +96,7 @@ class TAPCBUUID : TAPCBUUIDProtocol {
     
     open
     func getWriteType(for characteristic:CBUUID) -> CBCharacteristicWriteType {
-        if characteristic == TAPCBUUID.characteristic__RX {
+        if characteristic == TAPCBUUID.characteristic__RX || characteristic == TAPCBUUID.characteristic__V2Write {
             return .withResponse
         } 
         return .withoutResponse
