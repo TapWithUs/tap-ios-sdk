@@ -140,16 +140,11 @@ class TAPCentral : NSObject {
     
     func read(identifier:String, characteristic:CBUUID) -> Void {
         if let handle = self.getTapHandle(identifier) {
-            print("READING \(characteristic.uuidString)")
             handle.read(characteristic, forcePeripheralRead: true)
         }
     }
     
     func write(identifier:String, characteristic:CBUUID, value:Data) -> Void {
-        if characteristic == TAPCBUUID.characteristic__RX {
-            print("Writing RX: \([UInt8](value))")
-        }
-        
         if let handle = self.getTapHandle(identifier) {
             handle.write(characteristic, value: value)
         }

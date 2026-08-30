@@ -27,7 +27,7 @@ class ViewController: UIViewController {
 
 
         TAPKit.sharedKit.setDefaultTAPInputMode(.controller(), immediate: true)
-        TAPKit.sharedKit.setDefaultTAPXRState(.airMouse(), applyImmediate: true)
+        TAPKit.sharedKit.setDefaultTAPXRState(.tapping(), applyImmediate: true)
         
         
         // You can enable/disable logs for specific events, or all events
@@ -277,9 +277,6 @@ extension ViewController : TAPKitDelegate {
         default : break
         }
     }
-    
-    
-    
     
     func tapXRAirGestured(identifier: String, gesture: TAPXRAirGesture) {
         print("XR GESTURED \(gesture)")

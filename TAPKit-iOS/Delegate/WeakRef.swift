@@ -8,7 +8,6 @@
 
 import Foundation
 
-public
 class WeakRef<T> where T: AnyObject {
     
     private weak var ref: T?

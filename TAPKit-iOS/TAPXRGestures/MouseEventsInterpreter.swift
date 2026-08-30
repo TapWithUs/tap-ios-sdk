@@ -30,7 +30,6 @@ class MouseEventsInterpreter {
     
     
     func action(_ m : MouseEventsAction) {
-        print("current action: \(m.descriptionString()), prev-action: \(self.prev.descriptionString())")
         let ts = Date().timeIntervalSince1970
         self.dragTimer?.invalidate()
         switch (self.prev, m) {

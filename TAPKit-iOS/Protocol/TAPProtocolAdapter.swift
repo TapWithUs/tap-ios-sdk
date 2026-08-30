@@ -6,7 +6,7 @@
 import Foundation
 import CoreBluetooth
 
-public protocol TAPProtocolAdapter: AnyObject {
+protocol TAPProtocolAdapter: AnyObject {
     var protocolVersion: TAPDeviceProtocol { get }
     
     func characteristicInstructions() -> [CBUUID: TAPHandleConfigCharacteristic]

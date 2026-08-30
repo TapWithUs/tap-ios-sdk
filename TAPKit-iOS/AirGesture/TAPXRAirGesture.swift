@@ -17,7 +17,7 @@ import Foundation
     case fist = 105
 }
 
-@objc public enum TAPXRV2AirGesture : Int {
+enum TAPXRV2AirGesture : Int {
     case None = 0
     case ClickIndex = 1
     case ClickMiddle = 2

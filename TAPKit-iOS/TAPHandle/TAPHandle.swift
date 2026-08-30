@@ -1,5 +1,5 @@
 //
-//  TAPDevice2.swift
+//  TAPHandle.swift
 //  TAPKit
 //
 //  Created by Shahar Biran on 06/11/2022.
@@ -16,8 +16,7 @@ protocol TAPHandleDelegate : class {
     func TAPValidate(_ handle:TAPHandle) -> Bool
 }
 
-open
-class TAPHandle : NSObject {
+public class TAPHandle : NSObject {
     
     
     private(set) var isReady : Bool
@@ -44,7 +43,7 @@ class TAPHandle : NSObject {
         }
     }
     
-    public var name : String {
+    var name : String {
         get {
             return self.peripheral.name ?? "TAP\(self.identifierString)"
         }
@@ -52,7 +51,7 @@ class TAPHandle : NSObject {
     }
     
 
-    override public var hash: Int {
+    public override var hash: Int {
         get {
             return self.identifier.hashValue
         }
@@ -129,22 +128,21 @@ class TAPHandle : NSObject {
         }
     }
     
-    public func hasCharacteristic(_ uuid:CBUUID) -> Bool {
+    func hasCharacteristic(_ uuid:CBUUID) -> Bool {
         return self.characteristics.keys.contains(uuid)
     }
     
-    public
-    func getStoredValue(_ characteristic:CBUUID) -> Data? {
+    public func getStoredValue(_ characteristic:CBUUID) -> Data? {
         return self.values[characteristic]
     }
     
-    public func write(_ uuid:CBUUID, value:Data) {
+    func write(_ uuid:CBUUID, value:Data) {
         if let c = self.characteristics[uuid] {
             self.peripheral.writeValue(value, for: c, type: TAPCBUUIDManager.sharedManager.getWriteType(for: uuid))
         }
     }
     
-    public func write(_ writes: [TAPProtocolWrite]) {
+    func write(_ writes: [TAPProtocolWrite]) {
         writes.forEach { write in
             self.write(write.characteristic, value: write.data)
         }
@@ -153,7 +151,7 @@ class TAPHandle : NSObject {
 }
 
 extension TAPHandle : CBPeripheralDelegate {
-    public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let error = error {
             TAPKit.log.event(.error, message: error.localizedDescription)
         }
@@ -168,7 +166,6 @@ extension TAPHandle : CBPeripheralDelegate {
         })
     }
      
-    public
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         if let error = error {
             TAPKit.log.event(.error, message: error.localizedDescription)
@@ -182,10 +179,6 @@ extension TAPHandle : CBPeripheralDelegate {
         var discovered = Set<CBUUID>()
         
         service.characteristics?.forEach({ c in
-            let isNew = !self.characteristics.keys.contains(c.uuid)
-//            if isNew {
-//                print("TAPHandle: discovered characteristic \(c.uuid.uuidString) on service \(service.uuid.uuidString) for tap \(peripheral.identifier.uuidString)")
-//            }
             TAPKit.log.event(.info, message: "tap \(peripheral.identifier.uuidString) discovered characteristic \(c.uuid.uuidString) for service \(service.uuid.uuidString)")
             discovered.insert(c.uuid)
             self.characteristics[c.uuid] = c
@@ -203,7 +196,6 @@ extension TAPHandle : CBPeripheralDelegate {
         self.serviceFullyDiscovered(service.uuid)
     }
     
-    public
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
 
         if let error = error {
@@ -233,7 +225,6 @@ extension TAPHandle : CBPeripheralDelegate {
     }
     
     
-    public
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
             TAPKit.log.event(.error, message: error.localizedDescription)

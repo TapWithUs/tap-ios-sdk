@@ -6,33 +6,33 @@
 import Foundation
 import CoreBluetooth
 
-public enum TAPDeviceProtocol {
+enum TAPDeviceProtocol {
     case legacy
     case v2
 }
 
-public enum TAPDeviceFeature {
+enum TAPDeviceFeature {
     case battery
     case hardwareVersion
     case firmwareVersion
     case serialNumber
 }
 
-public struct TAPProtocolWrite {
-    public let characteristic: CBUUID
-    public let data: Data
+struct TAPProtocolWrite {
+    let characteristic: CBUUID
+    let data: Data
     
-    public init(characteristic: CBUUID, data: Data) {
+    init(characteristic: CBUUID, data: Data) {
         self.characteristic = characteristic
         self.data = data
     }
 }
 
-public struct TAPProtocolParsedMessage {
-    public let characteristic: CBUUID
-    public let payload: Data
+struct TAPProtocolParsedMessage {
+    let characteristic: CBUUID
+    let payload: Data
     
-    public init(characteristic: CBUUID, payload: Data) {
+    init(characteristic: CBUUID, payload: Data) {
         self.characteristic = characteristic
         self.payload = payload
     }

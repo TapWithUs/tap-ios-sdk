@@ -8,56 +8,36 @@
 
 import Foundation
 
-public
-class DelegatesController<T> where T:AnyObject  {
+public class DelegatesController<T> where T:AnyObject  {
     private var delegates : [WeakRef<T>]
     
-    public
-    init() {
+    public init() {
         self.delegates = [WeakRef<T>]()
     }
-    
     
     private func removeDeadReferences() -> Void {
         self.delegates = self.delegates.filter({ $0.isAlive() })
     }
     
-    public
-    func add(_ delegate:T) -> Void {
+    public func add(_ delegate:T) -> Void {
         self.removeDeadReferences()
         if (!self.delegates.contains(where: { $0.get() === delegate })) {
             self.delegates.append(WeakRef<T>(delegate))
         }
     }
     
-    public
-    func remove(_ delegate:T) -> Void {
+    public func remove(_ delegate:T) -> Void {
         self.removeDeadReferences()
         self.delegates = self.delegates.filter({ $0.get() !== delegate })
     }
     
-    public
-    func run(action:@escaping ((T)->Void)) {
-        if #available(iOS 13.0, *) {
-            Task {
-                self.delegates.forEach( { delegate in
-                    if (delegate.isAlive()) {
-                        action(delegate.get()!)
-                    }
-                })
-            }
-        } else {
-            // Fallback on earlier versions
-            DispatchQueue.main.async {
-                self.delegates.forEach( { delegate in
-                    if (delegate.isAlive()) {
-                        action(delegate.get()!)
-                    }
-                })
-            }
+    public func run(action:@escaping ((T)->Void)) {
+        DispatchQueue.main.async {
+            self.delegates.forEach({ delegate in
+                if delegate.isAlive() {
+                    action(delegate.get()!)
+                }
+            })
         }
-        
     }
-    
-    
 }

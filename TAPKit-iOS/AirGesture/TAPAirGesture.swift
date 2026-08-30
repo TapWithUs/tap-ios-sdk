@@ -8,7 +8,7 @@
 
 import Foundation
 
-// OBSOLETE!!!
+// Legacy air gestures for Tap Strap 1.x devices.
 @objc public enum TAPAirGesture : Int {
     case OneFingerUp = 2
     case TwoFingersUp = 3

@@ -67,7 +67,6 @@ class TAPLegacyProtocolAdapter: TAPProtocolAdapter {
     
     func encodeHaptic(durations: [UInt16]) -> [TAPProtocolWrite] {
         guard let data = TAPHaptic.toData(durations: durations) else { return [] }
-        print("Haptic data \([UInt8](data))")
         return [TAPProtocolWrite(characteristic: TAPCBUUID.characteristic__UICommands, data: data)]
     }
     

@@ -9,22 +9,18 @@
 import Foundation
 
 
-public class XRGesturesMain {
+class XRGesturesMain {
 
-    
-    
     private var mouseEvents : MouseEvents
     private var mouseEventsInterpreter : MouseEventsInterpreter
     private var cursorThreadTimer : Timer?
     private var clickMajorityVoting : MajorityVoting<Int>
-    public var ignoreEventsUntilRelease : Bool = false
-    public var onXRAirGestured : ((TAPXRAirGesture) -> Void)?
+    var ignoreEventsUntilRelease : Bool = false
+    var onXRAirGestured : ((TAPXRAirGesture) -> Void)?
 
-    private var eventsCount : Int = 0
-    
     private let cursorFillTimeInterval : TimeInterval = 0.1
     private var useMajority : Bool
-    public init() {
+    init() {
         self.clickMajorityVoting = MajorityVoting(len: 3, defaultValue: XRGestureState.none.rawValue)
         self.useMajority = false
         self.mouseEvents = MouseEvents()
@@ -36,17 +32,13 @@ public class XRGesturesMain {
         self.mouseEventsInterpreter.onPotentialDragOrClick = self.mouseEventsInterpreterOnPotientialDragOrClick
         self.mouseEventsInterpreter.onFistBegin = self.mouseEventsInterpreterOnFistBegin
         self.mouseEventsInterpreter.onFistEnd = self.mouseEventsInterpreterOnFistEnd
-//        let _ = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { _ in
-//            print("events count (1s) = \(self.eventsCount)")
-//            self.eventsCount = 0
-//        })
     }
     
     private func timestamp() -> TimeInterval {
         return Date().timeIntervalSince1970
     }
     
-    public func resetEvents() {
+    func resetEvents() {
         self.mouseEvents.resetGestures()
     }
 }
@@ -122,8 +114,7 @@ extension XRGesturesMain {
 }
 
 extension XRGesturesMain {
-    // Public interface.
-    public func onMouse(vx:Int, vy:Int) {
+    func onMouse(vx:Int, vy:Int) {
         self.cursorThreadTimer?.invalidate()
         self.mouseEvents.put(.cursor(vx: vx, vy: vy, ts: self.timestamp()))
         self.cursorThreadTimer = Timer.scheduledTimer(withTimeInterval: self.cursorFillTimeInterval, repeats: false, block: { _ in
@@ -131,8 +122,7 @@ extension XRGesturesMain {
         })
     }
     
-    public func onGestureState(gesture:Int) {
-//        self.eventsCount = self.eventsCount + 1
+    func onGestureState(gesture:Int) {
         let g = self.clickMajorityVoting.call(gesture)
         if (self.useMajority) {
             if let g {

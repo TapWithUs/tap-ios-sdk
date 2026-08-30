@@ -1,102 +1,92 @@
 #####
-# OS X temporary files that should never be committed
+# macOS
+#####
 .DS_Store
+.AppleDouble
+.LSOverride
 *.swp
-*.lock
-profile
+*~
 
 #####
-# DotEnv files
+# Secrets / env
+#####
 .env
-
-####
-# Xcode temporary files that should never be committed
-*~.nib
-
-####
-# Objective-C/Swift specific
-*.hmap
-*.ipa
-
-####
-# Xcode build files
-DerivedData/
-build/
-Builds/
+.env.*
+!.env.example
+.rbenv-vars
 
 #####
-# Xcode private settings (window sizes, bookmarks, breakpoints, custom executables, smart groups)
+# Xcode — user-specific
+#####
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
 *.pbxuser
 *.mode1v3
 *.mode2v3
 *.perspectivev3
-!default.pbxuser
-!default.mode1v3
-!default.mode2v3
-!default.perspectivev3
- 
-####
-# Xcode 4
-xcuserdata
-!xcschemes
-# Xcode 4
 *.moved-aside
 
-####
-# XCode 4 workspaces - more detailed
-!xcshareddata
+# Keep shared workspace/scheme data
+!xcshareddata/
 !default.xcworkspace
-*.xcworkspacedata
+!xcschemes
 
-
-####
-# Xcode 5
-*.xccheckout
-*.xcuserstate
-
-####
-# Xcode 7
-*.xcscmblueprint
-
-####
-# AppCode
-.idea/
-
-####
-# Other Xcode files
-profile
+#####
+# Xcode — build output
+#####
+DerivedData/
+build/
+Builds/
+*.xcresult
 *.hmap
 *.ipa
+*.dSYM
+*.dSYM.zip
+*~.nib
 
-####
+# Frameworks produced by this project (build in Xcode, do not commit)
+TAPKit.framework/
+TAPKitUnityBridge.framework/
+
+#####
+# Swift Package Manager
+#####
+.build/
+.swiftpm/
+Package.resolved
+
+#####
 # CocoaPods
+#####
 Pods/
 !Podfile
 !Podfile.lock
 
-####
+#####
 # Carthage
-Carthage/Build.rbenv-vars
+#####
+Carthage/Build/
 !Cartfile
 !Cartfile.private
 !Cartfile.resolved
 
-####
-# Fastlane
-# Temporary profiling data
-/fastlane/report.xml
-# Deliver temporary error output
-/fastlane/Error*.png
-# Deliver temporary preview output
-/fastlane/Preview.html
-# Snapshot generated screenshots
-/fastlane/screenshots/*/*-portrait.png
-/fastlane/screenshots/*/*-landscape.png
-/fastlane/screenshots/screenshots.html
-# Frameit generated screenshots
-/fastlane/screenshots/*/*-portrait_framed.png
-/fastlane/screenshots/*/*-landscape_framed.png
+#####
+# AppCode / JetBrains
+#####
+.idea/
 
-####
-# rbenv
-.rbenv-vars
+#####
+# Fastlane
+#####
+/fastlane/report.xml
+/fastlane/Error*.png
+/fastlane/Preview.html
+/fastlane/screenshots/
+
+#####
+# Misc
+#####
+profile
+*.lock

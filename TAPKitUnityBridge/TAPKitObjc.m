@@ -42,7 +42,6 @@ static TAPKitObjc* instance = nil;
         
         self.log = TAPKitLog.sharedLog;
         _tapKit = TAPKit.sharedKit;
-//        [_central addWithDelegate:self];
         [_tapKit addDelegate:self];
     }
     return self;

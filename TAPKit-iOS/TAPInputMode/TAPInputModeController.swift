@@ -16,7 +16,7 @@ class TAPInputModeController : NSObject {
     
     private var timer:Timer?
     private var defaultInputMode : TAPInputMode
-    public var modes : [String : TAPInputMode]
+    private(set) var modes : [String : TAPInputMode]
     weak var delegate : TAPInputModeControllerDelegate?
     private var interval : TimeInterval
     private var isActive : Bool

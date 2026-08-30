@@ -9,22 +9,16 @@
 import Foundation
 import CoreBluetooth
 
-public
-protocol TAPHandleValidator : AnyObject {
+public protocol TAPHandleValidator : AnyObject {
     func validate(_ handle:TAPHandle) -> Bool
 }
 
-open
-class TAPHandleDefaultValidator : TAPHandleValidator{
+open class TAPHandleDefaultValidator : TAPHandleValidator {
     
     public init() {
-        
     }
     
-    open
-    func validate(_ handle: TAPHandle) -> Bool {
+    open func validate(_ handle: TAPHandle) -> Bool {
        return true
     }
 }
-
-

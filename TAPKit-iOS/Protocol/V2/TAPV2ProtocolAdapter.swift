@@ -53,9 +53,7 @@ class TAPV2ProtocolAdapter: TAPProtocolAdapter {
             sequence[index] = UInt8(max(0, min(255, scaled)))
         }
         let hapticPayload: [UInt8] = [0x0, 0x2] + sequence
-//        print("HAPTIC PAYLOAD \(hapticPayload)")
         let encoded = TAPV2Encoder.encodeSetHapticPattern(hapticPayload)
-        print("HAPTIC v2 DATA \([UInt8](encoded))")
         return [TAPProtocolWrite(characteristic: TAPCBUUID.characteristic__V2Write, data: encoded)]
     }
     

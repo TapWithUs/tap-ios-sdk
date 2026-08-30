@@ -23,7 +23,6 @@ class TapSwipe {
         }
         let last = self.canSwipe[identifier]!
         self.canSwipe[identifier] = now
-        print("now = \(now), last = \(last), diff = \(now.timeIntervalSince(last))")
         return now.timeIntervalSince(last) >= canSwipeInterval
     }
 }
