@@ -151,7 +151,11 @@ public class TAPHandle : NSObject {
 }
 
 extension TAPHandle : CBPeripheralDelegate {
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+    // These must be public: TAPHandle is a public class, and non-public methods in
+    // this extension don't witness the @objc optional requirements, so no Objective-C
+    // entrypoint is generated. Without it, CoreBluetooth can't deliver delegate
+    // callbacks (API MISUSE warning, service discovery never completes).
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let error = error {
             TAPKit.log.event(.error, message: error.localizedDescription)
         }
@@ -166,7 +170,7 @@ extension TAPHandle : CBPeripheralDelegate {
         })
     }
      
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         if let error = error {
             TAPKit.log.event(.error, message: error.localizedDescription)
         }
@@ -196,7 +200,7 @@ extension TAPHandle : CBPeripheralDelegate {
         self.serviceFullyDiscovered(service.uuid)
     }
     
-    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+    public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
 
         if let error = error {
             TAPKit.log.event(.error, message: error.localizedDescription)
@@ -225,7 +229,7 @@ extension TAPHandle : CBPeripheralDelegate {
     }
     
     
-    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+    public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
             TAPKit.log.event(.error, message: error.localizedDescription)
         }

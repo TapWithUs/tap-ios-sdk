@@ -69,6 +69,22 @@ Call `start()` once (typically when your main screen appears). Add one or more `
 
 ---
 
+## Protocol versions: legacy (v1) and V2
+
+TAP firmware speaks one of two BLE protocols, and TAPKit detects which one per device when it connects — no configuration needed:
+
+| | Legacy (v1) — "classic" | V2 — "framed" |
+|---|---|---|
+| Hardware | Tap Strap, Tap Strap 2, TapXR | TapBand, TapXR (newer firmware) |
+| BLE layout | Separate notify characteristics per event type; input-mode commands over NUS | One framed read/write characteristic pair; all events and commands as framed messages |
+| Extras | HID keyboard/mouse modes | Device features, vision sensor control, standby, serial number, keepalive |
+
+Everything in this SDK works the same on both protocols: the same delegate callbacks fire and the same `TAPInputMode` / `TAPXRState` calls apply (TAPKit translates them to the right protocol under the hood). The only V2-specific parts are the APIs marked **(V2 devices)** — see [V2 device configuration](#v2-device-configuration-v2-devices) — which are ignored on legacy devices.
+
+This split matches the [tap-python-sdk](https://github.com/TapWithUs/tap-python-sdk) documentation, where the same protocols are called v1 (`TapSDK`) and v2 (`TapSDK2`).
+
+---
+
 ## TAPKitDelegate
 
 All delegate methods are **optional**. Multiple delegates are supported.
@@ -95,6 +111,9 @@ All delegate methods are **optional**. Multiple delegates are supported.
     @objc optional func tapHoldEnded(identifier: String, combination: UInt8)
 
     @objc optional func tapDidChangeOrientation(roll: Int, pitch: Int, yaw: Int)
+
+    @objc optional func tapChangedStandbyState(identifier: String, isInStandby: Bool)
+    @objc optional func tapDidReadSerialNumber(identifier: String, serialNumber: String)
 }
 ```
 
@@ -130,6 +149,8 @@ All delegate methods are **optional**. Multiple delegates are supported.
 | `tapDidReadFirmwareVersion(identifier:fw:)` | Same format as hardware version. |
 | `tapDidReadBatteryLevel(identifier:batteryLevel:)` | Battery level 0–100. Trigger reads with `readBatteryLevel()`. |
 | `tapDidChangeOrientation(roll:pitch:yaw:)` | IMU orientation from mouse data characteristic. |
+| `tapDidReadSerialNumber(identifier:serialNumber:)` | Serial number (V2 devices). Read automatically on connect; trigger again with `readSerialNumber()`. |
+| `tapChangedStandbyState(identifier:isInStandby:)` | Device entered or left standby (V2 devices). |
 
 Version reads are triggered automatically on connect for supported devices. You can also call `readHardwareVersion()`, `readFirmwareVersion()`, and `readBatteryLevel()` explicitly.
 
@@ -184,7 +205,89 @@ TAPKit.sharedKit.vibrate(durations: [500, 100, 500], forIdentifiers: nil)
 TAPKit.sharedKit.readBatteryLevel(forIdentifiers: nil)
 TAPKit.sharedKit.readHardwareVersion(forIdentifiers: nil)
 TAPKit.sharedKit.readFirmwareVersion(forIdentifiers: nil)
+TAPKit.sharedKit.readSerialNumber(forIdentifiers: nil)          // V2 devices; result via tapDidReadSerialNumber
+let serial = TAPKit.sharedKit.getSerialNumber(identifier: uuid) // stored value from on-connect read
 ```
+
+### V2 device configuration (V2 devices)
+
+Direct access to V2 protocol primitives, matching the [tap-python-sdk](https://github.com/TapWithUs/tap-python-sdk) `TapSDK2` API. These commands only apply to devices using the [V2 ("framed") protocol](#protocol-versions-legacy-v1-and-v2); on legacy (v1) devices they are ignored (a warning is logged) and getters complete with `nil`.
+
+Note: input modes (`setTAPInputMode`) also write these features under the hood. Use the direct APIs when you need fine-grained control or read-back; a later mode change may overwrite direct feature writes.
+
+#### Device features
+
+```swift
+TAPKit.sharedKit.setFeature(.modelDetection, enabled: true, forIdentifiers: [uuid])
+
+TAPKit.sharedKit.getFeature(.modelDetection, forIdentifier: uuid) { enabled in
+    print("modelDetection enabled: \(String(describing: enabled))")  // nil on timeout
+}
+```
+
+`TAPV2DeviceFeature` values:
+
+| Case | Value | Description |
+|------|-------|-------------|
+| `.rawIMUData` | 0 | Stream raw IMU packets (delivered via `rawSensorDataReceived`). |
+| `.modelDetection` | 1 | On-device tap / air-gesture model detection (`tapped`, `tapXRAirGestured`). |
+| `.imuMotionData` | 2 | IMU motion stream (`moused`, `tapDidChangeOrientation`). |
+| `.triggerDetections` | 3 | Trigger detections (reserved; not implemented in current firmware). |
+| `.standbyGestureDetection` | 4 | Wake-gesture detection while the device is in standby. |
+
+#### Vision sensor (TapXR)
+
+```swift
+TAPKit.sharedKit.setVisionSensorOpMode(.stream, forIdentifiers: [uuid])   // .trigger / .streamOnTrigger / .stream
+TAPKit.sharedKit.setVisionSensorModel(.airGesture, forIdentifiers: [uuid]) // .tapping / .airGesture
+
+TAPKit.sharedKit.getVisionSensorOpMode(forIdentifier: uuid) { mode in ... }
+TAPKit.sharedKit.getVisionSensorModel(forIdentifier: uuid) { model in ... }
+```
+
+#### IMU sensitivity
+
+```swift
+TAPKit.sharedKit.setIMUSensitivity(gyro: 2, accelerometer: 1, forIdentifiers: [uuid])  // gyro 0-5, accelerometer 0-4
+
+TAPKit.sharedKit.getIMUSensitivity(forIdentifier: uuid) { sensitivity in
+    if let s = sensitivity { print("gyro: \(s.gyro), accelerometer: \(s.accelerometer)") }
+}
+```
+
+#### Standby
+
+```swift
+TAPKit.sharedKit.setStandbyState(true, forIdentifiers: [uuid])
+
+TAPKit.sharedKit.getStandbyState(forIdentifier: uuid) { isInStandby in ... }
+```
+
+Unsolicited standby changes are delivered via the `tapChangedStandbyState(identifier:isInStandby:)` delegate callback.
+
+All getters accept an optional `timeout:` parameter (default 2 seconds, `TAPKit.v2ConfigGetTimeout`); completions run on the main queue. If a second get of the same kind is issued to the same device before the first completes, the first completes with `nil`.
+
+#### Objective-C visibility
+
+The `set*` commands, `readSerialNumber()`, `getSerialNumber(identifier:)`, and the `TAPV2DeviceFeature` / `TAPV2VisionSensorOpMode` / `TAPV2VisionSensorModel` enums are exposed to Objective-C. The `get*` read-back functions use Swift completion handlers with optionals and are available from Swift only.
+
+#### tap-python-sdk equivalents
+
+For teams working across both SDKs, the mapping to [tap-python-sdk](https://github.com/TapWithUs/tap-python-sdk) `TapSDK2` is:
+
+| TAPKit (iOS) | tap-python-sdk (`TapSDK2`) |
+|--------------|----------------------------|
+| `setFeature` / `getFeature` | `set_feature` / `get_feature` |
+| `setVisionSensorOpMode` / `getVisionSensorOpMode` | `set_vision_sensor_op_mode` / `get_vision_sensor_op_mode` |
+| `setVisionSensorModel` / `getVisionSensorModel` | `set_vision_sensor_model` / `get_vision_sensor_model` |
+| `setIMUSensitivity` / `getIMUSensitivity` | `set_imu_sensitivity` / `get_imu_sensitivity` |
+| `setStandbyState` / `getStandbyState` | `set_standby_state` / `get_standby_state` |
+| `tapChangedStandbyState` delegate callback | `register_standby_state_events` |
+| `getSerialNumber` / `tapDidReadSerialNumber` callback | `device_serial_number` |
+| `vibrate(durations:)` | `send_vibration_sequence` / `set_haptic_pattern` |
+| Automatic keepalive (built into `start()`) | `KeepAliveManager` |
+
+Unlike the Python SDK (one instance per device), all TAPKit commands accept `forIdentifiers:` for multi-device targeting; pass `nil` to apply to all connected devices.
 
 ### Mode control
 
@@ -227,7 +330,7 @@ Subclass `TAPKit` and override `setupParsers()` or `getHandleConfig()` to custom
 | `TAPInputMode.controllerWithFullHID()` | Full HID controller mode. |
 | `TAPInputMode.tapHold()` | Distinguishes short tap vs. long press via `tapHoldStarted` / `tapHoldEnded`. |
 | `TAPInputMode.rawSensor(sensitivity:)` | Streams accelerometer/IMU data via `rawSensorDataReceived`. |
-| `TAPInputMode.v2Debug()` | V2 debug stream (raw sensor + air gesture + features). |
+| `TAPInputMode.v2Debug()` | V2 debug stream: enables all V2 features at once (raw IMU + model detection + IMU motion + air-gesture vision stream). Raw packets arrive via `rawSensorDataReceived`. |
 | `TAPInputMode.v2Debug(sensitivity:)` | V2 debug with custom sensitivities. |
 
 Newly connected devices receive the default mode set via `setDefaultTAPInputMode(_:immediate:)`.
@@ -365,6 +468,8 @@ TAPKit.sharedKit.setTAPInputMode(
     forIdentifiers: nil
 )
 ```
+
+On V2 devices, IMU sensitivity can also be changed on the fly without re-entering the mode using `setIMUSensitivity(gyro:accelerometer:forIdentifiers:)` — see [V2 device configuration](#v2-device-configuration-v2-devices).
 
 ### RawSensorData
 

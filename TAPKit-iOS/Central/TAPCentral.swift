@@ -175,7 +175,7 @@ extension TAPCentral : CBCentralManagerDelegate {
         }
         TAPKit.log.event(.error, message: "central manager failed connecting to \(peripheral.identifier)")
         
-//        self.delegatesController.tapFailedToConnect(withIdentifier: peripheral.identifier.uuidString, name: peripheral.name != nil ? peripheral.name! : "")
+        self.delegate?.tapFailedToConnect?(identifier: peripheral.identifier.uuidString, name: peripheral.name ?? "")
         
     }
     

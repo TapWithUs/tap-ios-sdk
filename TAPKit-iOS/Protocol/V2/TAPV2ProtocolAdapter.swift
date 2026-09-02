@@ -28,6 +28,12 @@ class TAPV2ProtocolAdapter: TAPProtocolAdapter {
     
     func parseNotification(_ data: Data) -> [TAPProtocolParsedMessage] {
         guard let message = TAPV2Parser.parseIncomingMessage(data) else { return [] }
+        if TAPV2Parser.isConfigOrStandbyMessage(message) {
+            // Standby and config-state responses have no legacy characteristic
+            // equivalent; forward the raw frame on the V2Read UUID so TAPKit's
+            // V2 config parser can handle it.
+            return [TAPProtocolParsedMessage(characteristic: TAPCBUUID.characteristic__V2Read, payload: data)]
+        }
         return TAPV2Parser.mapToLegacyMessages(message)
     }
     

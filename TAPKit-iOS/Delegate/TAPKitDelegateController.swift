@@ -24,4 +24,6 @@ import Foundation
     @objc optional func tapHoldEnded(identifier:String, combination:UInt8)
     @objc optional func tapDidChangeOrientation(roll:Int, pitch:Int, yaw:Int)
     @objc optional func tapXRAirGestured(identifier:String, gesture:TAPXRAirGesture)
+    @objc optional func tapChangedStandbyState(identifier:String, isInStandby:Bool)
+    @objc optional func tapDidReadSerialNumber(identifier:String, serialNumber:String)
 }

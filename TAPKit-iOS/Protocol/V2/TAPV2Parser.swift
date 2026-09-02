@@ -11,6 +11,7 @@ enum TAPV2IncCommandType: UInt8 {
     case imuData = 0
     case modelDetection = 1
     case standbyState = 2
+    case configState = 3
 }
 
 enum TAPV2IncSubCommandType1: UInt8 {
@@ -20,12 +21,26 @@ enum TAPV2IncSubCommandType1: UInt8 {
     case airGesture = 3
 }
 
+/// Sub-command 1 values for incoming config-state responses (cmd = configState).
+enum TAPV2IncConfigStateSubCommandType1: UInt8 {
+    case feature = 0
+    case visionOpMode = 1
+    case visionModel = 2
+    case imuSensitivity = 3
+    case hapticPattern = 4
+}
+
 enum TAPV2IncomingMessageType {
     case imuMotion(Data)
     case imuRaw(Data)
     case tapGesture(Data)
     case airGesture(Data)
     case standbyState(Bool)
+    case configFeature(featureNumber: UInt8, enabled: Bool)
+    case configVisionOpMode(UInt8)
+    case configVisionModel(UInt8)
+    case configIMUSensitivity(gyro: UInt8, xl: UInt8)
+    case configHapticPattern(Data)
 }
 
 class TAPV2Parser {
@@ -85,8 +100,43 @@ class TAPV2Parser {
         case TAPV2IncCommandType.standbyState.rawValue:
             let standbyBytes = [UInt8](payload)
             return .standbyState(standbyBytes.first == 1)
+        case TAPV2IncCommandType.configState.rawValue:
+            return parseConfigStateMessage(subCmdType: subCmdType, payload: payload)
         default:
             return nil
+        }
+    }
+    
+    private static func parseConfigStateMessage(subCmdType: UInt8, payload: Data) -> TAPV2IncomingMessageType? {
+        let payloadBytes = [UInt8](payload)
+        switch subCmdType {
+        case TAPV2IncConfigStateSubCommandType1.feature.rawValue:
+            guard payloadBytes.count >= 2 else { return nil }
+            return .configFeature(featureNumber: payloadBytes[0], enabled: payloadBytes[1] == 1)
+        case TAPV2IncConfigStateSubCommandType1.visionOpMode.rawValue:
+            guard let first = payloadBytes.first else { return nil }
+            return .configVisionOpMode(first)
+        case TAPV2IncConfigStateSubCommandType1.visionModel.rawValue:
+            guard let first = payloadBytes.first else { return nil }
+            return .configVisionModel(first)
+        case TAPV2IncConfigStateSubCommandType1.imuSensitivity.rawValue:
+            guard payloadBytes.count >= 2 else { return nil }
+            return .configIMUSensitivity(gyro: payloadBytes[0], xl: payloadBytes[1])
+        case TAPV2IncConfigStateSubCommandType1.hapticPattern.rawValue:
+            return .configHapticPattern(payload)
+        default:
+            return nil
+        }
+    }
+    
+    /// True for messages that are not mapped to legacy characteristics
+    /// (standby + config-state responses); these are routed to TAPKit on the V2Read UUID.
+    static func isConfigOrStandbyMessage(_ message: TAPV2IncomingMessageType) -> Bool {
+        switch message {
+        case .standbyState, .configFeature, .configVisionOpMode, .configVisionModel, .configIMUSensitivity, .configHapticPattern:
+            return true
+        default:
+            return false
         }
     }
     
@@ -108,7 +158,7 @@ class TAPV2Parser {
                 characteristic: TAPCBUUID.characteristic__AirGestures,
                 payload: legacyAirGesturePayload(fromV2Payload: payload)
             )]
-        case .standbyState:
+        case .standbyState, .configFeature, .configVisionOpMode, .configVisionModel, .configIMUSensitivity, .configHapticPattern:
             return []
         }
     }
@@ -125,12 +175,12 @@ enum TAPV2CodecTests {
     static func testSetFeatureEncoding() {
         let encoded = TAPV2Encoder.encodeSetFeature(feature: .modelDetection, enable: true)
         assert(encoded[0] == TAPV2OutCommandType.setFeature.rawValue)
-        assert(encoded[4] == TAPV2DeviceFeature.modelDetection.rawValue)
+        assert(encoded[4] == UInt8(TAPV2DeviceFeature.modelDetection.rawValue))
         assert(encoded[5] == 1)
     }
     
     static func testTapGestureParsing() {
-        var frame: [UInt8] = [1, 2, 0, 0, 5]
+        let frame: [UInt8] = [1, 2, 0, 0, 5]
         let parsed = TAPV2Parser.parseIncomingMessage(Data(frame))
         guard case .tapGesture(let payload)? = parsed else {
             assertionFailure("Expected tap gesture")

@@ -36,6 +36,11 @@ open class TAPKit : NSObject {
     private var v2KeepaliveTimer : Timer?
     private static let v2KeepaliveInterval : TimeInterval = 20.0
     
+    /// Default timeout for V2 config "get" requests (parity with tap-python-sdk DEFAULT_GET_TIMEOUT_SEC).
+    public static let v2ConfigGetTimeout : TimeInterval = 2.0
+    private var v2PendingRequests : [String : (Any?) -> Void]
+    private var v2PendingRequestTimeouts : [String : DispatchWorkItem]
+    
     open class func instance() -> TAPKit {
         if TAPKit._instance == nil {
             TAPKit._instance = TAPKit()
@@ -57,6 +62,8 @@ open class TAPKit : NSObject {
         self.sendModeInBackground = false
         self.tapHoldController = TapHoldController()
         self.tapxrGesturesMain = [String : XRGesturesMain]()
+        self.v2PendingRequests = [String : (Any?) -> Void]()
+        self.v2PendingRequestTimeouts = [String : DispatchWorkItem]()
         super.init()
         self.central = TAPCentral(handleInit: self.getHandleConfig(), handleValidator: self.getHandleValidator(), delegate: self)
         self.inputModeController = TAPInputModeController(interval: 10.0, delegate: self)
@@ -82,6 +89,8 @@ open class TAPKit : NSObject {
         self.addParser(TAPCBUUID.characteristic__HW, parser: self.tapDeviceInformationParser(identifier:characteristic:data:))
         self.addParser(TAPCBUUID.characteristic__FW, parser: self.tapDeviceInformationParser(identifier:characteristic:data:))
         self.addParser(TAPCBUUID.characteristic__BatteryLevel, parser: self.batteryLevelDataParser(identifier:characteristic:data:))
+        self.addParser(TAPCBUUID.characteristic__V2Read, parser: self.tapV2ConfigParser(identifier:characteristic:data:))
+        self.addParser(TAPCBUUID.characteristic__SerialNumber, parser: self.tapSerialNumberParser(identifier:characteristic:data:))
     }
                            
     public func addParser(_ characteristic:CBUUID, parser: @escaping ((String, CBUUID, Data)->Void), replaceExistsing:Bool = false) {
@@ -353,7 +362,7 @@ extension TAPKit {
     
     private func tapRawSensorParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
         if let mode = self.inputModeController.get(identifier: identifier) {
-            if mode.type == TAPInputMode.kRawSensor {
+            if mode.type == TAPInputMode.kRawSensor || mode.type == TAPInputMode.kV2Debug {
                 if let sensitivity = mode.sensitivity {
                     RawSensorDataParser.parseWhole(data: data, sensitivity: sensitivity, onMessageReceived: { rawSensorData in
                         self.delegatesController.run(action: { d in
@@ -436,6 +445,35 @@ extension TAPKit {
         }
     }
     
+    private func tapV2ConfigParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
+        guard let message = TAPV2Parser.parseIncomingMessage(data) else { return }
+        switch message {
+        case .standbyState(let isInStandby):
+            self.resolveV2Request(identifier: identifier, kind: "standbyState", value: isInStandby)
+            self.delegatesController.run(action: { d in
+                d.tapChangedStandbyState?(identifier: identifier, isInStandby: isInStandby)
+            })
+        case .configFeature(let featureNumber, let enabled):
+            self.resolveV2Request(identifier: identifier, kind: "feature_\(featureNumber)", value: enabled)
+        case .configVisionOpMode(let value):
+            self.resolveV2Request(identifier: identifier, kind: "visionOpMode", value: value)
+        case .configVisionModel(let value):
+            self.resolveV2Request(identifier: identifier, kind: "visionModel", value: value)
+        case .configIMUSensitivity(let gyro, let xl):
+            self.resolveV2Request(identifier: identifier, kind: "imuSensitivity", value: (gyro, xl))
+        default:
+            break
+        }
+    }
+    
+    private func tapSerialNumberParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
+        if let serialNumber = DataConverter.toString(data) {
+            self.delegatesController.run(action: { d in
+                d.tapDidReadSerialNumber?(identifier: identifier, serialNumber: serialNumber)
+            })
+        }
+    }
+    
     private func tapDeviceInformationParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
         if let str = DataConverter.toString(data) {
             switch characteristic {
@@ -481,6 +519,12 @@ extension TAPKit : TAPCentralDelegate {
         self.inputModeController.remove(uuid)
         self.delegatesController.run(action: { d in
             d.tapDisconnected?(withIdentifier: uuid)
+        })
+    }
+    
+    func tapFailedToConnect(identifier uuid:String, name:String) -> Void {
+        self.delegatesController.run(action: { d in
+            d.tapFailedToConnect?(withIdentifier: uuid, name: name)
         })
     }
     
@@ -604,6 +648,183 @@ extension TAPKit {
     
     @objc public func setDefaultTAPXRState(_ state:TAPXRState, applyImmediate:Bool) -> Void {
         self.tapxrStateController.setDefault(state: state, applyImmediate: applyImmediate)
+    }
+}
+
+extension TAPKit {
+    // V2 config request/response plumbing (parity with tap-python-sdk TapSDK2 pending requests).
+    // All access happens on the main queue: parsers are dispatched to main, and the
+    // public get functions hop to main before registering.
+    
+    private func v2RequestKey(identifier:String, kind:String) -> String {
+        return "\(identifier)|\(kind)"
+    }
+    
+    fileprivate func registerV2Request(identifier:String, kind:String, timeout:TimeInterval, completion: @escaping (Any?) -> Void) {
+        let key = self.v2RequestKey(identifier: identifier, kind: kind)
+        if let previous = self.v2PendingRequests.removeValue(forKey: key) {
+            self.v2PendingRequestTimeouts.removeValue(forKey: key)?.cancel()
+            previous(nil)
+        }
+        self.v2PendingRequests[key] = completion
+        let timeoutWorkItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            if let pending = self.v2PendingRequests.removeValue(forKey: key) {
+                self.v2PendingRequestTimeouts.removeValue(forKey: key)
+                TAPKit.log.event(.warning, message: "V2 config get (\(kind)) timed out for tap \(identifier)")
+                pending(nil)
+            }
+        }
+        self.v2PendingRequestTimeouts[key] = timeoutWorkItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeout, execute: timeoutWorkItem)
+    }
+    
+    fileprivate func resolveV2Request(identifier:String, kind:String, value:Any?) {
+        let key = self.v2RequestKey(identifier: identifier, kind: kind)
+        guard let completion = self.v2PendingRequests.removeValue(forKey: key) else { return }
+        self.v2PendingRequestTimeouts.removeValue(forKey: key)?.cancel()
+        completion(value)
+    }
+    
+    fileprivate func v2Adapter(for identifier:String) -> TAPProtocolAdapter? {
+        guard let adapter = self.central.getProtocolAdapter(identifier), adapter.protocolVersion == .v2 else {
+            TAPKit.log.event(.warning, message: "tap \(identifier) does not use the V2 protocol; V2 command ignored")
+            return nil
+        }
+        return adapter
+    }
+    
+    fileprivate func writeV2Command(identifier:String, data:Data) {
+        guard self.v2Adapter(for: identifier) != nil else { return }
+        self.central.write(identifier: identifier, characteristic: TAPCBUUID.characteristic__V2Write, value: data)
+    }
+    
+    fileprivate func v2Get(identifier:String, kind:String, request:Data, timeout:TimeInterval, completion: @escaping (Any?) -> Void) {
+        DispatchQueue.main.async {
+            guard self.v2Adapter(for: identifier) != nil else {
+                completion(nil)
+                return
+            }
+            self.registerV2Request(identifier: identifier, kind: kind, timeout: timeout, completion: completion)
+            self.central.write(identifier: identifier, characteristic: TAPCBUUID.characteristic__V2Write, value: request)
+        }
+    }
+}
+
+extension TAPKit {
+    // Public interface: V2 device configuration (parity with tap-python-sdk TapSDK2).
+    // These commands apply to V2 devices only; they are ignored (with a warning log)
+    // for legacy devices.
+    
+    /// Enables or disables a single V2 device feature (raw IMU, model detection,
+    /// IMU motion, trigger detections, standby gesture detection).
+    @objc public func setFeature(_ feature:TAPV2DeviceFeature, enabled:Bool, forIdentifiers identifiers:[String]? = nil) -> Void {
+        self.actionWithIdentifiers(action: { uuid in
+            self.writeV2Command(identifier: uuid, data: TAPV2Encoder.encodeSetFeature(feature: feature, enable: enabled))
+        }, identifiers: identifiers)
+    }
+    
+    /// Reads back the current enabled state of a V2 device feature.
+    /// Calls completion with nil on timeout or if the device is not a V2 device.
+    public func getFeature(_ feature:TAPV2DeviceFeature, forIdentifier identifier:String, timeout:TimeInterval = TAPKit.v2ConfigGetTimeout, completion: @escaping (Bool?) -> Void) {
+        self.v2Get(identifier: identifier,
+                   kind: "feature_\(feature.rawValue)",
+                   request: TAPV2Encoder.encodeGetFeature(feature: feature),
+                   timeout: timeout,
+                   completion: { value in completion(value as? Bool) })
+    }
+    
+    /// Sets the vision sensor operation mode (trigger / streamOnTrigger / stream).
+    @objc public func setVisionSensorOpMode(_ mode:TAPV2VisionSensorOpMode, forIdentifiers identifiers:[String]? = nil) -> Void {
+        self.actionWithIdentifiers(action: { uuid in
+            self.writeV2Command(identifier: uuid, data: TAPV2Encoder.encodeSetVisionSensorOpMode(mode))
+        }, identifiers: identifiers)
+    }
+    
+    /// Reads back the current vision sensor operation mode.
+    public func getVisionSensorOpMode(forIdentifier identifier:String, timeout:TimeInterval = TAPKit.v2ConfigGetTimeout, completion: @escaping (TAPV2VisionSensorOpMode?) -> Void) {
+        self.v2Get(identifier: identifier,
+                   kind: "visionOpMode",
+                   request: TAPV2Encoder.encodeGetVisionSensorOpMode(),
+                   timeout: timeout,
+                   completion: { value in
+                        guard let raw = value as? UInt8 else { completion(nil); return }
+                        completion(TAPV2VisionSensorOpMode(rawValue: Int(raw)))
+                   })
+    }
+    
+    /// Sets the vision sensor detection model (tapping / airGesture).
+    @objc public func setVisionSensorModel(_ model:TAPV2VisionSensorModel, forIdentifiers identifiers:[String]? = nil) -> Void {
+        self.actionWithIdentifiers(action: { uuid in
+            self.writeV2Command(identifier: uuid, data: TAPV2Encoder.encodeSetVisionSensorModel(model))
+        }, identifiers: identifiers)
+    }
+    
+    /// Reads back the current vision sensor detection model.
+    public func getVisionSensorModel(forIdentifier identifier:String, timeout:TimeInterval = TAPKit.v2ConfigGetTimeout, completion: @escaping (TAPV2VisionSensorModel?) -> Void) {
+        self.v2Get(identifier: identifier,
+                   kind: "visionModel",
+                   request: TAPV2Encoder.encodeGetVisionSensorModel(),
+                   timeout: timeout,
+                   completion: { value in
+                        guard let raw = value as? UInt8 else { completion(nil); return }
+                        completion(TAPV2VisionSensorModel(rawValue: Int(raw)))
+                   })
+    }
+    
+    /// Sets the IMU sensitivity directly (without changing the input mode).
+    /// gyro range: 0-5, accelerometer range: 0-4 (see TAPRawSensorSensitivity).
+    @objc public func setIMUSensitivity(gyro:UInt8, accelerometer:UInt8, forIdentifiers identifiers:[String]? = nil) -> Void {
+        let clampedGyro = min(gyro, 5)
+        let clampedXL = min(accelerometer, 4)
+        self.actionWithIdentifiers(action: { uuid in
+            self.writeV2Command(identifier: uuid, data: TAPV2Encoder.encodeSetIMUSensitivity(gyro: clampedGyro, xl: clampedXL))
+        }, identifiers: identifiers)
+    }
+    
+    /// Reads back the current IMU sensitivity as (gyro, accelerometer).
+    public func getIMUSensitivity(forIdentifier identifier:String, timeout:TimeInterval = TAPKit.v2ConfigGetTimeout, completion: @escaping ((gyro:UInt8, accelerometer:UInt8)?) -> Void) {
+        self.v2Get(identifier: identifier,
+                   kind: "imuSensitivity",
+                   request: TAPV2Encoder.encodeGetIMUSensitivity(),
+                   timeout: timeout,
+                   completion: { value in
+                        guard let sensitivity = value as? (UInt8, UInt8) else { completion(nil); return }
+                        completion((gyro: sensitivity.0, accelerometer: sensitivity.1))
+                   })
+    }
+    
+    /// Puts the device in or out of standby state.
+    @objc public func setStandbyState(_ standby:Bool, forIdentifiers identifiers:[String]? = nil) -> Void {
+        self.actionWithIdentifiers(action: { uuid in
+            self.writeV2Command(identifier: uuid, data: TAPV2Encoder.encodeStandbyStateSet(standby))
+        }, identifiers: identifiers)
+    }
+    
+    /// Reads back the current standby state.
+    /// Unsolicited standby changes are also delivered via the
+    /// tapChangedStandbyState(identifier:isInStandby:) delegate callback.
+    public func getStandbyState(forIdentifier identifier:String, timeout:TimeInterval = TAPKit.v2ConfigGetTimeout, completion: @escaping (Bool?) -> Void) {
+        self.v2Get(identifier: identifier,
+                   kind: "standbyState",
+                   request: TAPV2Encoder.encodeStandbyStateGet(),
+                   timeout: timeout,
+                   completion: { value in completion(value as? Bool) })
+    }
+    
+    /// Returns the serial number stored from the on-connect read (V2 devices), if available.
+    @objc public func getSerialNumber(identifier:String) -> String? {
+        guard let data = self.getStoredValue(identifier: identifier, characteristic: TAPCBUUID.characteristic__SerialNumber) else { return nil }
+        return DataConverter.toString(data)
+    }
+    
+    /// Triggers a serial number read; the result is delivered via the
+    /// tapDidReadSerialNumber(identifier:serialNumber:) delegate callback.
+    @objc public func readSerialNumber(forIdentifiers identifiers:[String]? = nil) -> Void {
+        self.actionWithIdentifiers(action: { uuid in
+            guard let adapter = self.central.getProtocolAdapter(uuid), adapter.supports(.serialNumber) else { return }
+            self.read(identifier: uuid, characteristic: TAPCBUUID.characteristic__SerialNumber)
+        }, identifiers: identifiers)
     }
 }
 
