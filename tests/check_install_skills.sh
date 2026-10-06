@@ -1,7 +1,7 @@
 #!/bin/bash
 # Run the skill installer against a temp folder and check the copied files.
 # Uses the checkout next to this script. It does not download from GitHub.
-# Compiles the knob / D-Pad logic tests when swiftc is on PATH.
+# Compiles the knob / D-Pad logic tests and the sensitivity parity tests when swiftc is on PATH.
 
 set -euo pipefail
 
@@ -97,8 +97,29 @@ if command -v swiftc >/dev/null 2>&1; then
     "$ROOT/plugins/tapkit-ios-sdk/skills/tapkit-dpad/scripts/DpadController.swift" \
     "$ROOT/tests/SkillLogicTests.swift"
   "$work/skill-logic"
+  # Linux swiftc has no Objective-C interop, so this copies the SDK sources
+  # and drops `@objc` before compiling. Xcode still builds the originals.
+  sens="$work/sensitivity-src"
+  mkdir -p "$sens"
+  for src in \
+    "$ROOT/TAPKit-iOS/Helpers/RawSensorData/TAPRawSensorSensitivity.swift" \
+    "$ROOT/TAPKit-iOS/TAPInputMode/TAPInputMode.swift" \
+    "$ROOT/TAPKit-iOS/Protocol/V2/TAPV2Encoder.swift" \
+    "$ROOT/TAPKit-iOS/TAPXRState/TAPXRState.swift" \
+    "$ROOT/TAPKit-iOS/Protocol/V2/TAPV2InputModeMapper.swift"
+  do
+    sed 's/@objc //g' "$src" > "$sens/$(basename "$src")"
+  done
+  swiftc -o "$work/sensitivity-parity" \
+    "$sens/TAPRawSensorSensitivity.swift" \
+    "$sens/TAPInputMode.swift" \
+    "$sens/TAPV2Encoder.swift" \
+    "$sens/TAPXRState.swift" \
+    "$sens/TAPV2InputModeMapper.swift" \
+    "$ROOT/tests/SensitivityParityTests.swift"
+  "$work/sensitivity-parity"
 else
-  echo "swiftc not on PATH; skipped knob and D-Pad compile."
+  echo "swiftc not on PATH; skipped knob, D-Pad, and sensitivity compile."
 fi
 
 echo "Installer check passed."

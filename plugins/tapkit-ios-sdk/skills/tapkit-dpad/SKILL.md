@@ -36,7 +36,7 @@ stateDiagram-v2
 
 ## Use the template
 
-Copy [scripts/DpadController.swift](scripts/DpadController.swift). It has no Bluetooth in it.
+Copy [scripts/DpadController.swift](scripts/DpadController.swift). It has no Bluetooth in it. TAPKit-Example compiles that same file into the Knob / D-Pad screen (`GestureSampleViewController`). The example target is Swift 4, and the script stays on that syntax.
 
 - `onGesture(rawValue, now:)` takes `gesture.rawValue` and `ProcessInfo.processInfo.systemUptime` (or any monotonic seconds).
 - `onMotion(dx:dy:roll:now:)` takes `moused` deltas and orientation roll.

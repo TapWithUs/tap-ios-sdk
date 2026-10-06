@@ -22,8 +22,8 @@
                             </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="41i-Am-dqN">
                                 <rect key="frame" x="150" y="142" width="75" height="35"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="Button"/>
+                                <state key="normal" title="Knob / D-Pad"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Knob / D-Pad"/>
                                 <connections>
                                     <action selector="buttonTouched:" destination="BYZ-38-t0r" eventType="touchUpInside" id="44p-Ba-Bvu"/>
                                 </connections>

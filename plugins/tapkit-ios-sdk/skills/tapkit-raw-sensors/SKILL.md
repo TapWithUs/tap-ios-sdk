@@ -12,33 +12,34 @@ For recording and custom gesture models. For a cursor or wrist angle, prefer `ta
 Legacy and V2 both use an input mode. Raw mode replaces controller mode, so `tapped` and `moused` stop until you switch back.
 
 ```swift
-let sensitivity = TAPRawSensorSensitivity(
-    deviceAccelerometer: 0,
-    imuGyro: 0,
-    imuAccelerometer: 0
-)
+let sensitivity = TAPRawSensorSensitivity(finger: .g2, gyro: .dps125, accelerometer: .g2)
 TAPKit.sharedKit.setTAPInputMode(
     .rawSensor(sensitivity: sensitivity),
     forIdentifiers: [identifier]
 )
 ```
 
-Ranges accepted by `TAPRawSensorSensitivity` (0 is valid and is the default):
+The enum raw values are the bytes written into the mode command, and they match tap-python-sdk (`FingerAcclSensitivity`, `ImuGyroSensitivity`, `ImuAcclSensitivity`). They are **1-based**. `.g2` and `.dps125` are sent as `1`. `TAPRawSensorSensitivity()` sends `[1, 1, 1]`, the same default as Python `InputModeRaw()`.
 
-| Property | Range | Sensor |
-|----------|-------|--------|
-| `deviceAccelerometer` | 0–4 | finger accelerometers |
-| `imuGyro` | 0–5 | thumb gyroscope |
-| `imuAccelerometer` | 0–4 | thumb accelerometer |
+| Enum | Cases | Wire codes |
+|------|-------|------------|
+| `TAPFingerAcclSensitivity` | `.g2` `.g4` `.g8` `.g16` | 1–4 |
+| `TAPIMUGyroSensitivity` | `.dps125` `.dps250` `.dps500` `.dps1000` `.dps2000` | 1–5 |
+| `TAPIMUAcclSensitivity` | `.g2` `.g4` `.g8` `.g16` | 1–4 |
 
-On V2 you can change IMU sensitivity without leaving the mode:
+The older integer initializer takes those same wire codes (`deviceAccelerometer:`, `imuGyro:`, `imuAccelerometer:`). A code that is already in range is stored unchanged. `0` is stored as `1`. Values above the max are clamped. Gyro and IMU-accelerometer scale factors match Python. Finger factors stay at `3.90625`, `7.8125`, `15.625`, and `31.25` mg/LSB.
+
+On V2, change the thumb IMU without leaving the mode. This writes the same two bytes as Python `set_imu_sensitivity` (gyro, then accelerometer). The finger range is not in that V2 frame.
 
 ```swift
-TAPKit.sharedKit.setIMUSensitivity(gyro: 0, accelerometer: 0, forIdentifiers: [identifier])
-// gyro 0–5, accelerometer 0–4
+TAPKit.sharedKit.setIMUSensitivity(.dps125, accelerometer: .g2, forIdentifiers: [identifier])
+
+TAPKit.sharedKit.getIMUSensitivity(forIdentifier: identifier) { (reading: TAPIMUSensitivity?) in
+    // reading?.gyro == .dps125, reading?.gyroWireValue == 1
+}
 ```
 
-`getIMUSensitivity(forIdentifier:)` completes on the main queue with `nil` on timeout or on a legacy device.
+`getIMUSensitivity` completes on the main queue with `nil` on timeout, on a legacy device, or if the device returns a byte that is not one of the enum raw values.
 
 `TAPInputMode.v2Debug()` (or `v2Debug(sensitivity:)`) turns on raw IMU, model detection, and IMU motion together, with the air-gesture model streaming. Use it for bring-up, not for a shipping mode: it is the noisiest stream.
 
@@ -72,7 +73,7 @@ func rawSensorDataReceived(identifier: String, data: RawSensorData) {
 ```
 
 - `timestamp` is the device clock (`UInt32`), not wall time. Use it for spacing between samples.
-- Each `Point3` is a `Double` already multiplied by the sensitivity factor for that axis. Do not treat the values as raw LSB counts, and do not assume a unit (mg, g, mdps) without measuring against a known motion.
+- Each `Point3` is a `Double` already multiplied by the sensitivity factor for that axis: mg/LSB for accelerometers and mdps/LSB for the gyro, using the factor for the 1-based wire code. Do not treat the values as raw LSB counts.
 - The callback is one sample, on the main queue, at a high rate. Append to an array and write the file later. Do not format CSV or touch the disk inside the callback.
 - Do not assume a fixed rate. The SDK README mentions about 200 messages per minute; measure with `timestamp` on the device you have before depending on that number.
 

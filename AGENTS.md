@@ -70,6 +70,7 @@ Tap bits: thumb = 1, index = 2, middle = 4, ring = 8, pinky = 16.
 - Haptics: `vibrate(durations:forIdentifiers:)`. Values are on/pause milliseconds, 10 ms steps, up to 18 values (each value is sent as `ms/10`, so the useful range is 10–2550).
 - By default the SDK switches devices to text mode when the app backgrounds. Set `sendModeInBackground = true` to keep the current mode.
 - V2 `get*` read-backs are Swift-only completion handlers. The `set*` APIs are visible to Objective-C.
+- IMU sensitivity wire codes are 1-based, matching tap-python-sdk: `TAPIMUGyroSensitivity.dps125` and `TAPIMUAcclSensitivity.g2` are sent as `1`. Use `setIMUSensitivity(_:accelerometer:)`. Do not send `0`.
 - Do not invent APIs, Bluetooth UUIDs, or enum cases. Check `README.md` and the public types in `TAPKit-iOS/`.
 - Update firmware with the Tap Manager app. Test on a real device. There is no simulator.
 

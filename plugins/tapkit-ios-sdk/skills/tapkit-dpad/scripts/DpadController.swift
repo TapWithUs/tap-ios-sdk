@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum DpadEvent: Equatable {
+enum DpadEvent {
     case direction(String)
     case pinch(Int)
     case hold(Int)
@@ -108,7 +108,7 @@ struct DpadController {
         if mode == "pending", rollTravel >= rotateLockDegrees {
             events += lock("rotate")
         }
-        if let refRoll { events.append(.rotate(roll - refRoll)) }
+        if let refRoll = refRoll { events.append(.rotate(roll - refRoll)) }
         return events
     }
 
@@ -141,6 +141,33 @@ struct DpadController {
         case 19: return "up"
         case 20: return "down"
         default: return nil
+        }
+    }
+}
+
+extension DpadEvent: Equatable {
+    static func == (lhs: DpadEvent, rhs: DpadEvent) -> Bool {
+        switch (lhs, rhs) {
+        case (.direction(let a), .direction(let b)):
+            return a == b
+        case (.pinch(let a), .pinch(let b)):
+            return a == b
+        case (.hold(let a), .hold(let b)):
+            return a == b
+        case (.mode(let a), .mode(let b)):
+            return a == b
+        case (.rotate(let a), .rotate(let b)):
+            return a == b
+        case (.drag(let ax, let ay), .drag(let bx, let by)):
+            return ax == bx && ay == by
+        case (.release(let a), .release(let b)):
+            return a == b
+        case (.hide, .hide):
+            return true
+        case (.show, .show):
+            return true
+        default:
+            return false
         }
     }
 }

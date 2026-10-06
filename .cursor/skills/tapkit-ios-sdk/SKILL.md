@@ -102,7 +102,7 @@ Fine-grained control matching tap-python-sdk `TapSDK2`. Getters take an optional
 TAPKit.sharedKit.setFeature(.modelDetection, enabled: true, forIdentifiers: [uuid])
 TAPKit.sharedKit.getFeature(.modelDetection, forIdentifier: uuid) { enabled in ... }
 TAPKit.sharedKit.setVisionSensorOpMode(.stream, forIdentifiers: [uuid])      // TapXR
-TAPKit.sharedKit.setIMUSensitivity(gyro: 2, accelerometer: 1, forIdentifiers: [uuid])
+TAPKit.sharedKit.setIMUSensitivity(.dps250, accelerometer: .g2, forIdentifiers: [uuid]) // wire bytes 2, 1
 TAPKit.sharedKit.setStandbyState(true, forIdentifiers: [uuid])
 ```
 
@@ -116,7 +116,7 @@ Note: `setTAPInputMode` also writes these features under the hood, so a later mo
 - In `text()` mode, `tapped`/`moused` callbacks do NOT fire (device behaves as a keyboard).
 - `moused` velocities need app-side scaling for sensitivity.
 - By default the SDK switches devices to text mode when the app backgrounds; set `TAPKit.sharedKit.sendModeInBackground = true` to keep modes active.
-- Raw sensor sensitivity indexes (`TAPRawSensorSensitivity`, 0 is the default): `deviceAccelerometer` 0–4, `imuGyro` 0–5, `imuAccelerometer` 0–4.
+- Raw sensitivity wire codes are 1-based, matching tap-python-sdk: finger `.g2`…`.g16` = 1…4, gyro `.dps125`…`.dps2000` = 1…5, IMU accelerometer `.g2`…`.g16` = 1…4. Default `TAPRawSensorSensitivity()` sends `[1, 1, 1]`. `0` is sent as `1`.
 - V2 `get*` read-back APIs are Swift-only (completion handlers with optionals); the `set*` APIs are exposed to Objective-C.
 - Suppress SDK logs with `TAPKit.log.disableAllEvents()`; enable per level with `TAPKit.log.enable(event: .error)`.
 

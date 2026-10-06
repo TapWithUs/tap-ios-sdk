@@ -24,7 +24,7 @@ stateDiagram-v2
 
 ## Use the template
 
-Copy [scripts/KnobTracker.swift](scripts/KnobTracker.swift). It has no Bluetooth in it.
+Copy [scripts/KnobTracker.swift](scripts/KnobTracker.swift). It has no Bluetooth in it. TAPKit-Example compiles that same file into the Knob / D-Pad screen (`GestureSampleViewController`). The example target is Swift 4, and the script stays on that syntax.
 
 - `onGesture(rawValue)` returns `"start"`, `"release"`, or `nil`. Pass `gesture.rawValue` from `tapXRAirGestured`.
 - `onRoll(roll)` returns signed steps, or 0 when idle. Pass `roll` from `tapDidChangeOrientation`.

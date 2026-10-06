@@ -41,6 +41,9 @@
 		5367F6F920E4D6C8007247C7 /* bridge-header.h in Headers */ = {isa = PBXBuildFile; fileRef = 5367F6F820E4D6C8007247C7 /* bridge-header.h */; };
 		53B1A13F207A58ED00025C59 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B1A13E207A58ED00025C59 /* AppDelegate.swift */; };
 		53B1A141207A58ED00025C59 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B1A140207A58ED00025C59 /* ViewController.swift */; };
+		F1A10002206A662700F68201 /* GestureSampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A10001206A662700F68201 /* GestureSampleViewController.swift */; };
+		F1A10004206A662700F68201 /* KnobTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A10003206A662700F68201 /* KnobTracker.swift */; };
+		F1A10006206A662700F68201 /* DpadController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A10005206A662700F68201 /* DpadController.swift */; };
 		53B1A144207A58ED00025C59 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53B1A142207A58ED00025C59 /* Main.storyboard */; };
 		53B1A146207A58ED00025C59 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53B1A145207A58ED00025C59 /* Assets.xcassets */; };
 		53B1A149207A58ED00025C59 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53B1A147207A58ED00025C59 /* LaunchScreen.storyboard */; };
@@ -148,6 +151,9 @@
 		53B1A13C207A58ED00025C59 /* TAPKit-Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TAPKit-Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		53B1A13E207A58ED00025C59 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		53B1A140207A58ED00025C59 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		F1A10001206A662700F68201 /* GestureSampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureSampleViewController.swift; sourceTree = "<group>"; };
+		F1A10003206A662700F68201 /* KnobTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KnobTracker.swift; path = "../plugins/tapkit-ios-sdk/skills/tapkit-knob/scripts/KnobTracker.swift"; sourceTree = "<group>"; };
+		F1A10005206A662700F68201 /* DpadController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DpadController.swift; path = "../plugins/tapkit-ios-sdk/skills/tapkit-dpad/scripts/DpadController.swift"; sourceTree = "<group>"; };
 		53B1A143207A58ED00025C59 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		53B1A145207A58ED00025C59 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		53B1A148207A58ED00025C59 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -396,6 +402,9 @@
 			children = (
 				53B1A13E207A58ED00025C59 /* AppDelegate.swift */,
 				53B1A140207A58ED00025C59 /* ViewController.swift */,
+				F1A10001206A662700F68201 /* GestureSampleViewController.swift */,
+				F1A10003206A662700F68201 /* KnobTracker.swift */,
+				F1A10005206A662700F68201 /* DpadController.swift */,
 				53B1A142207A58ED00025C59 /* Main.storyboard */,
 				53B1A145207A58ED00025C59 /* Assets.xcassets */,
 				53B1A147207A58ED00025C59 /* LaunchScreen.storyboard */,
@@ -668,6 +677,9 @@
 			files = (
 				53B1A141207A58ED00025C59 /* ViewController.swift in Sources */,
 				53B1A13F207A58ED00025C59 /* AppDelegate.swift in Sources */,
+				F1A10002206A662700F68201 /* GestureSampleViewController.swift in Sources */,
+				F1A10004206A662700F68201 /* KnobTracker.swift in Sources */,
+				F1A10006206A662700F68201 /* DpadController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

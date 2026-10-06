@@ -48,9 +48,9 @@ struct KnobTracker {
             anchor = roll
             return 0
         }
-        let steps = Int(Self.wrapDegrees(roll - currentAnchor) / stepDegrees)
+        let steps = Int(KnobTracker.wrapDegrees(roll - currentAnchor) / stepDegrees)
         if steps != 0 {
-            anchor = Self.wrapDegrees(currentAnchor + Double(steps) * stepDegrees)
+            anchor = KnobTracker.wrapDegrees(currentAnchor + Double(steps) * stepDegrees)
         }
         return steps
     }

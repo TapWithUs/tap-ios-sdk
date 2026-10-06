@@ -99,10 +99,10 @@ class TAPV2InputModeMapper {
     }
     
     private static func mapGyroSensitivity(_ value: UInt8) -> UInt8 {
-        return min(max(value, 0), 5)
+        return TAPIMUGyroSensitivity.normalizingWireValue(value)
     }
     
     private static func mapXLSensitivity(_ value: UInt8) -> UInt8 {
-        return min(max(value, 0), 4)
+        return TAPIMUAcclSensitivity.normalizingWireValue(value)
     }
 }
