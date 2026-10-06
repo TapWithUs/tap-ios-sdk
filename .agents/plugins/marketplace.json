@@ -1,0 +1,20 @@
+{
+  "name": "tapkit-ios-sdk-marketplace",
+  "interface": {
+    "displayName": "TAP iOS SDK"
+  },
+  "plugins": [
+    {
+      "name": "tapkit-ios-sdk",
+      "source": {
+        "source": "local",
+        "path": "./plugins/tapkit-ios-sdk"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Coding"
+    }
+  ]
+}

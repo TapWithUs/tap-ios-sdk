@@ -67,6 +67,52 @@ class MyViewController: UIViewController, TAPKitDelegate {
 
 Call `start()` once (typically when your main screen appears). Add one or more `TAPKitDelegate` implementations before or after `start()`.
 
+## AI-assisted development
+
+Install the TAPKit skills into a coding agent, then describe the iOS app you want. The skills know the real order: add the framework, pair in Settings, `addDelegate`, set the input mode, then `start()`. `start()` alone delivers no taps.
+
+The installer writes into the **current folder**. Add `-g` to install for your user, so the skills are available in every project.
+
+| Tool | This folder (default) | Every project (`-g`) |
+|------|------------------------|----------------------|
+| Claude Code | `.claude/skills/` | `claude plugin install … --scope user` |
+| Codex | `.agents/skills/` | `codex plugin add …` |
+| Cursor | `.cursor/skills/` + [`.cursor/rules/tapkit-ios-sdk.mdc`](.cursor/rules/tapkit-ios-sdk.mdc) | `~/.cursor/skills/` + `~/.cursor/rules/tapkit-ios-sdk.mdc` |
+| Any agent that reads `AGENTS.md` | [`AGENTS.md`](AGENTS.md) | `~/.codex/AGENTS.md` |
+
+From a clone of this repository:
+
+```console
+./install-skills.sh claude    # .claude/skills/
+./install-skills.sh codex     # .agents/skills/
+./install-skills.sh cursor    # .cursor/skills/ and .cursor/rules/
+./install-skills.sh agents    # ./AGENTS.md
+./install-skills.sh all       # all four, this folder
+./install-skills.sh -g all    # all four, every project
+```
+
+Without a clone (uses the `master` branch; set `TAP_SDK_REF` to install from another branch):
+
+```console
+curl -sL https://raw.githubusercontent.com/TapWithUs/tap-ios-sdk/master/install-skills.sh | bash -s cursor
+curl -sL https://raw.githubusercontent.com/TapWithUs/tap-ios-sdk/master/install-skills.sh | bash -s -- -g all
+```
+
+`-g claude` and `-g codex` need the `claude` and `codex` commands. The guide those files install is [`AGENTS.md`](AGENTS.md). Skill source lives in [`plugins/tapkit-ios-sdk/skills`](plugins/tapkit-ios-sdk/skills).
+
+| Skill | Use for |
+|-------|---------|
+| `tapkit-getting-started` | add TAPKit, pairing, connect order, troubleshooting |
+| `tapkit-tapping` | finger combinations, double taps, input modes, haptics |
+| `tapkit-air-gestures` | V2 tapping vs air-gesture model, swipes, pinch, fist |
+| `tapkit-motion` | pointer deltas, roll / pitch / yaw, AssistiveTouch |
+| `tapkit-raw-sensors` | raw accelerometer and gyro, sensitivity |
+| `tapkit-knob` | pinch-hold and twist to change a value (V2) |
+| `tapkit-dpad` | swipe, select, hold to rotate or drag (V2) |
+| `tapkit-build-an-app` | a complete iOS app, one interaction at a time |
+
+Agents editing **this** repository also have `.cursor/skills/tapkit-ios-sdk/SKILL.md`. That file stays here; `install-skills.sh` does not copy it into app projects.
+
 ---
 
 ## Protocol versions: legacy (v1) and V2
@@ -455,10 +501,10 @@ let sensitivity = TAPRawSensorSensitivity(
 TAPKit.sharedKit.setTAPInputMode(TAPInputMode.rawSensor(sensitivity: sensitivity), forIdentifiers: nil)
 ```
 
-Sensitivity ranges:
-- `deviceAccelerometer`: 1–4 (finger accelerometers)
-- `imuGyro`: 1–4 (thumb gyro)
-- `imuAccelerometer`: 1–5 (thumb accelerometer)
+Sensitivity indexes accepted by `TAPRawSensorSensitivity` (0 is valid and is the default):
+- `deviceAccelerometer`: 0–4 (finger accelerometers)
+- `imuGyro`: 0–5 (thumb gyro)
+- `imuAccelerometer`: 0–4 (thumb accelerometer)
 
 Default sensitivities:
 
@@ -516,6 +562,7 @@ Log levels: `.warning`, `.error`, `.info`, `.fatal`.
 | **TAPKit** | Main SDK framework (`TAPKit-iOS/`) |
 | **TAPKit-Example** | Sample iOS app — see `ViewController.swift` for a full integration example |
 | **TAPKitUnityBridge** | Objective-C/C++ bridge for Unity games |
+| **Agent skills** | [`plugins/tapkit-ios-sdk/skills`](plugins/tapkit-ios-sdk/skills), installed with [`install-skills.sh`](install-skills.sh). [`AGENTS.md`](AGENTS.md) is the short guide. |
 
 Build `TAPKit.framework` from Xcode; do not commit the built framework (it is listed in `.gitignore`).
 

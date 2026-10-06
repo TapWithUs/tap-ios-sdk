@@ -11,7 +11,9 @@ description: >-
 
 # Using TAPKit (TAP iOS SDK)
 
-TAPKit is a Swift framework (Objective-C compatible) for receiving input from TAP wearable devices over BLE. This skill is the quick reference; the full API documentation lives in [README.md](../../../README.md) and a complete working integration is in `TAPKit-Example/TAPKit-Example/ViewController.swift`.
+TAPKit is a Swift framework (Objective-C compatible) for receiving input from TAP wearable devices over BLE. This skill is the quick reference for agents working **in this repository**. The full API documentation lives in [README.md](../../../README.md) and a complete working integration is in `TAPKit-Example/ViewController.swift`.
+
+App-building skills (getting started, tapping, air gestures, motion, raw sensors, knob, D-Pad) live in `plugins/tapkit-ios-sdk/skills/` and are what [`install-skills.sh`](../../../install-skills.sh) copies into other projects. The connect order those skills teach: add the framework and `NSBluetoothAlwaysUsageDescription`, pair in Settings, `addDelegate`, `setDefaultTAPInputMode` (and `setDefaultTAPXRState` for TapXR), then `start()`.
 
 ## Core concepts
 
@@ -114,7 +116,7 @@ Note: `setTAPInputMode` also writes these features under the hood, so a later mo
 - In `text()` mode, `tapped`/`moused` callbacks do NOT fire (device behaves as a keyboard).
 - `moused` velocities need app-side scaling for sensitivity.
 - By default the SDK switches devices to text mode when the app backgrounds; set `TAPKit.sharedKit.sendModeInBackground = true` to keep modes active.
-- Raw sensor sensitivity ranges: `deviceAccelerometer` 1–4, `imuGyro` 1–4, `imuAccelerometer` 1–5.
+- Raw sensor sensitivity indexes (`TAPRawSensorSensitivity`, 0 is the default): `deviceAccelerometer` 0–4, `imuGyro` 0–5, `imuAccelerometer` 0–4.
 - V2 `get*` read-back APIs are Swift-only (completion handlers with optionals); the `set*` APIs are exposed to Objective-C.
 - Suppress SDK logs with `TAPKit.log.disableAllEvents()`; enable per level with `TAPKit.log.enable(event: .error)`.
 
@@ -126,6 +128,8 @@ Note: `setTAPInputMode` also writes these features under the hood, so a later mo
 | `TAPKit-iOS/TAPKit/TAPKit.swift` | Main public API surface |
 | `TAPKit-iOS/Protocol/` | Legacy (v1) and V2 protocol adapters |
 | `TAPKit-Example/` | Sample app; `ViewController.swift` is the canonical integration example |
+| `plugins/tapkit-ios-sdk/skills/` | Installable app-building skills (`install-skills.sh`) |
+| `AGENTS.md` | Short guide for coding agents. The installer strips the contributing section when copying it into an app. |
 | `TAPKitUnityBridge/` | Objective-C/C++ bridge for Unity |
 
 Build the **TAPKit** scheme in `TAPKit.xcodeproj` to produce `TAPKit.framework`; do not commit the built framework.
@@ -133,4 +137,4 @@ Build the **TAPKit** scheme in `TAPKit.xcodeproj` to produce `TAPKit.framework`;
 ## Full reference
 
 - Complete API docs, enum values (`TAPAirGesture`, `TAPXRAirGesture`), raw sensor details, and the tap-python-sdk mapping table: [README.md](../../../README.md)
-- Working example of delegates, modes, XR state, haptics: `TAPKit-Example/TAPKit-Example/ViewController.swift`
+- Working example of delegates, modes, XR state, haptics: `TAPKit-Example/ViewController.swift`
