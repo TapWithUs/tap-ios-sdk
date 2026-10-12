@@ -67,6 +67,52 @@ class MyViewController: UIViewController, TAPKitDelegate {
 
 Call `start()` once (typically when your main screen appears). Add one or more `TAPKitDelegate` implementations before or after `start()`.
 
+## AI-assisted development
+
+Install the TAPKit skills into a coding agent, then describe the iOS app you want. The skills know the real order: add the framework, pair in Settings, `addDelegate`, set the input mode, then `start()`. `start()` alone delivers no taps.
+
+The installer writes into the **current folder**. Add `-g` to install for your user, so the skills are available in every project.
+
+| Tool | This folder (default) | Every project (`-g`) |
+|------|------------------------|----------------------|
+| Claude Code | `.claude/skills/` | `claude plugin install … --scope user` |
+| Codex | `.agents/skills/` | `codex plugin add …` |
+| Cursor | `.cursor/skills/` + [`.cursor/rules/tapkit-ios-sdk.mdc`](.cursor/rules/tapkit-ios-sdk.mdc) | `~/.cursor/skills/` + `~/.cursor/rules/tapkit-ios-sdk.mdc` |
+| Any agent that reads `AGENTS.md` | [`AGENTS.md`](AGENTS.md) | `~/.codex/AGENTS.md` |
+
+From a clone of this repository:
+
+```console
+./install-skills.sh claude    # .claude/skills/
+./install-skills.sh codex     # .agents/skills/
+./install-skills.sh cursor    # .cursor/skills/ and .cursor/rules/
+./install-skills.sh agents    # ./AGENTS.md
+./install-skills.sh all       # all four, this folder
+./install-skills.sh -g all    # all four, every project
+```
+
+Without a clone (uses the `master` branch; set `TAP_SDK_REF` to install from another branch):
+
+```console
+curl -sL https://raw.githubusercontent.com/TapWithUs/tap-ios-sdk/master/install-skills.sh | bash -s cursor
+curl -sL https://raw.githubusercontent.com/TapWithUs/tap-ios-sdk/master/install-skills.sh | bash -s -- -g all
+```
+
+`-g claude` and `-g codex` need the `claude` and `codex` commands. The guide those files install is [`AGENTS.md`](AGENTS.md). Skill source lives in [`plugins/tapkit-ios-sdk/skills`](plugins/tapkit-ios-sdk/skills).
+
+| Skill | Use for |
+|-------|---------|
+| `tapkit-getting-started` | add TAPKit, pairing, connect order, troubleshooting |
+| `tapkit-tapping` | finger combinations, double taps, input modes, haptics |
+| `tapkit-air-gestures` | V2 tapping vs air-gesture model, swipes, pinch, fist |
+| `tapkit-motion` | pointer deltas, roll / pitch / yaw, AssistiveTouch |
+| `tapkit-raw-sensors` | raw accelerometer and gyro, sensitivity |
+| `tapkit-knob` | pinch-hold and twist to change a value (V2) |
+| `tapkit-dpad` | swipe, select, hold to rotate or drag (V2) |
+| `tapkit-build-an-app` | a complete iOS app, one interaction at a time |
+
+Agents editing **this** repository also have `.cursor/skills/tapkit-ios-sdk/SKILL.md`. That file stays here; `install-skills.sh` does not copy it into app projects.
+
 ---
 
 ## Protocol versions: legacy (v1) and V2
@@ -247,13 +293,27 @@ TAPKit.sharedKit.getVisionSensorModel(forIdentifier: uuid) { model in ... }
 
 #### IMU sensitivity
 
-```swift
-TAPKit.sharedKit.setIMUSensitivity(gyro: 2, accelerometer: 1, forIdentifiers: [uuid])  // gyro 0-5, accelerometer 0-4
+Named ranges match tap-python-sdk `ImuGyroSensitivity` and `ImuAcclSensitivity`. The raw value is the byte written to the device, and it is **1-based**: `.dps125` and `.g2` are sent as `1`. Python's `set_imu_sensitivity` sends those same bytes.
 
-TAPKit.sharedKit.getIMUSensitivity(forIdentifier: uuid) { sensitivity in
-    if let s = sensitivity { print("gyro: \(s.gyro), accelerometer: \(s.accelerometer)") }
+| `TAPIMUGyroSensitivity` | Wire byte | `TAPIMUAcclSensitivity` | Wire byte |
+|-------------------------|-----------|-------------------------|-----------|
+| `.dps125` | 1 | `.g2` | 1 |
+| `.dps250` | 2 | `.g4` | 2 |
+| `.dps500` | 3 | `.g8` | 3 |
+| `.dps1000` | 4 | `.g16` | 4 |
+| `.dps2000` | 5 | | |
+
+```swift
+TAPKit.sharedKit.setIMUSensitivity(.dps250, accelerometer: .g2, forIdentifiers: [uuid])
+
+TAPKit.sharedKit.getIMUSensitivity(forIdentifier: uuid) { (reading: TAPIMUSensitivity?) in
+    if let reading = reading {
+        print("gyro: \(reading.gyro) (\(reading.gyroWireValue)), xl: \(reading.accelerometer)")
+    }
 }
 ```
+
+`setIMUSensitivity(gyro:accelerometer:forIdentifiers:)` still accepts `UInt8` wire codes and is deprecated. Codes `1...5` and `1...4` are sent unchanged, so existing callers that already passed those numbers keep the same device command. `0` was previously sent as `0`; it is now sent as `1` (`.dps125` / `.g2`), which is what Python sends for the default ranges. Values above the max are clamped, which this integer setter already did. `getIMUSensitivity(forIdentifier:)` now returns `TAPIMUSensitivity?`. The old `(gyro: UInt8, accelerometer: UInt8)?` completion is `getIMUSensitivity(wireValuesFor:timeout:completion:)`.
 
 #### Standby
 
@@ -269,7 +329,7 @@ All getters accept an optional `timeout:` parameter (default 2 seconds, `TAPKit.
 
 #### Objective-C visibility
 
-The `set*` commands, `readSerialNumber()`, `getSerialNumber(identifier:)`, and the `TAPV2DeviceFeature` / `TAPV2VisionSensorOpMode` / `TAPV2VisionSensorModel` enums are exposed to Objective-C. The `get*` read-back functions use Swift completion handlers with optionals and are available from Swift only.
+The `set*` commands, `readSerialNumber()`, `getSerialNumber(identifier:)`, and the `TAPV2DeviceFeature` / `TAPV2VisionSensorOpMode` / `TAPV2VisionSensorModel` / `TAPIMUGyroSensitivity` / `TAPIMUAcclSensitivity` / `TAPFingerAcclSensitivity` enums are exposed to Objective-C. The `get*` read-back functions use Swift completion handlers with optionals and are available from Swift only.
 
 #### tap-python-sdk equivalents
 
@@ -280,7 +340,7 @@ For teams working across both SDKs, the mapping to [tap-python-sdk](https://gith
 | `setFeature` / `getFeature` | `set_feature` / `get_feature` |
 | `setVisionSensorOpMode` / `getVisionSensorOpMode` | `set_vision_sensor_op_mode` / `get_vision_sensor_op_mode` |
 | `setVisionSensorModel` / `getVisionSensorModel` | `set_vision_sensor_model` / `get_vision_sensor_model` |
-| `setIMUSensitivity` / `getIMUSensitivity` | `set_imu_sensitivity` / `get_imu_sensitivity` |
+| `setIMUSensitivity(.dps125, accelerometer: .g2)` / `getIMUSensitivity` | `set_imu_sensitivity(xl_sensitivity=ImuAcclSensitivity.G2, gyro_sensitivity=ImuGyroSensitivity.DPS125)` / `get_imu_sensitivity` |
 | `setStandbyState` / `getStandbyState` | `set_standby_state` / `get_standby_state` |
 | `tapChangedStandbyState` delegate callback | `register_standby_state_events` |
 | `getSerialNumber` / `tapDidReadSerialNumber` callback | `device_serial_number` |
@@ -447,20 +507,21 @@ Bit 0 (LSb) = thumb, bit 4 (MSb) = pinky. Example: `5` (binary `00101`) = thumb 
 Streams finger accelerometers and thumb IMU data at ~200 messages/minute.
 
 ```swift
-let sensitivity = TAPRawSensorSensitivity(
-    deviceAccelerometer: 2,
-    imuGyro: 2,
-    imuAccelerometer: 3
-)
+let sensitivity = TAPRawSensorSensitivity(finger: .g4, gyro: .dps250, accelerometer: .g8)
 TAPKit.sharedKit.setTAPInputMode(TAPInputMode.rawSensor(sensitivity: sensitivity), forIdentifiers: nil)
 ```
 
-Sensitivity ranges:
-- `deviceAccelerometer`: 1–4 (finger accelerometers)
-- `imuGyro`: 1–4 (thumb gyro)
-- `imuAccelerometer`: 1–5 (thumb accelerometer)
+That writes the same mode command as tap-python-sdk `InputModeRaw(finger_accl_sens=G4, imu_gyro_sens=DPS250, imu_accl_sens=G8)`: `[0x3, 0x0c, 0x00, 0x0a, 2, 2, 3]`.
 
-Default sensitivities:
+The three integers are **1-based wire codes**, the same numbers Python's enums use:
+
+| Argument | Enum | Wire codes | Default |
+|----------|------|------------|---------|
+| `deviceAccelerometer` | `TAPFingerAcclSensitivity` `.g2` `.g4` `.g8` `.g16` | 1–4 | `.g2` (1) |
+| `imuGyro` | `TAPIMUGyroSensitivity` `.dps125` … `.dps2000` | 1–5 | `.dps125` (1) |
+| `imuAccelerometer` | `TAPIMUAcclSensitivity` `.g2` `.g4` `.g8` `.g16` | 1–4 | `.g2` (1) |
+
+`TAPRawSensorSensitivity()` therefore sends `[1, 1, 1]`, matching Python's `InputModeRaw()` default. Passing `0`, or the old default object, used to send `0`. `0` is now stored and sent as `1`. Integer codes that were already in range (`1...4` / `1...5`) are unchanged, including the scale factor applied when a sample is parsed. Values above the max used to fall back to `0`; they are now clamped to the max. Gyro and IMU-accelerometer scale factors at those indexes match Python. Finger factors stay the more precise values this SDK already used (`3.90625`, `7.8125`, `15.625`, `31.25` mg/LSB) rather than Python's rounded `3.91` / `7.81` / `15.62`.
 
 ```swift
 TAPKit.sharedKit.setTAPInputMode(
@@ -469,7 +530,7 @@ TAPKit.sharedKit.setTAPInputMode(
 )
 ```
 
-On V2 devices, IMU sensitivity can also be changed on the fly without re-entering the mode using `setIMUSensitivity(gyro:accelerometer:forIdentifiers:)` — see [V2 device configuration](#v2-device-configuration-v2-devices).
+On V2 devices, IMU sensitivity can also be changed on the fly without re-entering the mode using `setIMUSensitivity(_:accelerometer:forIdentifiers:)` — see [V2 device configuration](#v2-device-configuration-v2-devices). Finger-accelerometer range is part of the v1 raw-mode command only; the V2 sensitivity frame carries gyro and IMU accelerometer, same as Python's `set_imu_sensitivity`.
 
 ### RawSensorData
 
@@ -516,6 +577,7 @@ Log levels: `.warning`, `.error`, `.info`, `.fatal`.
 | **TAPKit** | Main SDK framework (`TAPKit-iOS/`) |
 | **TAPKit-Example** | Sample iOS app — see `ViewController.swift` for a full integration example |
 | **TAPKitUnityBridge** | Objective-C/C++ bridge for Unity games |
+| **Agent skills** | [`plugins/tapkit-ios-sdk/skills`](plugins/tapkit-ios-sdk/skills), installed with [`install-skills.sh`](install-skills.sh). [`AGENTS.md`](AGENTS.md) is the short guide. |
 
 Build `TAPKit.framework` from Xcode; do not commit the built framework (it is listed in `.gitignore`).
 

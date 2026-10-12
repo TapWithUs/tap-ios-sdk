@@ -58,7 +58,8 @@ class ViewController: UIViewController {
         //      Starting iOS 13, Apple added Assitive Touch feature. (Can be toggled within accessibility settings on iPhone).
         //      This adds a cursor to the screen that can be navigated using TAP device.
         //
-        // TAPInputMode.rawSensor(sensitivity: TAPRawSensorSensitivity(deviceAccelerometer: Int, imuGyro: Int, imuAccelerometer: Int))
+        // TAPInputMode.rawSensor(sensitivity: TAPRawSensorSensitivity(finger: .g2, gyro: .dps125, accelerometer: .g2))
+        //      The integer initializer still exists. Those integers are 1-based wire codes; 0 is stored as 1.
         //      Sends sensor (Gyro and Accelerometers) data . callback function: rawSensorDataReceived. read the readme.md for more information about this mode.
         //
         // If you wish for a TAP device to enter text as part of your app, you'll need to set the mode to TAPInputMode.text(), and when you want to receive tap combination data,
@@ -97,7 +98,13 @@ class ViewController: UIViewController {
         //          Will send two 500 milliseconds haptics with a 100 milliseconds pause in the middle.
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        TAPKit.sharedKit.addDelegate(self)
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
         TAPKit.sharedKit.removeDelegate(self)
     }
     override func didReceiveMemoryWarning() {
@@ -105,8 +112,9 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     @IBAction func buttonTouched(_ sender: Any) {
-        print("button touched")
-        TAPKit.sharedKit.vibrate(durations: [100,100,100])
+        let sample = GestureSampleViewController()
+        sample.modalPresentationStyle = .fullScreen
+        present(sample, animated: true, completion: nil)
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {

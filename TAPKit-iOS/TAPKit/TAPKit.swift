@@ -872,18 +872,49 @@ extension TAPKit {
                    })
     }
     
-    /// Sets the IMU sensitivity directly (without changing the input mode).
-    /// gyro range: 0-5, accelerometer range: 0-4 (see TAPRawSensorSensitivity).
-    @objc public func setIMUSensitivity(gyro:UInt8, accelerometer:UInt8, forIdentifiers identifiers:[String]? = nil) -> Void {
-        let clampedGyro = min(gyro, 5)
-        let clampedXL = min(accelerometer, 4)
+    /// Sets the thumb-IMU ranges. The bytes written are the enum raw values, matching
+    /// tap-python-sdk `set_imu_sensitivity` (`ImuGyroSensitivity` / `ImuAcclSensitivity`, 1-based).
+    /// `.dps125` and `.g2` are sent as `1`.
+    @objc public func setIMUSensitivity(_ gyro: TAPIMUGyroSensitivity, accelerometer: TAPIMUAcclSensitivity, forIdentifiers identifiers:[String]? = nil) -> Void {
         self.actionWithIdentifiers(action: { uuid in
-            self.writeV2Command(identifier: uuid, data: TAPV2Encoder.encodeSetIMUSensitivity(gyro: clampedGyro, xl: clampedXL))
+            self.writeV2Command(identifier: uuid, data: TAPV2Encoder.encodeSetIMUSensitivity(gyro: UInt8(gyro.rawValue), xl: UInt8(accelerometer.rawValue)))
         }, identifiers: identifiers)
     }
+
+    /// Integer form of `setIMUSensitivity(_:accelerometer:forIdentifiers:)`.
+    /// `gyro` is a 1-based `TAPIMUGyroSensitivity` wire code (1...5). `accelerometer` is 1...4.
+    /// Those values are sent unchanged. `0` is not a device setting and is sent as `1`.
+    /// Values above the max are clamped to the max.
+    @available(*, deprecated, message: "Pass TAPIMUGyroSensitivity and TAPIMUAcclSensitivity. Integers are 1-based wire codes (gyro 1...5, accelerometer 1...4), the same bytes tap-python-sdk sends. 0 is sent as 1.")
+    @objc public func setIMUSensitivity(gyro:UInt8, accelerometer:UInt8, forIdentifiers identifiers:[String]? = nil) -> Void {
+        let gyroWire = TAPIMUGyroSensitivity.normalizingWireValue(gyro)
+        let xlWire = TAPIMUAcclSensitivity.normalizingWireValue(accelerometer)
+        guard let gyroSensitivity = TAPIMUGyroSensitivity(rawValue: Int(gyroWire)),
+              let xlSensitivity = TAPIMUAcclSensitivity(rawValue: Int(xlWire)) else {
+            return
+        }
+        self.setIMUSensitivity(gyroSensitivity, accelerometer: xlSensitivity, forIdentifiers: identifiers)
+    }
     
-    /// Reads back the current IMU sensitivity as (gyro, accelerometer).
-    public func getIMUSensitivity(forIdentifier identifier:String, timeout:TimeInterval = TAPKit.v2ConfigGetTimeout, completion: @escaping ((gyro:UInt8, accelerometer:UInt8)?) -> Void) {
+    /// Reads back the current IMU ranges. Unknown wire bytes complete with nil.
+    public func getIMUSensitivity(forIdentifier identifier:String, timeout:TimeInterval = TAPKit.v2ConfigGetTimeout, completion: @escaping (TAPIMUSensitivity?) -> Void) {
+        self.requestIMUSensitivityWireValues(identifier: identifier, timeout: timeout, completion: { wire in
+            guard let wire = wire else {
+                completion(nil)
+                return
+            }
+            completion(TAPIMUSensitivity(gyroWireValue: wire.gyro, accelerometerWireValue: wire.accelerometer))
+        })
+    }
+
+    /// Reads back the raw 1-based gyro and accelerometer bytes. Prefer `getIMUSensitivity`,
+    /// which returns `TAPIMUSensitivity`.
+    @available(*, deprecated, message: "Use getIMUSensitivity(forIdentifier:timeout:completion:) which returns TAPIMUSensitivity. These UInt8 values are the 1-based wire codes.")
+    public func getIMUSensitivity(wireValuesFor identifier:String, timeout:TimeInterval = TAPKit.v2ConfigGetTimeout, completion: @escaping ((gyro:UInt8, accelerometer:UInt8)?) -> Void) {
+        self.requestIMUSensitivityWireValues(identifier: identifier, timeout: timeout, completion: completion)
+    }
+
+    private func requestIMUSensitivityWireValues(identifier:String, timeout:TimeInterval, completion: @escaping ((gyro:UInt8, accelerometer:UInt8)?) -> Void) {
         self.v2Get(identifier: identifier,
                    kind: "imuSensitivity",
                    request: TAPV2Encoder.encodeGetIMUSensitivity(),
