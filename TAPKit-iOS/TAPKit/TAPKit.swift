@@ -36,10 +36,21 @@ open class TAPKit : NSObject {
     private var v2KeepaliveTimer : Timer?
     private static let v2KeepaliveInterval : TimeInterval = 20.0
     
+    /// V2 devices currently in standby. While a device is in standby, input mode
+    /// writes are deferred; the current mode is re-applied when the device wakes.
+    private var v2TapsInStandby : Set<String> = []
+    /// Delay after a device reports leaving standby before re-applying the input
+    /// mode, giving the firmware time to finish waking up.
+    private static let v2StandbyWakeModeDelay : TimeInterval = 0.5
+    
     /// Default timeout for V2 config "get" requests (parity with tap-python-sdk DEFAULT_GET_TIMEOUT_SEC).
     public static let v2ConfigGetTimeout : TimeInterval = 2.0
     private var v2PendingRequests : [String : (Any?) -> Void]
     private var v2PendingRequestTimeouts : [String : DispatchWorkItem]
+    /// Hardware version (`MMmmbb`) per connected device. Used to detect V2 taps
+    /// on hardware 4.x.x, which emit legacy air-gesture values.
+    private var hardwareVersions : [String : Int]
+    private var lastAirGestureValues : [String : UInt8]
     
     open class func instance() -> TAPKit {
         if TAPKit._instance == nil {
@@ -64,6 +75,8 @@ open class TAPKit : NSObject {
         self.tapxrGesturesMain = [String : XRGesturesMain]()
         self.v2PendingRequests = [String : (Any?) -> Void]()
         self.v2PendingRequestTimeouts = [String : DispatchWorkItem]()
+        self.hardwareVersions = [String : Int]()
+        self.lastAirGestureValues = [String : UInt8]()
         super.init()
         self.central = TAPCentral(handleInit: self.getHandleConfig(), handleValidator: self.getHandleValidator(), delegate: self)
         self.inputModeController = TAPInputModeController(interval: 10.0, delegate: self)
@@ -163,6 +176,34 @@ open class TAPKit : NSObject {
         self.ensureXRGesturesMain(identifier: identifier)
         self.tapxrGesturesMain[identifier]?.onGestureState(gesture: gesture)
     }
+
+    /// V2 taps with hardware 4.x.x emit new-format class indexes on AirGestures.
+    /// Those are translated to legacy XR gesture codes and then parsed like a
+    /// legacy AirGestures notification so pinches reach XRGesturesMain.
+    private func usesLegacyAirGestureParsing(identifier: String) -> Bool {
+        guard let hw = self.hardwareVersions[identifier] else { return false }
+        return hw >= 40000 && hw < 50000
+    }
+
+    /// Hardware 4.x.x V2 taps report air gestures with the new class indexes.
+    /// XRGesturesMain expects the legacy XRGestureState values.
+    private static func legacyXRAirGestureByte(fromV2Class value: UInt8) -> UInt8 {
+        switch value {
+        case 100: return UInt8(TAPAirGesture.XRAirGestureNone.rawValue)
+        case 105: return UInt8(TAPAirGesture.XRAirGestureThumbIndex.rawValue)
+        case 106: return UInt8(TAPAirGesture.XRAirGestureThumbMiddle.rawValue)
+        case 107: return UInt8(TAPAirGesture.XRAirGestureThumbRing.rawValue)
+        case 108: return UInt8(TAPAirGesture.XRAirGestureThumbPinky.rawValue)
+        case 109: return UInt8(TAPAirGesture.XRAirGestureFist.rawValue)
+        default: return value
+        }
+    }
+
+    private func logAirGestureValueIfChanged(identifier: String, data: Data) {
+        guard let first = data.first, self.lastAirGestureValues[identifier] != first else { return }
+        self.lastAirGestureValues[identifier] = first
+        print("[TAPKit][AirGesture] \(identifier) \(first)")
+    }
     
     private func parseCharacteristicValue(identifier:String, characteristic:CBUUID, data:Data) -> Void {
         DispatchQueue.main.async {
@@ -229,6 +270,14 @@ open class TAPKit : NSObject {
         let state = self.tapxrStateController.get(identifier: identifier)
         
         if adapter.protocolVersion == .v2 {
+            // Don't write modes to a device in standby: the firmware mishandles
+            // configuration received while asleep, which can leave the device
+            // without gestures after it wakes. The current mode is re-applied
+            // automatically when the device reports leaving standby.
+            guard !self.v2TapsInStandby.contains(identifier) else {
+                TAPKit.log.event(.info, message: "tap \(identifier) is in standby; input mode write deferred until wake")
+                return
+            }
             if let mode = mode {
                 self.central.writeThroughAdapter(
                     identifier: identifier,
@@ -248,6 +297,21 @@ open class TAPKit : NSObject {
                     writes: adapter.encodeInputMode(mode, xrState: state)
                 )
             }
+        }
+    }
+    
+    private func standbyStateChanged(identifier:String, isInStandby:Bool) {
+        if isInStandby {
+            self.v2TapsInStandby.insert(identifier)
+        } else {
+            guard self.v2TapsInStandby.remove(identifier) != nil else { return }
+            // Re-apply the current input mode once the firmware has finished waking,
+            // in case the desired mode changed while the device was in standby.
+            DispatchQueue.main.asyncAfter(deadline: .now() + TAPKit.v2StandbyWakeModeDelay, execute: { [weak self] in
+                guard let self = self else { return }
+                guard self.getConnectedTaps()[identifier] != nil else { return }
+                self.modeUpdate(identifier: identifier)
+            })
         }
     }
     
@@ -375,45 +439,66 @@ extension TAPKit {
     }
     
     private func tapAirGestureParser(identifier:String, characteristic:CBUUID, data:Data) -> Void {
+        self.logAirGestureValueIfChanged(identifier: identifier, data: data)
         var didSwipe : Bool = false
-        let isV2AirGesture = TAPV2Parser.isV2AirGesturePayload(data)
+        let isV2AirGesture = TAPV2Parser.isV2AirGesturePayload(data) && !self.usesLegacyAirGestureParsing(identifier: identifier)
+        // let hex = data.map { String(format: "%02X", $0) }.joined(separator: " ")
+        // print("[TAPKit][AirGesture] \(identifier) handling AirGestures [\(hex)] v2=\(isV2AirGesture)")
 
         if (isV2AirGesture) {
-            if let first = DataConverter.toUInt8(data: data, index: 0) {
-                let (post, previousPost) = self.gesturePost.call(Int(first))
-
-                if let c = GesturePostprocessor.ToTapXRV2AirGesture(post),
-                   let p = GesturePostprocessor.ToTapXRV2AirGesture(previousPost) {
-                    let gestures = TAPXRV2AirGestureConverter.convert(current: c, previous: p)
-                    gestures.forEach { gesture in
-                        self.delegatesController.run(action: { d in
-                            d.tapXRAirGestured?(identifier: identifier, gesture: gesture)
-                        })
-                    }
-                }
-                
+            guard let first = DataConverter.toUInt8(data: data, index: 0) else {
+                // print("[TAPKit][AirGesture] \(identifier) dropped: V2 payload has no class byte")
+                return
+            }
+            let classIndex = Int(first)
+            let (post, previousPost) = self.gesturePost.call(classIndex)
+            let current = GesturePostprocessor.ToTapXRV2AirGesture(post)
+            let previous = GesturePostprocessor.ToTapXRV2AirGesture(previousPost)
+            guard let c = current, let p = previous else {
+                // var missing = [String]()
+                // if current == nil { missing.append("current \(GesturePostprocessor.debugLabel(post))") }
+                // if previous == nil { missing.append("previous \(GesturePostprocessor.debugLabel(previousPost))") }
+                // print("[TAPKit][AirGesture] \(identifier) class \(GesturePostprocessor.debugLabel(classIndex)) -> current \(GesturePostprocessor.debugLabel(post)) previous \(GesturePostprocessor.debugLabel(previousPost)) dropped: \(missing.joined(separator: ", ")) is not a TAPXRV2AirGesture")
+                return
+            }
+            let gestures = TAPXRV2AirGestureConverter.convert(current: c, previous: p)
+            // if gestures.isEmpty {
+            //     print("[TAPKit][AirGesture] \(identifier) class \(GesturePostprocessor.debugLabel(classIndex)) -> \(c) (was \(p)) -> no delegate callback")
+            // } else {
+            //     let names = gestures.map { $0.descriptionString() }.joined(separator: ", ")
+            //     print("[TAPKit][AirGesture] \(identifier) class \(GesturePostprocessor.debugLabel(classIndex)) -> \(c) (was \(p)) -> tapXRAirGestured(\(names))")
+            // }
+            gestures.forEach { gesture in
+                self.delegatesController.run(action: { d in
+                    d.tapXRAirGestured?(identifier: identifier, gesture: gesture)
+                })
             }
         } else {
             if let swipe = DataConverter.toUInt8(data: data, index: 3) {
                 if swipe != 0 {
-                    if self.tapSwipe.swipe(identifier: identifier) {
-                        self.delegatesController.run(action: { d in
-                            var g : TAPXRAirGesture? = nil
-                            switch swipe {
-                            case 1 :
-                                g = .SwipeLeft
-                            case 2 :
-                                g = .SwipeRight
-                            case 3 :
-                                g = .SwipeUp
-                            case 4:
-                                g = .SwipeDown
-                            default : break
-                            }
-                            if let g {
+                    let accepted = self.tapSwipe.swipe(identifier: identifier)
+                    // print("[TAPKit][AirGesture] \(identifier) legacy swipe byte=\(swipe) \(accepted ? "accepted" : "dropped by 200ms debounce")")
+                    if accepted {
+                        var g : TAPXRAirGesture? = nil
+                        switch swipe {
+                        case 1 :
+                            g = .SwipeLeft
+                        case 2 :
+                            g = .SwipeRight
+                        case 3 :
+                            g = .SwipeUp
+                        case 4:
+                            g = .SwipeDown
+                        default : break
+                        }
+                        if let g {
+                            // print("[TAPKit][AirGesture] \(identifier) -> tapXRAirGestured(\(g.descriptionString()))")
+                            self.delegatesController.run(action: { d in
                                 d.tapXRAirGestured?(identifier: identifier, gesture: g)
-                            }
-                        })
+                            })
+                        } else {
+                            // print("[TAPKit][AirGesture] \(identifier) swipe byte=\(swipe) has no TAPXRAirGesture")
+                        }
                         
                         didSwipe = true
                     }
@@ -421,25 +506,35 @@ extension TAPKit {
             }
             guard !didSwipe else { return }
                 
-            if let first = DataConverter.toUInt8(data: data, index: 0) {
+            if var first = DataConverter.toUInt8(data: data, index: 0) {
+                if self.usesLegacyAirGestureParsing(identifier: identifier) {
+                    first = TAPKit.legacyXRAirGestureByte(fromV2Class: first)
+                }
                 if first == 20 {
                     if let second = DataConverter.toUInt8(data: data, index: 1) {
+                        // print("[TAPKit][AirGesture] \(identifier) air-gesture state -> \(second == 1)")
                         self.airGestureController.setInState(uuid: identifier, inState: second == 1)
                         self.delegatesController.run(action: { d in
                             d.tapChangedAirGesturesState?(identifier: identifier, isInAirGesturesState: second == 1)
                         })
+                    } else {
+                        // print("[TAPKit][AirGesture] \(identifier) air-gesture state command missing second byte")
+                    }
+                } else if let gesture = TAPAirGesture(rawValue: Int(first)) {
+                    if TAPAirGestureHelper.isXRGesture(gesture) {
+                        // print("[TAPKit][AirGesture] \(identifier) legacy XR gesture \(gesture)(\(gesture.rawValue)) -> XRGesturesMain")
+                        self.xrGestured(identifier: identifier, gesture: gesture.rawValue)
+                    } else {
+                        // print("[TAPKit][AirGesture] \(identifier) legacy gesture \(gesture)(\(gesture.rawValue)) -> tapAirGestured")
+                        self.delegatesController.run(action:  { d in
+                            d.tapAirGestured?(identifier: identifier, gesture: gesture)
+                        })
                     }
                 } else {
-                    if let gesture = TAPAirGesture(rawValue: Int(first)) {
-                        if TAPAirGestureHelper.isXRGesture(gesture) {
-                            self.xrGestured(identifier: identifier, gesture: gesture.rawValue)
-                        } else {
-                            self.delegatesController.run(action:  { d in
-                                d.tapAirGestured?(identifier: identifier, gesture: gesture)
-                            })
-                        }
-                    }
+                    // print("[TAPKit][AirGesture] \(identifier) byte0=\(first) is not a TAPAirGesture, ignored")
                 }
+            } else {
+                // print("[TAPKit][AirGesture] \(identifier) empty AirGestures payload, ignored")
             }
 
         }
@@ -449,6 +544,7 @@ extension TAPKit {
         guard let message = TAPV2Parser.parseIncomingMessage(data) else { return }
         switch message {
         case .standbyState(let isInStandby):
+            self.standbyStateChanged(identifier: identifier, isInStandby: isInStandby)
             self.resolveV2Request(identifier: identifier, kind: "standbyState", value: isInStandby)
             self.delegatesController.run(action: { d in
                 d.tapChangedStandbyState?(identifier: identifier, isInStandby: isInStandby)
@@ -479,6 +575,7 @@ extension TAPKit {
             switch characteristic {
             case TAPCBUUID.characteristic__HW :
                 if let hw = VersionNumber.string2Int(str: str) {
+                    self.hardwareVersions[identifier] = hw
                     if hw >= 40000 {
                         self.tapxrStateController.add(identifier: identifier)
                     }
@@ -516,6 +613,9 @@ extension TAPKit : TAPCentralDelegate {
     }
     
     func tapDisconnected(identifier uuid:String) -> Void {
+        self.v2TapsInStandby.remove(uuid)
+        self.hardwareVersions.removeValue(forKey: uuid)
+        self.lastAirGestureValues.removeValue(forKey: uuid)
         self.inputModeController.remove(uuid)
         self.delegatesController.run(action: { d in
             d.tapDisconnected?(withIdentifier: uuid)

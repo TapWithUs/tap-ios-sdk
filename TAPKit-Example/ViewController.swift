@@ -27,7 +27,7 @@ class ViewController: UIViewController {
 
 
         TAPKit.sharedKit.setDefaultTAPInputMode(.controller(), immediate: true)
-        TAPKit.sharedKit.setDefaultTAPXRState(.tapping(), applyImmediate: true)
+        TAPKit.sharedKit.setDefaultTAPXRState(.airMouse(), applyImmediate: true)
         
         
         // You can enable/disable logs for specific events, or all events

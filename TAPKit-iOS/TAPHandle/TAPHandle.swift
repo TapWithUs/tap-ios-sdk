@@ -211,6 +211,9 @@ extension TAPHandle : CBPeripheralDelegate {
             if let adapter = self.protocolAdapter,
                characteristic.uuid == TAPCBUUID.characteristic__V2Read {
                 adapter.parseNotification(value).forEach { message in
+                    if message.characteristic == TAPCBUUID.characteristic__AirGestures {
+                        self.logAirGestureCharacteristicUpdate(source: "V2Read", raw: value, payload: message.payload)
+                    }
                     self.delegate?.TAPHandleDidUpdateCharacteristicValue(self, characteristic: message.characteristic, value: message.payload)
                 }
             } else {
@@ -220,6 +223,9 @@ extension TAPHandle : CBPeripheralDelegate {
                     if (instructions.storeLastReadValue || instructions.readOnDiscover) {
                         self.values[characteristic.uuid] = value
                     }
+                }
+                if characteristic.uuid == TAPCBUUID.characteristic__AirGestures {
+                    self.logAirGestureCharacteristicUpdate(source: "AirGestures", raw: value, payload: value)
                 }
                 self.delegate?.TAPHandleDidUpdateCharacteristicValue(self, characteristic: characteristic.uuid, value: value)
             }
@@ -237,5 +243,18 @@ extension TAPHandle : CBPeripheralDelegate {
         guard error == nil && peripheral.identifier == self.identifier else { return }
         self.delegate?.TAPHandleDidWriteCharacteristicValue(self, characteristic: characteristic.uuid, value: characteristic.value)
     }
+
+    private func logAirGestureCharacteristicUpdate(source: String, raw: Data, payload: Data) {
+        // let payloadHex = Self.airGestureHex(payload)
+        // if source == "AirGestures" {
+        //     print("[TAPKit][AirGesture] \(self.identifierString) AirGestures updated [\(payloadHex)]")
+        // } else {
+        //     print("[TAPKit][AirGesture] \(self.identifierString) V2Read [\(Self.airGestureHex(raw))] mapped to AirGestures [\(payloadHex)]")
+        // }
+    }
+
+    // private static func airGestureHex(_ data: Data) -> String {
+    //     data.map { String(format: "%02X", $0) }.joined(separator: " ")
+    // }
     
 }

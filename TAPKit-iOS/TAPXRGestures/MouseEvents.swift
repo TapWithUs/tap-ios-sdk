@@ -135,11 +135,14 @@ class MouseEvents {
             break
         case .click(let gesture,_):
             if let g = XRGestureState(rawValue: gesture) {
+                // let previous = self.prevGesture
                 self.gestureDuration = self.gestureDuration + 1
+                // var actions = [String]()
                 if self.prevGesture != g {
                     
                     if g == .none {
                         self.dispatchAction(.release)
+                        // actions.append("release")
                         
 //                        if self.prevGesture == .thumb_middle && !self.inFlick {
 //                            if self.meanMotion > self.flickMotionThreshold {
@@ -155,29 +158,41 @@ class MouseEvents {
                     if self.prevGesture == .none || g == .none {
                         self.gestureDuration = 0
                         self.prevGesture = g
+                        // actions.append("reset duration, prev=\(g)")
                     }
                 }
                 if self.gestureDuration == 1 && self.prevGesture == .thumb_index {
                     self.dispatchAction(.press(finger: .index))
+                    // actions.append("press index")
                 }
                 if self.gestureDuration == 1 && self.prevGesture == .thumb_middle {
                     self.dispatchAction(.press(finger: .middle))
+                    // actions.append("press middle")
                 }
                 if self.gestureDuration == 1 && self.prevGesture == .thumb_ring {
                     self.dispatchAction(.press(finger: .ring))
+                    // actions.append("press ring")
                 }
                 
                 if self.gestureDuration == 1 && self.prevGesture == .thumb_pinky {
                     self.dispatchAction(.press(finger: .pinky))
+                    // actions.append("press pinky")
                 }
                 
                 if self.gestureDuration == 1 && self.prevGesture == .fist {
                     self.dispatchAction(.fist)
+                    // actions.append("fist")
                 }
+                // if g != .none || previous != .none {
+                //     let outcome = actions.isEmpty ? "no action" : actions.joined(separator: ", ")
+                //     print("[TAPKit][AirGesture] mouseEvents \(g) duration=\(self.gestureDuration) prev=\(previous) -> \(outcome)")
+                // }
+            } else {
+                // print("[TAPKit][AirGesture] mouseEvents ignored click \(gesture): not an XRGestureState")
+            }
 //                if gestureDuration > 2 && self.prevGesture == .thumb_middle {
 //                    self.dispatchAction(.scroll(vy: self.vy))
 //                }
-            }
             break
             
         }

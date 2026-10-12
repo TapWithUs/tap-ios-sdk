@@ -126,9 +126,13 @@ extension XRGesturesMain {
         let g = self.clickMajorityVoting.call(gesture)
         if (self.useMajority) {
             if let g {
+                // print("[TAPKit][AirGesture] XRGesturesMain majority \(gesture) -> \(g)")
                 self.mouseEvents.put(.click(gesture:g, ts: self.timestamp()))
+            } else {
+                // print("[TAPKit][AirGesture] XRGesturesMain majority \(gesture) -> no vote, dropped")
             }
         } else {
+            // print("[TAPKit][AirGesture] XRGesturesMain gesture \(gesture) (majority off)")
             self.mouseEvents.put(.click(gesture: gesture, ts: self.timestamp()))
         }
     }

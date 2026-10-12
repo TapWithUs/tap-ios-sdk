@@ -29,6 +29,13 @@ class GesturePostprocessor {
     static let WINDOW_MS = 300.0
     static let COOLDOWN_MS = 200.0
 
+    static func debugLabel(_ classIndex: Int) -> String {
+        if let name = IDX_LBL[classIndex] {
+            return "\(name)(\(classIndex))"
+        }
+        return "unknown(\(classIndex))"
+    }
+
     let holdDebounce: Bool
     let aggregatedDoubles: Bool
 
@@ -59,25 +66,34 @@ class GesturePostprocessor {
     private func process(_ classIndex: Int) -> Int {
         let now = Self.monotonicTime()
         let n = Self.LBL_IDX["NONE"]!
-        let name = Self.IDX_LBL[classIndex] ?? "NONE"
+        let knownName = Self.IDX_LBL[classIndex]
+        let name = knownName ?? "NONE"
         let prev = history[history.count - 1]
         appendHistory(classIndex)
 
         let out: Int
+        var reason: String
         if Self.HOLDS.contains(name), !holdActive || classIndex == holdLabel {
             holdActive = true
             holdLabel = classIndex
             out = classIndex
+            reason = "hold"
         } else if holdActive {
             if classIndex == n {
                 holdActive = false
                 lastFiredAt = now
                 out = n
+                reason = "hold released"
             } else {
                 out = holdLabel ?? n
+                reason = "hold latched over \(name)"
             }
+        } else if prev != n && classIndex != n {
+            out = n
+            reason = "consecutive non-none suppressed"
         } else {
-            out = prev != n && classIndex != n ? n : classIndex
+            out = classIndex
+            reason = "passthrough"
         }
 
         var final = out
@@ -86,35 +102,53 @@ class GesturePostprocessor {
             final = Self.LBL_IDX[pendingName] ?? n
             pending = nil
             pendingReleased = false
+            reason = "double window elapsed, emit \(pendingName)"
             if Self.PINCHES.contains(name) {
                 pending = name
                 pendingAt = now
+                reason += ", start pending \(name)"
             }
         } else if aggregatedDoubles, Self.PINCHES.contains(name) {
             if pending == name, pendingReleased {
                 pending = nil
                 pendingReleased = false
                 final = Self.LBL_IDX["DOUBLE_\(name)"] ?? n
+                reason = "double \(name)"
             } else if pending == name {
                 final = n
+                reason = "pinch \(name) still pending"
             } else {
                 pending = name
                 pendingAt = now
                 pendingReleased = false
                 final = n
+                reason = "pinch \(name) armed, suppressed until release or window"
             }
         } else if aggregatedDoubles, name == "NONE", pending != nil {
             pendingReleased = true
+            reason = "marked pending \(pending!) released"
         }
 
-        let outName = Self.IDX_LBL[final] ?? "NONE"
         if (now - lastFiredAt) * 1000 < Self.COOLDOWN_MS {
+            Self.logPostprocess(classIndex: classIndex, knownName: knownName, final: n, reason: "cooldown; \(reason)")
             return n
         }
+        let outName = Self.IDX_LBL[final] ?? "NONE"
         if !Self.HOLDS.contains(outName), outName != "NONE" {
             lastFiredAt = now
         }
+        Self.logPostprocess(classIndex: classIndex, knownName: knownName, final: final, reason: reason)
         return final
+    }
+
+    private static func logPostprocess(classIndex: Int, knownName: String?, final: Int, reason: String) {
+        let outputName = IDX_LBL[final]
+        if knownName == "NONE" && outputName == "NONE" {
+            return
+        }
+        // let inputLabel = knownName.map { "\($0)(\(classIndex))" } ?? "unknown(\(classIndex)) treated as NONE"
+        // let outputLabel = outputName.map { "\($0)(\(final))" } ?? "unknown(\(final))"
+        // print("[TAPKit][AirGesture] postprocessor \(inputLabel) -> \(outputLabel) (\(reason))")
     }
 
     private func appendHistory(_ classIndex: Int) {

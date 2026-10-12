@@ -23,6 +23,11 @@ class TAPV2ProtocolAdapter: TAPProtocolAdapter {
             readOnDiscover: true,
             storeLastReadValue: true
         )
+        instructions[TAPCBUUID.characteristic__HW] = TAPHandleConfigCharacteristic(
+            uuid: TAPCBUUID.characteristic__HW,
+            readOnDiscover: true,
+            storeLastReadValue: true
+        )
         return instructions
     }
     
