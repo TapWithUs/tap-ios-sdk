@@ -1,8 +1,10 @@
 # TAP iOS SDK
 
-Native iOS framework for receiving input from TAP devices over Bluetooth. TAP events are delivered as finger combinations, mouse movement, air gestures, spatial TapXR gestures, raw sensor streams, and more.
+Native iOS framework for Tap Strap, Tap Strap 2, TapXR, and TapBand. TAPKit receives finger taps, air gestures, mouse movement, and raw sensor data, and it sends haptics and mode commands.
 
-Written in Swift with Objective-C interoperability. The Xcode project also includes **TAPKit-Example** (sample app) and **TAPKitUnityBridge** (Unity wrapper).
+TapXR (current developer firmware) and TapBand share the **same BLE API** and the **full** gesture set: taps, thumb swipes up/down/left/right, thumb-to-finger pinches with hold, and fist with hold. TapBand is coming soon and is not for sale; join the [waitlist](https://www.tapwithus.com/tapband-waitlist/). Do not describe TapBand as unsupported or as a missing target. Do not invent a TapXR firmware version number.
+
+Written in Swift with Objective-C interoperability. One entry point: `TAPKit.sharedKit`. The Xcode project also includes **TAPKit-Example** (sample app) and **TAPKitUnityBridge** (Unity wrapper).
 
 ## Requirements
 
@@ -19,6 +21,8 @@ Add to your app's `Info.plist`:
 ```
 
 ## Integration
+
+This repository ships an Xcode framework. There is no `Package.swift` and no podspec. Swift Package Manager and CocoaPods are not how you add TAPKit.
 
 1. Clone this repository and open `TAPKit.xcodeproj`.
 2. Build the **TAPKit** scheme to produce `TAPKit.framework`.
@@ -45,7 +49,7 @@ class MyViewController: UIViewController, TAPKitDelegate {
         TAPKit.log.disableAllEvents()          // optional
         TAPKit.sharedKit.addDelegate(self)
         TAPKit.sharedKit.setDefaultTAPInputMode(.controller(), immediate: true)
-        TAPKit.sharedKit.setDefaultTAPXRState(TAPXRState.airMouse(), applyImmediate: true)  // TapXR only
+        TAPKit.sharedKit.setDefaultTAPXRState(TAPXRState.airMouse(), applyImmediate: true)  // TapXR / TapBand
         TAPKit.sharedKit.start()
     }
 
@@ -66,6 +70,18 @@ class MyViewController: UIViewController, TAPKitDelegate {
 ```
 
 Call `start()` once (typically when your main screen appears). Add one or more `TAPKitDelegate` implementations before or after `start()`.
+
+## Devices
+
+Write one delegate. TAPKit selects the BLE adapter when the device connects.
+
+| Device | Status | What you get |
+|--------|--------|----------------|
+| Tap Strap, Tap Strap 2 | Available | Finger taps, mouse, Tap Strap air gestures (`tapAirGestured`) |
+| TapXR | Available. Current developer firmware reports the full gesture set. | Taps, thumb swipes, pinches with hold, fist with hold |
+| TapBand | Coming soon. Same BLE API as TapXR. Not for sale. [Waitlist](https://www.tapwithus.com/tapband-waitlist/) | Same as TapXR |
+
+TapXR and TapBand use one framed BLE API (one read/write characteristic pair). Tap Strap uses the classic layout (separate notify characteristics and NUS mode commands). TAPKit translates `TAPInputMode` and `TAPXRState` for both. Commands whose types start with `TAPV2` (`TAPV2DeviceFeature`, vision sensor, IMU sensitivity, standby, serial number) apply to TapXR and TapBand. On Tap Strap they are ignored and getters complete with `nil`.
 
 ## AI-assisted development
 
@@ -104,30 +120,14 @@ curl -sL https://raw.githubusercontent.com/TapWithUs/tap-ios-sdk/master/install-
 |-------|---------|
 | `tapkit-getting-started` | add TAPKit, pairing, connect order, troubleshooting |
 | `tapkit-tapping` | finger combinations, double taps, input modes, haptics |
-| `tapkit-air-gestures` | V2 tapping vs air-gesture model, swipes, pinch, fist |
+| `tapkit-air-gestures` | raw firmware detections, iOS processed click/drag/swipe/fist, Tap Strap air gestures |
 | `tapkit-motion` | pointer deltas, roll / pitch / yaw, AssistiveTouch |
-| `tapkit-raw-sensors` | raw accelerometer and gyro, sensitivity |
-| `tapkit-knob` | pinch-hold and twist to change a value (V2) |
-| `tapkit-dpad` | swipe, select, hold to rotate or drag (V2) |
+| `tapkit-raw-sensors` | raw accelerometer and gyro, `TAPIMUGyroSensitivity` / `TAPIMUAcclSensitivity` |
+| `tapkit-knob` | pinch-hold and twist to change a value |
+| `tapkit-dpad` | swipe, select, hold to rotate or drag |
 | `tapkit-build-an-app` | a complete iOS app, one interaction at a time |
 
 Agents editing **this** repository also have `.cursor/skills/tapkit-ios-sdk/SKILL.md`. That file stays here; `install-skills.sh` does not copy it into app projects.
-
----
-
-## Protocol versions: legacy (v1) and V2
-
-TAP firmware speaks one of two BLE protocols, and TAPKit detects which one per device when it connects — no configuration needed:
-
-| | Legacy (v1) — "classic" | V2 — "framed" |
-|---|---|---|
-| Hardware | Tap Strap, Tap Strap 2, TapXR | TapBand, TapXR (newer firmware) |
-| BLE layout | Separate notify characteristics per event type; input-mode commands over NUS | One framed read/write characteristic pair; all events and commands as framed messages |
-| Extras | HID keyboard/mouse modes | Device features, vision sensor control, standby, serial number, keepalive |
-
-Everything in this SDK works the same on both protocols: the same delegate callbacks fire and the same `TAPInputMode` / `TAPXRState` calls apply (TAPKit translates them to the right protocol under the hood). The only V2-specific parts are the APIs marked **(V2 devices)** — see [V2 device configuration](#v2-device-configuration-v2-devices) — which are ignored on legacy devices.
-
-This split matches the [tap-python-sdk](https://github.com/TapWithUs/tap-python-sdk) documentation, where the same protocols are called v1 (`TapSDK`) and v2 (`TapSDK2`).
 
 ---
 
@@ -181,11 +181,13 @@ All delegate methods are **optional**. Multiple delegates are supported.
 
 ### Air gestures
 
+Every Tap SDK receives **raw** gesture detections from the sensor (class indexes 100–114). iOS TAPKit also exposes a **processed** layer. See [Raw detections and the iOS processed layer](#raw-detections-and-the-ios-processed-layer).
+
 | Callback | Description |
 |----------|-------------|
-| `tapChangedAirGesturesState(identifier:isInAirGesturesState:)` | Device entered or left air-gesture mode. |
-| `tapAirGestured(identifier:gesture:)` | Legacy air gestures (Tap Strap 1.x / older firmware). See [TAPAirGesture](#tapairgesture-legacy). |
-| `tapXRAirGestured(identifier:gesture:)` | Spatial TapXR gestures (pinch, drag, swipe, fist). See [TAPXRAirGesture](#tapxrairgesture-tapxr-spatial-control). |
+| `tapChangedAirGesturesState(identifier:isInAirGesturesState:)` | Device entered or left air-gesture mode (Tap Strap path). |
+| `tapAirGestured(identifier:gesture:)` | Tap Strap air gestures. See [TAPAirGesture](#tapairgesture-tap-strap). |
+| `tapXRAirGestured(identifier:gesture:)` | iOS processed edges (click, drag, drop, swipe, fist begin/end). See [TAPXRAirGesture](#tapxrairgesture-ios-processed-layer). |
 
 ### Device info
 
@@ -195,8 +197,8 @@ All delegate methods are **optional**. Multiple delegates are supported.
 | `tapDidReadFirmwareVersion(identifier:fw:)` | Same format as hardware version. |
 | `tapDidReadBatteryLevel(identifier:batteryLevel:)` | Battery level 0–100. Trigger reads with `readBatteryLevel()`. |
 | `tapDidChangeOrientation(roll:pitch:yaw:)` | IMU orientation from mouse data characteristic. |
-| `tapDidReadSerialNumber(identifier:serialNumber:)` | Serial number (V2 devices). Read automatically on connect; trigger again with `readSerialNumber()`. |
-| `tapChangedStandbyState(identifier:isInStandby:)` | Device entered or left standby (V2 devices). |
+| `tapDidReadSerialNumber(identifier:serialNumber:)` | Serial number (TapXR and TapBand). Read automatically on connect; trigger again with `readSerialNumber()`. |
+| `tapChangedStandbyState(identifier:isInStandby:)` | Device entered or left standby (TapXR and TapBand). |
 
 Version reads are triggered automatically on connect for supported devices. You can also call `readHardwareVersion()`, `readFirmwareVersion()`, and `readBatteryLevel()` explicitly.
 
@@ -230,7 +232,7 @@ let mode = TAPKit.sharedKit.getTAPInputMode(identifier: uuid)
 
 Pass `nil` for `forIdentifiers` to apply to all connected devices.
 
-### TapXR state (TapXR devices)
+### TapXR state (TapXR and TapBand)
 
 ```swift
 TAPKit.sharedKit.setTAPXRState(TAPXRState.airMouse(), forIdentifiers: [uuid])
@@ -251,13 +253,13 @@ TAPKit.sharedKit.vibrate(durations: [500, 100, 500], forIdentifiers: nil)
 TAPKit.sharedKit.readBatteryLevel(forIdentifiers: nil)
 TAPKit.sharedKit.readHardwareVersion(forIdentifiers: nil)
 TAPKit.sharedKit.readFirmwareVersion(forIdentifiers: nil)
-TAPKit.sharedKit.readSerialNumber(forIdentifiers: nil)          // V2 devices; result via tapDidReadSerialNumber
+TAPKit.sharedKit.readSerialNumber(forIdentifiers: nil)          // TapXR / TapBand; result via tapDidReadSerialNumber
 let serial = TAPKit.sharedKit.getSerialNumber(identifier: uuid) // stored value from on-connect read
 ```
 
-### V2 device configuration (V2 devices)
+### Device configuration (TapXR and TapBand)
 
-Direct access to V2 protocol primitives, matching the [tap-python-sdk](https://github.com/TapWithUs/tap-python-sdk) `TapSDK2` API. These commands only apply to devices using the [V2 ("framed") protocol](#protocol-versions-legacy-v1-and-v2); on legacy (v1) devices they are ignored (a warning is logged) and getters complete with `nil`.
+Direct access to framed-protocol primitives, matching the [tap-python-sdk](https://github.com/TapWithUs/tap-python-sdk) `TapSDK2` API. These commands apply to TapXR and TapBand. On Tap Strap they are ignored (a warning is logged) and getters complete with `nil`.
 
 Note: input modes (`setTAPInputMode`) also write these features under the hood. Use the direct APIs when you need fine-grained control or read-back; a later mode change may overwrite direct feature writes.
 
@@ -281,7 +283,7 @@ TAPKit.sharedKit.getFeature(.modelDetection, forIdentifier: uuid) { enabled in
 | `.triggerDetections` | 3 | Trigger detections (reserved; not implemented in current firmware). |
 | `.standbyGestureDetection` | 4 | Wake-gesture detection while the device is in standby. |
 
-#### Vision sensor (TapXR)
+#### Vision sensor (TapXR and TapBand)
 
 ```swift
 TAPKit.sharedKit.setVisionSensorOpMode(.stream, forIdentifiers: [uuid])   // .trigger / .streamOnTrigger / .stream
@@ -293,7 +295,7 @@ TAPKit.sharedKit.getVisionSensorModel(forIdentifier: uuid) { model in ... }
 
 #### IMU sensitivity
 
-Named ranges match tap-python-sdk `ImuGyroSensitivity` and `ImuAcclSensitivity`. The raw value is the byte written to the device, and it is **1-based**: `.dps125` and `.g2` are sent as `1`. Python's `set_imu_sensitivity` sends those same bytes.
+Use the named enums, not raw integers. Ranges match tap-python-sdk `ImuGyroSensitivity` and `ImuAcclSensitivity`. The enum raw value is the byte written to the device, and it is **1-based**: `.dps125` and `.g2` are sent as `1`.
 
 | `TAPIMUGyroSensitivity` | Wire byte | `TAPIMUAcclSensitivity` | Wire byte |
 |-------------------------|-----------|-------------------------|-----------|
@@ -313,7 +315,7 @@ TAPKit.sharedKit.getIMUSensitivity(forIdentifier: uuid) { (reading: TAPIMUSensit
 }
 ```
 
-`setIMUSensitivity(gyro:accelerometer:forIdentifiers:)` still accepts `UInt8` wire codes and is deprecated. Codes `1...5` and `1...4` are sent unchanged, so existing callers that already passed those numbers keep the same device command. `0` was previously sent as `0`; it is now sent as `1` (`.dps125` / `.g2`), which is what Python sends for the default ranges. Values above the max are clamped, which this integer setter already did. `getIMUSensitivity(forIdentifier:)` now returns `TAPIMUSensitivity?`. The old `(gyro: UInt8, accelerometer: UInt8)?` completion is `getIMUSensitivity(wireValuesFor:timeout:completion:)`.
+`setIMUSensitivity(gyro:accelerometer:forIdentifiers:)` still accepts `UInt8` wire codes and is deprecated. Prefer `TAPIMUGyroSensitivity` and `TAPIMUAcclSensitivity`. `getIMUSensitivity(forIdentifier:)` returns `TAPIMUSensitivity?`. The old `(gyro: UInt8, accelerometer: UInt8)?` completion is `getIMUSensitivity(wireValuesFor:timeout:completion:)`.
 
 #### Standby
 
@@ -363,7 +365,7 @@ TAPKit.sharedKit.refreshModes()             // Re-send current modes
 TAPKit.sharedKit.sendModeInBackground = false   // default: pause mode updates when app backgrounds
 ```
 
-When `false`, the SDK switches devices to text mode and user-control XR state on background. When `true`, modes continue to be sent. V2 keepalive messages are sent automatically while the app is active.
+When `false`, the SDK switches devices to text mode and user-control XR state on background. When `true`, modes continue to be sent. Keepalive messages for TapXR and TapBand are sent automatically while the app is active.
 
 ### Advanced (BLE extension)
 
@@ -390,8 +392,8 @@ Subclass `TAPKit` and override `setupParsers()` or `getHandleConfig()` to custom
 | `TAPInputMode.controllerWithFullHID()` | Full HID controller mode. |
 | `TAPInputMode.tapHold()` | Distinguishes short tap vs. long press via `tapHoldStarted` / `tapHoldEnded`. |
 | `TAPInputMode.rawSensor(sensitivity:)` | Streams accelerometer/IMU data via `rawSensorDataReceived`. |
-| `TAPInputMode.v2Debug()` | V2 debug stream: enables all V2 features at once (raw IMU + model detection + IMU motion + air-gesture vision stream). Raw packets arrive via `rawSensorDataReceived`. |
-| `TAPInputMode.v2Debug(sensitivity:)` | V2 debug with custom sensitivities. |
+| `TAPInputMode.v2Debug()` | Debug stream on TapXR and TapBand: all `TAPV2DeviceFeature` flags plus the air-gesture vision stream. Raw packets arrive via `rawSensorDataReceived`. |
+| `TAPInputMode.v2Debug(sensitivity:)` | Same debug stream with custom sensitivities. |
 
 Newly connected devices receive the default mode set via `setDefaultTAPInputMode(_:immediate:)`.
 
@@ -399,7 +401,7 @@ Newly connected devices receive the default mode set via `setDefaultTAPInputMode
 
 ## TAPXRState
 
-Controls TapXR input state (separate from `TAPInputMode`):
+Controls TapXR / TapBand input state (separate from `TAPInputMode`):
 
 | Factory | Description |
 |---------|-------------|
@@ -417,9 +419,52 @@ TAPKit.sharedKit.setTAPXRState(TAPXRState.airMouse(), forIdentifiers: ["device-u
 
 ---
 
-## TAPAirGesture (legacy)
+## Raw detections and the iOS processed layer
 
-Used with `tapAirGestured` for older Tap Strap air-gesture payloads:
+The sensor reports **raw** class indexes. Every Tap SDK receives that stream. Current TapXR developer firmware and TapBand report the full set: taps (via the tapping model), thumb swipes, thumb-to-finger pinches with hold, and fist with hold.
+
+| Index | Label | Meaning |
+|-------|-------|---------|
+| 100 | `NONE` | idle |
+| 101 | `LEFT` | thumb swipe left |
+| 102 | `RIGHT` | thumb swipe right |
+| 103 | `UP` | thumb swipe up |
+| 104 | `DOWN` | thumb swipe down |
+| 105 | `AB` | short pinch, thumb + index |
+| 106 | `AC` | short pinch, thumb + middle |
+| 107 | `AD` | short pinch, thumb + ring |
+| 108 | `AE` | short pinch, thumb + pinky |
+| 109 | `FIST` | fist |
+| 110 | `AB_HOLD` | pinch held, thumb + index |
+| 111 | `AC_HOLD` | pinch held, thumb + middle |
+| 112 | `AD_HOLD` | pinch held, thumb + ring |
+| 113 | `AE_HOLD` | pinch held, thumb + pinky |
+| 114 | `FIST_HOLD` | fist held |
+
+There is no `TAPKitDelegate` method for these integers. TAPKit consumes the stream, then emits processed edges.
+
+```swift
+// Firmware class indexes. Not TAPXRAirGesture.rawValue (None is 0, not 100).
+func rawClassMeaning(_ classIndex: Int) -> String {
+    switch classIndex {
+    case 101: return "swipe left"
+    case 105: return "pinch index"
+    case 110: return "hold index"
+    case 109: return "fist"
+    case 114: return "fist hold"
+    case 100: return "idle"
+    default: return "unknown"
+    }
+}
+```
+
+**iOS processed layer.** TAPKit post-processes the stream (200 ms cooldown, hold latching, swipe debounce) and delivers `TAPXRAirGesture` on `tapXRAirGestured`. That is the app-facing air-gesture API on iOS.
+
+---
+
+## TAPAirGesture (Tap Strap)
+
+Used with `tapAirGestured` for Tap Strap air-gesture payloads:
 
 ```swift
 @objc public enum TAPAirGesture : Int {
@@ -433,7 +478,8 @@ Used with `tapAirGestured` for older Tap Strap air-gesture payloads:
     case TwoFingersRight = 9
     case IndexToThumbTouch = 10
     case MiddleToThumbTouch = 11
-    // TapXR raw states (prefer tapXRAirGestured for new apps):
+    // Older XR payload values. Not the firmware class table above,
+    // and not TAPXRAirGesture. Prefer tapXRAirGestured for TapXR / TapBand:
     case XRAirGestureNone = 100
     case XRAirGestureThumbIndex = 101
     case XRAirGestureThumbMiddle = 102
@@ -447,13 +493,21 @@ Used with `tapAirGestured` for older Tap Strap air-gesture payloads:
 }
 ```
 
-For new TapXR integrations, prefer **`tapXRAirGestured`** and `TAPXRAirGesture` instead of the XR cases above.
+```swift
+func tapAirGestured(identifier: String, gesture: TAPAirGesture) {
+    switch gesture {
+    case .OneFingerUp: moveUp()
+    case .IndexToThumbTouch: select()
+    default: break
+    }
+}
+```
 
 ---
 
-## TAPXRAirGesture (TapXR spatial control)
+## TAPXRAirGesture (iOS processed layer)
 
-Delivered via `tapXRAirGestured`. The SDK post-processes V2 gesture streams and fuses mouse movement with pinch states for drag/click detection on legacy TapXR paths.
+Delivered via `tapXRAirGestured`. TAPKit post-processes the raw class stream (debounce and hold latching) and fuses mouse movement with pinch states for drag/click detection on some TapXR hardware paths.
 
 ```swift
 @objc public enum TAPXRAirGesture : Int {
@@ -480,9 +534,25 @@ Delivered via `tapXRAirGestured`. The SDK post-processes V2 gesture streams and 
 }
 ```
 
+```swift
+func tapXRAirGestured(identifier: String, gesture: TAPXRAirGesture) {
+    switch gesture {
+    case .ClickIndex: select()
+    case .DragIndex: beginGrab()
+    case .Drop: endGrab()
+    case .SwipeLeft: goBack()
+    case .FistBegin: hideControls()
+    case .FistEnd: showControls()
+    default: break
+    }
+}
+```
+
 Use `gesture.descriptionString()` for debugging.
 
-Spatial control features on TapXR may require authorization from Tap With Us for some firmware builds. [Contact Tap With Us](https://www.tapwithus.com/contact-us/) for access details.
+`PotentialDragOrClick*` (10–13) can appear on some TapXR hardware while TAPKit is still deciding click versus drag. Ignore it until a click, drag, or drop arrives. Current developer firmware goes through the processed converter, which emits click, drag, drop, swipe, and fist edges, not the potential cases.
+
+Map from raw class (after post-process): `LEFT`→`SwipeLeft`, `AB`→`ClickIndex`, `AB_HOLD`→`DragIndex` (once), idle after a hold→`Drop` or `FistEnd`.
 
 ---
 
@@ -530,7 +600,7 @@ TAPKit.sharedKit.setTAPInputMode(
 )
 ```
 
-On V2 devices, IMU sensitivity can also be changed on the fly without re-entering the mode using `setIMUSensitivity(_:accelerometer:forIdentifiers:)` — see [V2 device configuration](#v2-device-configuration-v2-devices). Finger-accelerometer range is part of the v1 raw-mode command only; the V2 sensitivity frame carries gyro and IMU accelerometer, same as Python's `set_imu_sensitivity`.
+On TapXR and TapBand, IMU sensitivity can also be changed on the fly without re-entering the mode using `setIMUSensitivity(_:accelerometer:forIdentifiers:)` — see [Device configuration](#device-configuration-tapxr-and-tapband). Finger-accelerometer range is part of the classic raw-mode command only. The IMU sensitivity frame on TapXR and TapBand carries gyro and IMU accelerometer, same as Python's `set_imu_sensitivity`.
 
 ### RawSensorData
 
@@ -579,13 +649,13 @@ Log levels: `.warning`, `.error`, `.info`, `.fatal`.
 | **TAPKitUnityBridge** | Objective-C/C++ bridge for Unity games |
 | **Agent skills** | [`plugins/tapkit-ios-sdk/skills`](plugins/tapkit-ios-sdk/skills), installed with [`install-skills.sh`](install-skills.sh). [`AGENTS.md`](AGENTS.md) is the short guide. |
 
-Build `TAPKit.framework` from Xcode; do not commit the built framework (it is listed in `.gitignore`).
+Build `TAPKit.framework` from Xcode; do not commit the built framework (it is listed in `.gitignore`). There is no Swift Package and no CocoaPod in this repository.
 
 ---
 
 ## Example app
 
-Open `TAPKit.xcodeproj`, select the **TAPKit-Example** scheme, and run on a device with a paired TAP. `ViewController.swift` demonstrates delegates, input modes, XR state, haptics, air gestures, and mouse tracking.
+Open `TAPKit.xcodeproj`, select the **TAPKit-Example** scheme, and run on a device with a paired TAP. `ViewController.swift` demonstrates delegates, input modes, XR state, haptics, air gestures, and mouse tracking. The Knob / D-Pad screen (`GestureSampleViewController`) uses the processed `tapXRAirGestured` layer.
 
 ---
 

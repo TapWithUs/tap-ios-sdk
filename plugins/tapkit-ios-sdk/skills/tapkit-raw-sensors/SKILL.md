@@ -1,6 +1,6 @@
 ---
 name: tapkit-raw-sensors
-description: Stream raw accelerometer and gyroscope samples with TAPInputMode.rawSensor or V2 raw IMU, and set sensitivity. Use for raw sensors, raw IMU, accelerometer, gyro, logging, or custom gesture recognition.
+description: Stream raw accelerometer and gyroscope samples with TAPInputMode.rawSensor or TAPInputMode.v2Debug(), and set sensitivity with named enums. Use for raw sensors, raw IMU, accelerometer, gyro, logging, or custom gesture recognition.
 ---
 
 # Raw sensors
@@ -9,7 +9,7 @@ For recording and custom gesture models. For a cursor or wrist angle, prefer `ta
 
 ## Turn the stream on
 
-Legacy and V2 both use an input mode. Raw mode replaces controller mode, so `tapped` and `moused` stop until you switch back.
+All devices use an input mode. Raw mode replaces controller mode, so `tapped` and `moused` stop until you switch back.
 
 ```swift
 let sensitivity = TAPRawSensorSensitivity(finger: .g2, gyro: .dps125, accelerometer: .g2)
@@ -29,7 +29,7 @@ The enum raw values are the bytes written into the mode command, and they match 
 
 The older integer initializer takes those same wire codes (`deviceAccelerometer:`, `imuGyro:`, `imuAccelerometer:`). A code that is already in range is stored unchanged. `0` is stored as `1`. Values above the max are clamped. Gyro and IMU-accelerometer scale factors match Python. Finger factors stay at `3.90625`, `7.8125`, `15.625`, and `31.25` mg/LSB.
 
-On V2, change the thumb IMU without leaving the mode. This writes the same two bytes as Python `set_imu_sensitivity` (gyro, then accelerometer). The finger range is not in that V2 frame.
+On TapXR and TapBand, change the thumb IMU without leaving the mode. This writes the same two bytes as Python `set_imu_sensitivity` (gyro, then accelerometer). The finger range is not in that sensitivity frame. Use the named enums, not raw integers:
 
 ```swift
 TAPKit.sharedKit.setIMUSensitivity(.dps125, accelerometer: .g2, forIdentifiers: [identifier])
@@ -39,13 +39,13 @@ TAPKit.sharedKit.getIMUSensitivity(forIdentifier: identifier) { (reading: TAPIMU
 }
 ```
 
-`getIMUSensitivity` completes on the main queue with `nil` on timeout, on a legacy device, or if the device returns a byte that is not one of the enum raw values.
+`getIMUSensitivity` completes on the main queue with `nil` on timeout, on a Tap Strap, or if the device returns a byte that is not one of the enum raw values.
 
 `TAPInputMode.v2Debug()` (or `v2Debug(sensitivity:)`) turns on raw IMU, model detection, and IMU motion together, with the air-gesture model streaming. Use it for bring-up, not for a shipping mode: it is the noisiest stream.
 
 Leave raw mode with `setTAPInputMode(.controller(), forIdentifiers:)`.
 
-Developer mode in Tap Manager is required for raw streaming on some v1 firmware. If samples never arrive, ask the user to enable it and reconnect.
+On some Tap Strap firmware, Developer mode in Tap Manager is required for raw streaming. If samples never arrive, ask the user to enable it and reconnect.
 
 ## Samples
 

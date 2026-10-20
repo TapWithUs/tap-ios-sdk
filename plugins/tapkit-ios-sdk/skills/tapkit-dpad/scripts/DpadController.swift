@@ -1,4 +1,4 @@
-// D-Pad: swipe to move, click to select, pinch-hold to rotate or drag (TAP V2).
+// D-Pad: swipe to move, click to select, pinch-hold to rotate or drag (TapXR / TapBand).
 //
 // Copy this file into the app. Feed it TAPXRAirGesture.rawValue, moused
 // deltas, and roll from tapDidChangeOrientation. It does not import TAPKit.

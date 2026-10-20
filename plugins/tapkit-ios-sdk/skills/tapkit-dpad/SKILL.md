@@ -1,13 +1,13 @@
 ---
 name: tapkit-dpad
-description: Build a D-Pad style controller on a V2 Tap. Swipes move, short clicks select, a pinch-hold locks into rotate or drag, and a fist hides. Use for menus, select and move, drag, rotate, or game controls.
+description: Build a D-Pad style controller on TapXR or TapBand. Swipes move, short clicks select, a pinch-hold locks into rotate or drag, and a fist hides. Use for menus, select and move, drag, rotate, or game controls.
 ---
 
 # D-Pad (swipe, pinch, hold to rotate or drag)
 
-**V2 only.** It needs `tapXRAirGestured` and IMU motion. Same interaction as the D-Pad page in the TAP_EV sandbox (https://tapwithus.github.io/TAP_EV/).
+TapXR (current developer firmware) and TapBand. It needs `tapXRAirGestured` and IMU motion. Same interaction as the D-Pad page in the TAP_EV sandbox (https://tapwithus.github.io/TAP_EV/). TapBand is coming soon, same BLE API: https://www.tapwithus.com/tapband-waitlist/
 
-The iOS SDK already collapses the raw gesture stream into edges. `Drop` is the release and `FistEnd` is the show, so this controller does not count a run of "none" packets. It still ignores a second copy of the same edge within 40 ms.
+The iOS SDK already collapses the raw gesture stream into edges. `Drop` is the release and `FistEnd` is the show, so this controller does not count a run of "none" packets. It still ignores a second copy of the same edge within 40 ms. See `tapkit-air-gestures` for raw class indexes vs the processed layer.
 
 ## Interaction
 
@@ -43,7 +43,7 @@ Copy [scripts/DpadController.swift](scripts/DpadController.swift). It has no Blu
 - `tick(now:)` locks drag if motion packets stop before the window ends.
 - `held`, `mode` (`"pending"`, `"rotate"`, `"drag"`, or nil), and `hidden` are the state to draw.
 
-Required device setup, after `start()` and `tapConnected`. Same as the knob: controller mode, model detection, IMU motion, air-gesture model, stream op mode. On TapXR, `setTAPXRState(.airMouse())` covers the vision model.
+Required device setup, after `start()` and `tapConnected`. Same as the knob: controller mode, model detection, IMU motion, air-gesture model, stream op mode. On TapXR and TapBand, `setTAPXRState(.airMouse())` covers the vision model.
 
 ```swift
 private var latestDelta = (dx: 0, dy: 0)

@@ -5,7 +5,7 @@ description: Decode TAP finger combinations, map them to in-app actions, detect 
 
 # Tapping
 
-Works on legacy (v1) and V2. Start from `tapkit-getting-started` for the connect order.
+Works on Tap Strap, Tap Strap 2, TapXR, and TapBand. Start from `tapkit-getting-started` for the connect order.
 
 ## Combination bitmask
 
@@ -53,7 +53,7 @@ TAPKit.sharedKit.setTAPInputMode(.controller(), forIdentifiers: nil)
 TAPKit.sharedKit.setDefaultTAPInputMode(.controller(), immediate: true)
 ```
 
-On TapXR, also set `TAPXRState.tapping()` so the device stays in tapping rather than air-mouse. On other V2 devices, set the tapping vision model (see `tapkit-air-gestures`).
+On TapXR and TapBand, also set `TAPXRState.tapping()` so the device stays in tapping rather than air-mouse. You can set the tapping vision model directly (see `tapkit-air-gestures`).
 
 The SDK re-sends the current mode on a timer while the app is active, so the device stays in it.
 

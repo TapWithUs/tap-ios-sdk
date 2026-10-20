@@ -11,10 +11,10 @@ Start from `tapkit-getting-started`. Motion and taps can be on together.
 
 ```swift
 TAPKit.sharedKit.setTAPInputMode(.controller(), forIdentifiers: nil)
-TAPKit.sharedKit.setTAPXRState(.airMouse(), forIdentifiers: nil) // TapXR
+TAPKit.sharedKit.setTAPXRState(.airMouse(), forIdentifiers: nil) // TapXR and TapBand
 ```
 
-On a V2 device that is not driven by `TAPXRState`, also turn the stream on:
+If `TAPXRState` is not set, turn the stream on:
 
 ```swift
 TAPKit.sharedKit.setFeature(.imuMotionData, enabled: true, forIdentifiers: [identifier])
@@ -50,7 +50,7 @@ This callback does **not** include a device identifier. With two Taps connected,
 
 - `roll`, `pitch`, `yaw` are signed degrees.
 - Do not treat absolute roll as a dial. Store the roll when the gesture starts (a `DragIndex` grab, see `tapkit-knob`) and use the delta. Roll wraps at ±180.
-- Legacy v1 mouse packets may omit useful euler angles. Use raw IMU (`tapkit-raw-sensors`) when you need orientation from a Tap Strap.
+- Tap Strap mouse packets may omit useful euler angles. Use raw IMU (`tapkit-raw-sensors`) when you need orientation from a Tap Strap.
 
 ## Patterns
 

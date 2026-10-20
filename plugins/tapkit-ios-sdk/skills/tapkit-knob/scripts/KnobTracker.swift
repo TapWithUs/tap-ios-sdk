@@ -1,4 +1,4 @@
-// Knob: hold a pinch and twist the wrist to change a value (TAP V2).
+// Knob: hold a pinch and twist the wrist to change a value (TapXR / TapBand).
 //
 // Copy this file into the app. Feed it TAPXRAirGesture.rawValue and the
 // roll from tapDidChangeOrientation. It does not import TAPKit.

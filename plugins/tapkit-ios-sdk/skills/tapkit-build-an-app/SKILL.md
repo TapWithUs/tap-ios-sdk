@@ -9,14 +9,14 @@ The user may not be a developer. Keep the project small, explain how to run it i
 
 ## Workflow
 
-1. **Ask** only what is missing: device (Tap Strap, Tap Strap 2, TapXR, or TapBand), UIKit or SwiftUI, and what the app should do.
+1. **Ask** only what is missing: device (Tap Strap, Tap Strap 2, TapXR, or TapBand), UIKit or SwiftUI, and what the app should do. TapBand is coming soon, same BLE API as TapXR, not for sale: https://www.tapwithus.com/tapband-waitlist/ — still build against that API.
 2. **Connect first.** Use `tapkit-getting-started`. Confirm `tapped` prints a combination before building anything else.
 3. **Pick the input** and load that skill:
    - finger taps and combos: `tapkit-tapping`
-   - swipes, pinches, fist: `tapkit-air-gestures` (V2)
+   - swipes, pinches, fist: `tapkit-air-gestures` (TapXR / TapBand processed layer)
    - pointer, tilt, rotation: `tapkit-motion`
-   - twist-to-adjust value: `tapkit-knob` (V2)
-   - directions, select, drag or rotate: `tapkit-dpad` (V2)
+   - twist-to-adjust value: `tapkit-knob`
+   - directions, select, drag or rotate: `tapkit-dpad`
    - data recording: `tapkit-raw-sensors`
 4. **Pick the output** from the table below.
 5. **Build one interaction, have the user try it, then add the next.**
@@ -61,7 +61,7 @@ Add on-screen buttons that perform the same actions as the taps, so the UI can b
 ## Rules
 
 - Do not modify TAPKit to make an app work. Call the public API in `README.md`.
-- Do not add CocoaPods, SwiftPM, or Carthage instructions. This SDK is an embedded `TAPKit.framework`.
+- Do not add CocoaPods, SwiftPM, or Carthage instructions. This SDK is an embedded `TAPKit.framework` (build the TAPKit scheme, then Embed & Sign). There is no `Package.swift` or podspec.
 - Do not invent enum cases, Bluetooth UUIDs, or a scanning API.
 - Pairing happens in Settings → Bluetooth before launch.
 - If the device does not connect or taps do not arrive, use the troubleshooting table in `tapkit-getting-started`.
