@@ -1,11 +1,11 @@
 ---
 name: tapkit-knob
-description: Build a virtual knob on a V2 Tap. A pinch-hold (DragIndex through DragPinky) grabs a value and wrist roll turns it up or down. Drop releases. Use for knob, dial, twist, volume, brightness, or continuous value control.
+description: Build a virtual knob on TapXR or TapBand. A pinch-hold (DragIndex through DragPinky) grabs a value and wrist roll turns it up or down. Drop releases. Use for knob, dial, twist, volume, brightness, or continuous value control.
 ---
 
 # Knob (pinch-hold + twist)
 
-**V2 only** (TapBand or newer TapXR). It needs air-gesture holds and IMU roll. Legacy v1 hardware does not emit `Drag*` / `Drop` plus orientation together. Same idea as the Knob in the TAP_EV sandbox (https://tapwithus.github.io/TAP_EV/).
+TapXR (current developer firmware) and TapBand. It needs processed air-gesture holds and IMU roll. Tap Strap does not emit `Drag*` / `Drop` plus orientation together. Same idea as the Knob in the TAP_EV sandbox (https://tapwithus.github.io/TAP_EV/). TapBand is coming soon, same BLE API: https://www.tapwithus.com/tapband-waitlist/
 
 ## How it works
 
@@ -13,7 +13,7 @@ description: Build a virtual knob on a V2 Tap. A pinch-hold (DragIndex through D
 2. While the pinch is held, `tapDidChangeOrientation` `roll` turns the knob. The roll at the next sample after the grab is the reference. Every `stepDegrees` of roll away from it is one step.
 3. The user relaxes. The SDK emits a single `Drop` (raw 9). That **releases** the knob.
 
-iOS does not deliver the repeating raw model codes (100–114) that tap-python-sdk exposes. The SDK has already turned that stream into one drag edge and one drop edge, so there is nothing to debounce and no run of "none" packets to count.
+iOS does not deliver the repeating raw firmware class indexes (100–114) on this callback. TAPKit has already turned that stream into one drag edge and one drop edge, so there is nothing to debounce and no run of "none" packets to count. See `tapkit-air-gestures` for the raw table and the processed layer.
 
 ```mermaid
 stateDiagram-v2
@@ -41,7 +41,7 @@ TAPKit.sharedKit.setVisionSensorModel(.airGesture, forIdentifiers: ids)
 TAPKit.sharedKit.setVisionSensorOpMode(.stream, forIdentifiers: ids)
 ```
 
-On TapXR (hardware version ≥ 40000), `setTAPXRState(.airMouse(), forIdentifiers: ids)` with controller mode is the shorter path. It selects the air-gesture model and leaves IMU motion on.
+On TapXR and TapBand, `setTAPXRState(.airMouse(), forIdentifiers: ids)` with controller mode is the shorter path. It selects the air-gesture model and leaves IMU motion on.
 
 Wiring:
 

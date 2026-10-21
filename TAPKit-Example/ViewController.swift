@@ -78,10 +78,14 @@ class ViewController: UIViewController {
         
         // Air Gestures
         // ------------
-        // TAP v2.0 devices adds Air Gestures features.
-        // These Air Gestures will be triggered in:
+        // TapXR (current developer firmware) and TapBand share the same BLE API
+        // and the full gesture set (taps, thumb swipes, pinches with hold, fist
+        // with hold). Every Tap SDK receives the raw class indexes from the
+        // sensor. iOS TAPKit also post-processes that stream and delivers edges:
+        //      func tapXRAirGestured(identifier: String, gesture: TAPXRAirGesture)
+        // See TAPXRAirGesture: per-finger click, drag, drop, fist begin/end, swipe.
+        // Tap Strap air gestures still arrive on:
         //      func tapAirGestured(identifier: String, gesture: TAPAirGesture)
-        // Please refer to the enum TAPAirGesture to see the available gestures.
         // Works in "controller" and "controllerWithMouseHID" modes.
         // Another related callback event is:
         //      func tapChangedAirGesturesState(identifier: String, isInAirGesturesState: Bool)

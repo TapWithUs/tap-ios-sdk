@@ -42,7 +42,7 @@ final class GestureSampleViewController: UIViewController, TAPKitDelegate {
             activeIdentifier = first.key
             statusLabel.text = "Connected: \(first.value). Hold a pinch and twist."
         } else {
-            statusLabel.text = "Waiting for a paired TAP. This screen needs a V2 device."
+            statusLabel.text = "Waiting for a paired TAP. This screen needs TapXR or TapBand."
         }
         enableAirGestureMode()
         TAPKit.sharedKit.addDelegate(self)

@@ -5,18 +5,19 @@ description: First skill for any TAP iOS app. The order is add TAPKit and NSBlue
 
 # TAPKit getting started
 
-Works for legacy (v1) and V2 devices. TAPKit detects the protocol per device. The same delegate methods fire for both.
+Works for Tap Strap, Tap Strap 2, TapXR, and TapBand. TAPKit selects the BLE adapter per device. The same delegate methods fire. TapXR and TapBand share the same BLE API.
 
 ## 1. Ask the user (once)
 
 - Which device: Tap Strap, Tap Strap 2, TapXR, or TapBand?
+- TapBand is coming soon and is not for sale. Same API as TapXR. Waitlist: https://www.tapwithus.com/tapband-waitlist/ — still write the app against that API. Never call TapBand unsupported or a missing target.
 - Is the Tap turned on, charged, and paired in the iPhone or iPad **Settings → Bluetooth**?
-- Is the firmware up to date (update it in the Tap Manager app)?
+- Is the firmware up to date (update it in the Tap Manager app)? Current TapXR developer firmware reports the full gesture set; do not invent a version number.
 - UIKit or SwiftUI?
 
 ## 2. Add the SDK
 
-This repository ships an Xcode framework, not a Swift package or CocoaPod.
+This repository ships an Xcode framework. There is no `Package.swift` and no podspec. Do not add Swift Package Manager or CocoaPods instructions.
 
 1. Clone https://github.com/TapWithUs/tap-ios-sdk and open `TAPKit.xcodeproj`.
 2. Build the **TAPKit** scheme. That produces `TAPKit.framework`.
@@ -40,7 +41,7 @@ Copy [scripts/QuickstartViewController.swift](scripts/QuickstartViewController.s
 
 1. `addDelegate`. Implement `TAPKitDelegate` (every method is optional).
 2. `setDefaultTAPInputMode(.controller(), immediate: true)`. Text mode types on the keyboard and sends **no** tap callbacks.
-3. For TapXR, `setDefaultTAPXRState`. `.tapping()` for finger taps, `.airMouse()` for pointer and air gestures.
+3. For TapXR and TapBand, `setDefaultTAPXRState`. `.tapping()` for finger taps, `.airMouse()` for pointer and air gestures.
 4. `start()` once, from the main screen. Calling `start()` again is safe (`resume()` starts only if needed).
 5. Remove the delegate in `viewWillDisappear` or `deinit`.
 
@@ -50,13 +51,13 @@ Copy [scripts/QuickstartViewController.swift](scripts/QuickstartViewController.s
 
 | You want | What to set | Callback |
 |----------|-------------|----------|
-| Finger taps | `.controller()` and, on TapXR, `.tapping()` | `tapped(identifier:combination:multitap:)` |
+| Finger taps | `.controller()` and, on TapXR / TapBand, `.tapping()` | `tapped(identifier:combination:multitap:)` |
 | Air mouse | `.controller()` and `.airMouse()` | `moused(identifier:velocityX:velocityY:isMouse:)` |
-| V2 swipes, pinch, fist | `.airMouse()`, or set the air-gesture vision model (see `tapkit-air-gestures`) | `tapXRAirGestured` |
-| Legacy strap air gestures | Controller mode | `tapAirGestured` |
+| Swipes, pinch, fist (processed iOS layer) | `.airMouse()`, or set the air-gesture vision model (see `tapkit-air-gestures`) | `tapXRAirGestured` |
+| Tap Strap air gestures | Controller mode | `tapAirGestured` |
 | Raw IMU | `TAPInputMode.rawSensor(sensitivity:)` | `rawSensorDataReceived` |
 
-V2 devices that are not TapXR (hardware version below 40000, including TapBand) do not receive a vision model from `TAPXRState`. After `tapConnected`, enable input directly:
+TapXR and TapBand share the BLE API. `setTAPXRState(.tapping())` / `.airMouse()` selects the vision model. You can also set it directly after `tapConnected`:
 
 ```swift
 TAPKit.sharedKit.setFeature(.modelDetection, enabled: true, forIdentifiers: [identifier])
@@ -77,11 +78,11 @@ TAPKit.sharedKit.setVisionSensorOpMode(.trigger, forIdentifiers: [identifier])
 |---------|-----|
 | Nothing connects | Turn the Tap on, pair it in Settings → Bluetooth, force-quit Tap Manager and any other app using it, then reopen this app. |
 | `tapConnected` fires but `tapped` does not (text mode) | Set `TAPInputMode.controller()`. Text mode types letters and hides taps from the SDK. |
-| Connected V2 device, still no taps | Enable `.modelDetection`, then `setVisionSensorModel(.tapping)` and `setVisionSensorOpMode(.trigger)`. On TapXR, `setTAPXRState(.tapping())` does this when hardware version is ≥ 40000. |
+| Connected TapXR or TapBand, still no taps | Enable `.modelDetection`, then `setVisionSensorModel(.tapping)` and `setVisionSensorOpMode(.trigger)`, or `setTAPXRState(.tapping())`. |
 | Letters appear in a text field when tapping | The device is in text mode. Switch to controller mode. |
 | Bluetooth permission alert never appears | Add `NSBluetoothAlwaysUsageDescription`, then delete and reinstall the app. |
 | Events stop in the background | Default behavior switches the device to text mode when the app resigns active. Set `TAPKit.sharedKit.sendModeInBackground = true` to keep the mode. |
-| A V2 getter completion is `nil` | The device is legacy, it did not answer within `timeout` (default 2 s), or another get of the same kind replaced this one. |
+| A `getFeature` / `getVisionSensor*` / `getIMUSensitivity` completion is `nil` | The device is a Tap Strap, it did not answer within `timeout` (default 2 s), or another get of the same kind replaced this one. |
 
 ## More
 

@@ -1,7 +1,7 @@
 {
   "name": "tapkit-ios-sdk",
   "version": "1.0.0",
-  "description": "Skills for building iOS apps with Tap Strap, TapXR, and TapBand.",
+  "description": "Skills for building iOS apps with Tap Strap, TapXR, and TapBand (coming soon, same BLE API).",
   "author": {
     "name": "Tap Systems"
   },
