@@ -1,7 +1,8 @@
 #!/bin/bash
 # Run the skill installer against a temp folder and check the copied files.
 # Uses the checkout next to this script. It does not download from GitHub.
-# Compiles the knob / D-Pad logic tests and the sensitivity parity tests when swiftc is on PATH.
+# Compiles the knob / D-Pad logic tests, the sensitivity parity tests and the V2 standby
+# tracker tests when swiftc is on PATH.
 
 set -euo pipefail
 
@@ -118,8 +119,12 @@ if command -v swiftc >/dev/null 2>&1; then
     "$sens/TAPV2InputModeMapper.swift" \
     "$ROOT/tests/SensitivityParityTests.swift"
   "$work/sensitivity-parity"
+  swiftc -o "$work/v2-standby-tracker" \
+    "$ROOT/TAPKit-iOS/TAPKit/TAPV2StandbyTracker.swift" \
+    "$ROOT/tests/V2StandbyTrackerTests.swift"
+  "$work/v2-standby-tracker"
 else
-  echo "swiftc not on PATH; skipped knob, D-Pad, and sensitivity compile."
+  echo "swiftc not on PATH; skipped knob, D-Pad, sensitivity, and standby tracker compile."
 fi
 
 echo "Installer check passed."

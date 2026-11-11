@@ -63,6 +63,7 @@
 		53E970B2206A2D2200F68262 /* TAPCombination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E970B1206A2D2200F68262 /* TAPCombination.swift */; };
 		53E970B4206A345A00F68262 /* TAPKitLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E970B3206A345A00F68262 /* TAPKitLog.swift */; };
 		53E970B6206A662700F68262 /* TAPKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E970B5206A662700F68262 /* TAPKit.swift */; };
+		A1000201206A662700F68262 /* TAPV2StandbyTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000200206A662700F68262 /* TAPV2StandbyTracker.swift */; };
 		A10000B1206A662700F68262 /* TAPDeviceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000A1206A662700F68262 /* TAPDeviceProtocol.swift */; };
 		A10000B2206A662700F68262 /* TAPProtocolAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000A2206A662700F68262 /* TAPProtocolAdapter.swift */; };
 		A10000B3206A662700F68262 /* TAPProtocolDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000A3206A662700F68262 /* TAPProtocolDetector.swift */; };
@@ -171,6 +172,7 @@
 		53E970B1206A2D2200F68262 /* TAPCombination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPCombination.swift; sourceTree = "<group>"; };
 		53E970B3206A345A00F68262 /* TAPKitLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPKitLog.swift; sourceTree = "<group>"; };
 		53E970B5206A662700F68262 /* TAPKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPKit.swift; sourceTree = "<group>"; };
+		A1000200206A662700F68262 /* TAPV2StandbyTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPV2StandbyTracker.swift; sourceTree = "<group>"; };
 		A10000A1206A662700F68262 /* TAPDeviceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPDeviceProtocol.swift; sourceTree = "<group>"; };
 		A10000A2206A662700F68262 /* TAPProtocolAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPProtocolAdapter.swift; sourceTree = "<group>"; };
 		A10000A3206A662700F68262 /* TAPProtocolDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAPProtocolDetector.swift; sourceTree = "<group>"; };
@@ -270,6 +272,7 @@
 			isa = PBXGroup;
 			children = (
 				53E970B5206A662700F68262 /* TAPKit.swift */,
+				A1000200206A662700F68262 /* TAPV2StandbyTracker.swift */,
 			);
 			path = TAPKit;
 			sourceTree = "<group>";
@@ -641,6 +644,7 @@
 				A10000B9206A662700F68262 /* GesturePostprocessor.swift in Sources */,
 				A10000BA206A662700F68262 /* TAPXRV2AirGestureConverter.swift in Sources */,
 				53E970B6206A662700F68262 /* TAPKit.swift in Sources */,
+				A1000201206A662700F68262 /* TAPV2StandbyTracker.swift in Sources */,
 				323418A62924F6E5009CBA2B /* TAPAirGestureController.swift in Sources */,
 				3211B17B2C2AF5CF007F1631 /* MajorityVoting.swift in Sources */,
 				32EEBDD7291BD8FD000AAA22 /* TAPCentralDelegate.swift in Sources */,

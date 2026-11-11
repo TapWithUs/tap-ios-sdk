@@ -36,9 +36,10 @@ open class TAPKit : NSObject {
     private var v2KeepaliveTimer : Timer?
     private static let v2KeepaliveInterval : TimeInterval = 20.0
     
-    /// V2 devices currently in standby. While a device is in standby, input mode
+    /// V2 devices in standby, or sent standby. While a device is in standby, input mode
     /// writes are deferred; the current mode is re-applied when the device wakes.
-    private var v2TapsInStandby : Set<String> = []
+    /// Holding starts at the standby command, not at the device's report (TAPV2StandbyTracker).
+    private var v2Standby = TAPV2StandbyTracker()
     /// Delay after a device reports leaving standby before re-applying the input
     /// mode, giving the firmware time to finish waking up.
     private static let v2StandbyWakeModeDelay : TimeInterval = 0.5
@@ -274,7 +275,7 @@ open class TAPKit : NSObject {
             // configuration received while asleep, which can leave the device
             // without gestures after it wakes. The current mode is re-applied
             // automatically when the device reports leaving standby.
-            guard !self.v2TapsInStandby.contains(identifier) else {
+            guard !self.v2Standby.holdsWrites(for: identifier) else {
                 TAPKit.log.event(.info, message: "tap \(identifier) is in standby; input mode write deferred until wake")
                 return
             }
@@ -301,18 +302,14 @@ open class TAPKit : NSObject {
     }
     
     private func standbyStateChanged(identifier:String, isInStandby:Bool) {
-        if isInStandby {
-            self.v2TapsInStandby.insert(identifier)
-        } else {
-            guard self.v2TapsInStandby.remove(identifier) != nil else { return }
-            // Re-apply the current input mode once the firmware has finished waking,
-            // in case the desired mode changed while the device was in standby.
-            DispatchQueue.main.asyncAfter(deadline: .now() + TAPKit.v2StandbyWakeModeDelay, execute: { [weak self] in
-                guard let self = self else { return }
-                guard self.getConnectedTaps()[identifier] != nil else { return }
-                self.modeUpdate(identifier: identifier)
-            })
-        }
+        guard self.v2Standby.reported(standby: isInStandby, identifier: identifier) else { return }
+        // Re-apply the current input mode once the firmware has finished waking,
+        // in case the desired mode changed while the device was in standby.
+        DispatchQueue.main.asyncAfter(deadline: .now() + TAPKit.v2StandbyWakeModeDelay, execute: { [weak self] in
+            guard let self = self else { return }
+            guard self.getConnectedTaps()[identifier] != nil else { return }
+            self.modeUpdate(identifier: identifier)
+        })
     }
     
     func modesUpdate() -> Void {
@@ -613,7 +610,7 @@ extension TAPKit : TAPCentralDelegate {
     }
     
     func tapDisconnected(identifier uuid:String) -> Void {
-        self.v2TapsInStandby.remove(uuid)
+        self.v2Standby.forget(uuid)
         self.hardwareVersions.removeValue(forKey: uuid)
         self.lastAirGestureValues.removeValue(forKey: uuid)
         self.inputModeController.remove(uuid)
@@ -928,6 +925,11 @@ extension TAPKit {
     /// Puts the device in or out of standby state.
     @objc public func setStandbyState(_ standby:Bool, forIdentifiers identifiers:[String]? = nil) -> Void {
         self.actionWithIdentifiers(action: { uuid in
+            // Hold input-mode writes from the command, not from the device's
+            // report: a write landing in between can be lost (TAPV2StandbyTracker).
+            if self.central.getProtocolAdapter(uuid)?.protocolVersion == .v2 {
+                self.v2Standby.commanded(standby: standby, identifier: uuid)
+            }
             self.writeV2Command(identifier: uuid, data: TAPV2Encoder.encodeStandbyStateSet(standby))
         }, identifiers: identifiers)
     }
