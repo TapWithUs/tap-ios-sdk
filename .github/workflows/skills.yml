@@ -41,6 +41,8 @@ jobs:
             .cursor/rules/tapkit-ios-sdk.mdc \
             tests/check_install_skills.sh \
             tests/SkillLogicTests.swift \
+            tests/V2StandbyTrackerTests.swift \
+            TAPKit-iOS/TAPKit/TAPV2StandbyTracker.swift \
             .github/workflows/skills.yml)"
           if [ -n "$files" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
