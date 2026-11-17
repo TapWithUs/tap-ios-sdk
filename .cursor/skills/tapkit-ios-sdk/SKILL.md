@@ -22,7 +22,7 @@ App-building skills (getting started, tapping, air gestures, motion, raw sensors
 - **Delegates**: implement `TAPKitDelegate` (all methods optional, multiple delegates supported). Add with `addDelegate(_:)`, remove in `viewWillDisappear`/deinit.
 - **No scan UI**: the SDK only connects to TAP devices already paired in iOS Settings → Bluetooth.
 - **Device identifiers**: every callback carries an `identifier` (stable UUID string). Commands take `forIdentifiers: [String]?` — pass `nil` to target all connected devices.
-- **Devices**: Tap Strap / Tap Strap 2, TapXR, and TapBand. TapXR (current developer firmware) and TapBand share the **same BLE API** and the full gesture set (taps, thumb swipes, pinches with hold, fist with hold). TapBand is coming soon, not for sale: https://www.tapwithus.com/tapband-waitlist/ — never call it unsupported. TAPKit selects the BLE adapter per device. Commands whose types start with `TAPV2` are ignored on Tap Strap (getters complete with `nil`).
+- **Devices**: Tap Strap / Tap Strap 2, TapXR, and TapBand. Tap Strap and TapXR on stock firmware (the default) use the classic layout with HID. TapXR on the TapXR developer firmware (opt-in developer program; no HID) and TapBand share the **same BLE API** and the full gesture set (taps, thumb swipes, pinches with hold, fist with hold). TapBand is coming soon, not for sale: https://www.tapwithus.com/tapband-waitlist/ — never call it unsupported. TAPKit selects the BLE adapter per device. Commands whose types start with `TAPV2` are ignored on Tap Strap and stock TapXR (getters complete with `nil`).
 - **No package manager**: there is no `Package.swift` or podspec. Build the **TAPKit** scheme and embed `TAPKit.framework`.
 
 ## Minimal integration
@@ -57,13 +57,16 @@ Set per device with `setTAPInputMode(_:forIdentifiers:)` or as the default for n
 | Goal | Mode |
 |------|------|
 | Receive tap combinations + mouse in the app (default) | `TAPInputMode.controller()` |
-| Let device act as a system Bluetooth keyboard (no SDK callbacks) | `TAPInputMode.text()` |
-| Controller + system mouse cursor (AssistiveTouch) | `TAPInputMode.controllerWithMouseHID()` |
+| Let device act as a system Bluetooth keyboard (no SDK callbacks). Tap Strap / stock TapXR only | `TAPInputMode.text()` |
+| Controller + system mouse cursor (AssistiveTouch). Tap Strap / stock TapXR only | `TAPInputMode.controllerWithMouseHID()` |
 | Distinguish tap vs. long press | `TAPInputMode.tapHold()` → `tapHoldStarted`/`tapHoldEnded` |
 | Stream raw accelerometer/IMU data | `TAPInputMode.rawSensor(sensitivity:)` → `rawSensorDataReceived` |
 | Debug: all streams at once (TapXR / TapBand) | `TAPInputMode.v2Debug()` |
 
-For TapXR and TapBand there is a separate axis, `TAPXRState`: `.userControl()` (user toggles on device), `.airMouse()`, `.tapping()`, or `.dontSend()`. Set via `setTAPXRState(_:forIdentifiers:)` / `setDefaultTAPXRState(_:applyImmediate:)`.
+
+On the TapXR developer firmware there is no HID: `text()` turns all streams off (no keyboard, no error), and `controllerWithMouseHID()` / `controllerWithFullHID()` act as plain `controller()`.
+
+For TapXR there is a separate axis, `TAPXRState`: `.userControl()` (user toggles on device; on the developer firmware, default features only), `.airMouse()`, `.tapping()`, or `.dontSend()`. On the developer firmware TAPKit maps it to the vision model. Set via `setTAPXRState(_:forIdentifiers:)` / `setDefaultTAPXRState(_:applyImmediate:)`.
 
 ## Key delegate callbacks
 
@@ -90,7 +93,7 @@ Example: `combination == 5` (binary `00101`) = thumb + middle.
 
 ## Raw detections vs processed air gestures
 
-The sensor sends class indexes 100–114 (idle, swipes, pinches, holds, fist). Every Tap SDK receives that stream. iOS TAPKit post-processes it (200 ms cooldown, hold latching) into `TAPXRAirGesture` edges on `tapXRAirGestured`. `TAPXRAirGesture.None` is `0`; do not switch on 100–114 in that callback. Full table: `plugins/tapkit-ios-sdk/skills/tapkit-air-gestures/SKILL.md`.
+The sensor sends class indexes 100–114 (idle, swipes, pinches, holds, fist). Python, Web, and Android expose that stream; iOS has no public raw callback. iOS TAPKit post-processes it (200 ms cooldown, hold latching) into `TAPXRAirGesture` edges on `tapXRAirGestured`. `TAPXRAirGesture.None` is `0`; do not switch on 100–114 in that callback. Full table: `plugins/tapkit-ios-sdk/skills/tapkit-air-gestures/SKILL.md`.
 
 ```swift
 func tapXRAirGestured(identifier: String, gesture: TAPXRAirGesture) {
@@ -114,9 +117,9 @@ TAPKit.sharedKit.vibrate(durations: [500, 100, 500], forIdentifiers: nil) // ms 
 TAPKit.sharedKit.readBatteryLevel(forIdentifiers: nil)       // result via delegate
 ```
 
-## Device configuration (TapXR and TapBand)
+## Device configuration (TapXR developer firmware and TapBand)
 
-Fine-grained control matching tap-python-sdk `TapSDK2`. Getters take an optional `timeout:` (default 2 s) and complete on the main queue with `nil` on timeout or on Tap Strap.
+Fine-grained control matching tap-python-sdk `TapSDK2`. Getters take an optional `timeout:` (default 2 s) and complete on the main queue with `nil` on timeout or on Tap Strap / stock TapXR.
 
 ```swift
 TAPKit.sharedKit.setFeature(.modelDetection, enabled: true, forIdentifiers: [uuid])
@@ -133,9 +136,9 @@ Note: `setTAPInputMode` also writes these features under the hood, so a later mo
 ## Pitfalls
 
 - The TAP device must be paired in iOS Settings first; the SDK does not scan or pair.
-- In `text()` mode, `tapped`/`moused` callbacks do NOT fire (device behaves as a keyboard).
+- In `text()` mode, `tapped`/`moused` callbacks do NOT fire (Tap Strap / stock TapXR behave as a keyboard; the TapXR developer firmware just turns all streams off, no keyboard).
 - `moused` velocities need app-side scaling for sensitivity.
-- By default the SDK switches devices to text mode when the app backgrounds; set `TAPKit.sharedKit.sendModeInBackground = true` to keep modes active.
+- By default the SDK intends to switch devices to text mode when the app backgrounds. On Tap Strap and stock TapXR, background is meant to switch to text mode so the user keeps a keyboard; on the TapXR developer firmware, text mode turns all streams off. Whether that background write currently reaches the device is being verified. Set `TAPKit.sharedKit.sendModeInBackground = true` to keep modes active.
 - Sensitivity wire codes are 1-based, matching tap-python-sdk: finger `.g2`…`.g16` = 1…4, gyro `.dps125`…`.dps2000` = 1…5, IMU accelerometer `.g2`…`.g16` = 1…4. Default `TAPRawSensorSensitivity()` sends `[1, 1, 1]`. Pass `TAPIMUGyroSensitivity` / `TAPIMUAcclSensitivity` / `TAPFingerAcclSensitivity`, not raw integers.
 - `get*` read-back APIs are Swift-only (completion handlers with optionals); the `set*` APIs are exposed to Objective-C.
 - Suppress SDK logs with `TAPKit.log.disableAllEvents()`; enable per level with `TAPKit.log.enable(event: .error)`.

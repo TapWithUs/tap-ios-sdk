@@ -51,8 +51,8 @@ SwiftUI: own a `TapSession` on an `ObservableObject`, publish the latest event, 
 | Output | How |
 |--------|-----|
 | On-screen UI | UIKit views or SwiftUI. Show "Waiting…", "Connected", "Disconnected". |
-| The Tap types letters | `TAPInputMode.text()` while a text field is focused. The delegate will not see those taps. |
-| System cursor | `TAPInputMode.controllerWithMouseHID()` and AssistiveTouch (iOS 13+). |
+| The Tap types letters | `TAPInputMode.text()` while a text field is focused. Tap Strap / stock TapXR only; the TapXR developer firmware has no HID. The delegate will not see those taps. |
+| System cursor | `TAPInputMode.controllerWithMouseHID()` and AssistiveTouch (iOS 13+). Tap Strap / stock TapXR only; on the developer firmware this is plain controller. |
 | Sound | `AVAudioEngine` or a short `AVAudioPlayer` in the app bundle. |
 | Another app | Not from this SDK. iOS apps do not inject global key presses. |
 

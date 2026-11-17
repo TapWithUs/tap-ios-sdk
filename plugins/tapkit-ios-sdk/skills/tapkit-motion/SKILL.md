@@ -22,7 +22,7 @@ TAPKit.sharedKit.setFeature(.imuMotionData, enabled: true, forIdentifiers: [iden
 
 Turn it off with `setFeature(.imuMotionData, enabled: false, ...)` when the screen does not need motion, to save battery. A later `setTAPInputMode(.controller())` turns it back on.
 
-`TAPInputMode.controllerWithMouseHID()` also drives the iOS AssistiveTouch cursor (iOS 13+, Accessibility settings). The app still receives `moused`.
+`TAPInputMode.controllerWithMouseHID()` also drives the iOS AssistiveTouch cursor (iOS 13+, Accessibility settings) on Tap Strap and stock TapXR. The app still receives `moused`. The TapXR developer firmware has no HID, so there it behaves as plain controller (no system cursor, no error).
 
 ## Pointer deltas
 
@@ -62,7 +62,7 @@ This callback does **not** include a device identifier. With two Taps connected,
 smooth = alpha * value + (1 - alpha) * smooth // alpha around 0.3
 ```
 
-**System cursor:** `controllerWithMouseHID()` plus AssistiveTouch. The app does not draw that cursor.
+**System cursor:** `controllerWithMouseHID()` plus AssistiveTouch (Tap Strap / stock TapXR only). The app does not draw that cursor. On the TapXR developer firmware, draw your own cursor from `moused`.
 
 If a direction is mirrored on the user's device, flip the sign and ask them to try again.
 
