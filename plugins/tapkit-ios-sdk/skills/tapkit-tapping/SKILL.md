@@ -43,10 +43,9 @@ Single-finger taps are the most reliable. Prefer them for frequent actions. Use 
 ## Turn on tap events
 
 - `TAPInputMode.controller()` — **default you want.** Delivers `tapped` and `moused`.
-- `TAPInputMode.text()` — Tap Strap / stock TapXR: the Tap is a Bluetooth keyboard. `tapped` and `moused` do **not** fire. Use this only when the user should type into a text field.
-- `TAPInputMode.controllerWithMouseHID()` — Tap Strap / stock TapXR: controller callbacks plus the system AssistiveTouch cursor (iOS 13+).
-- `TAPInputMode.controllerWithFullHID()` — Tap Strap / stock TapXR: full HID controller mode.
-- On the TapXR developer firmware there is no HID: `text()` turns all streams off (no keyboard, no error), and `controllerWithMouseHID()` / `controllerWithFullHID()` act as plain `controller()`.
+- `TAPInputMode.text()` — the Tap is a Bluetooth keyboard. `tapped` and `moused` do **not** fire. Use this only when the user should type into a text field.
+- `TAPInputMode.controllerWithMouseHID()` — controller callbacks plus the system AssistiveTouch cursor (iOS 13+).
+- `TAPInputMode.controllerWithFullHID()` — full HID controller mode.
 - `TAPInputMode.tapHold()` — short taps still arrive via `tapped`. Long presses arrive via `tapHoldStarted` / `tapHoldEnded`.
 
 ```swift
@@ -54,7 +53,7 @@ TAPKit.sharedKit.setTAPInputMode(.controller(), forIdentifiers: nil)
 TAPKit.sharedKit.setDefaultTAPInputMode(.controller(), immediate: true)
 ```
 
-On TapXR (and TapBand), also set `TAPXRState.tapping()` so the device stays in tapping rather than air-mouse. You can set the tapping vision model directly (see `tapkit-air-gestures`).
+On TapXR and TapBand, also set `TAPXRState.tapping()` so the device stays in tapping rather than air-mouse. You can set the tapping vision model directly (see `tapkit-air-gestures`).
 
 The SDK re-sends the current mode on a timer while the app is active, so the device stays in it.
 
@@ -87,7 +86,7 @@ func tapped(identifier: String, combination: UInt8, multitap: UInt8) {
 
 The SDK does not synthesize OS key presses. Two different jobs:
 
-- **Type into a text field:** `setTAPInputMode(.text(), forIdentifiers:)`. Tap Strap / stock TapXR only; the Tap is the keyboard. Your delegate will not see those taps.
+- **Type into a text field:** `setTAPInputMode(.text(), forIdentifiers:)`. The Tap is the keyboard. Your delegate will not see those taps.
 - **Trigger an in-app action:** stay in controller mode and switch on `combination` in `tapped`.
 
 Do not add a library that injects global keystrokes. iOS apps cannot drive other apps that way.

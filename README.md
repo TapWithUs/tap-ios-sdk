@@ -77,23 +77,11 @@ Write one delegate. TAPKit selects the BLE adapter when the device connects.
 
 | Device | Status | What you get |
 |--------|--------|----------------|
-| Tap Strap, Tap Strap 2 | Available. Keyboard / mouse (HID) in Text mode. | Finger taps, mouse, Tap Strap air gestures (`tapAirGestured`) |
-| TapXR, stock firmware (every TapXR by default) | Available. Keyboard / mouse (HID) in Text and HID modes; `TAPXRState` input state. | Finger taps, air mouse (classic layout) |
-| TapXR, TapXR developer firmware (opt-in developer program) | Available. **No HID.** Boots with tap detection off; TAPKit enables it when it sends the controller mode. | Taps, thumb swipes, pinches with hold, fist with hold |
+| Tap Strap, Tap Strap 2 | Available | Finger taps, mouse, Tap Strap air gestures (`tapAirGestured`) |
+| TapXR | Available. Current developer firmware reports the full gesture set. | Taps, thumb swipes, pinches with hold, fist with hold |
 | TapBand | Coming soon. Same BLE API as TapXR. Not for sale. [Waitlist](https://www.tapwithus.com/tapband-waitlist/) | Same as TapXR |
 
-The TapXR developer firmware and TapBand use one framed BLE API (one read/write characteristic pair). Tap Strap and TapXR on stock firmware use the classic layout (separate notify characteristics and NUS mode commands). Only TapXR owners who join the developer program move to the developer firmware; Tap Strap cannot.
-
-**HID exists only on the classic layout** (Tap Strap and stock TapXR): `TAPInputMode.text()`, `controllerWithMouseHID()`, and `controllerWithFullHID()` make the Tap a Bluetooth keyboard / mouse there. The developer firmware has no HID. TAPKit still accepts the same `TAPInputMode` and `TAPXRState` calls on it and maps them to feature commands, **without an error**:
-
-| Call on the TapXR developer firmware | What TAPKit sends |
-|--------------------------------------|-------------------|
-| `TAPInputMode.text()` | All streams off. The Tap goes silent; no keyboard appears. |
-| `controllerWithMouseHID()` / `controllerWithFullHID()` | Plain controller (tap detection). No HID. |
-| `TAPXRState.airMouse()` / `tapping()` | Air-gesture or tapping vision model. |
-| `TAPXRState.userControl()` | Default features only. |
-
-Commands whose types start with `TAPV2` (`TAPV2DeviceFeature`, vision sensor, IMU sensitivity, standby, serial number) apply to the TapXR developer firmware and TapBand. On Tap Strap and stock TapXR they are ignored (a warning is logged) and getters complete with `nil`. TAPKit has no public "is developer firmware" check yet.
+TapXR and TapBand use one framed BLE API (one read/write characteristic pair). Tap Strap uses the classic layout (separate notify characteristics and NUS mode commands). TAPKit translates `TAPInputMode` and `TAPXRState` for both. Commands whose types start with `TAPV2` (`TAPV2DeviceFeature`, vision sensor, IMU sensitivity, standby, serial number) apply to TapXR and TapBand. On Tap Strap they are ignored and getters complete with `nil`.
 
 ## AI-assisted development
 
@@ -193,7 +181,7 @@ All delegate methods are **optional**. Multiple delegates are supported.
 
 ### Air gestures
 
-The sensor reports **raw** gesture detections (class indexes 100–114) on the TapXR developer firmware. Python, Web, and Android expose that raw stream; iOS TAPKit consumes it internally and exposes a **processed** layer. See [Raw detections and the iOS processed layer](#raw-detections-and-the-ios-processed-layer).
+Every Tap SDK receives **raw** gesture detections from the sensor (class indexes 100–114). iOS TAPKit also exposes a **processed** layer. See [Raw detections and the iOS processed layer](#raw-detections-and-the-ios-processed-layer).
 
 | Callback | Description |
 |----------|-------------|
@@ -237,14 +225,14 @@ let taps: [String: String] = TAPKit.sharedKit.getConnectedTaps()
 ### Input modes
 
 ```swift
-TAPKit.sharedKit.setTAPInputMode(TAPInputMode.text(), forIdentifiers: nil)   // HID keyboard on Tap Strap / stock TapXR; streams off on developer firmware
+TAPKit.sharedKit.setTAPInputMode(TAPInputMode.text(), forIdentifiers: nil)
 TAPKit.sharedKit.setDefaultTAPInputMode(TAPInputMode.controller(), immediate: true)
 let mode = TAPKit.sharedKit.getTAPInputMode(identifier: uuid)
 ```
 
 Pass `nil` for `forIdentifiers` to apply to all connected devices.
 
-### TapXR state (TapXR; mapped to vision models on developer firmware)
+### TapXR state (TapXR and TapBand)
 
 ```swift
 TAPKit.sharedKit.setTAPXRState(TAPXRState.airMouse(), forIdentifiers: [uuid])
@@ -377,7 +365,7 @@ TAPKit.sharedKit.refreshModes()             // Re-send current modes
 TAPKit.sharedKit.sendModeInBackground = false   // default: pause mode updates when app backgrounds
 ```
 
-When `false`, the SDK is meant to switch devices to text mode and user-control XR state on background. On Tap Strap and stock TapXR that gives the user their keyboard back. On the TapXR developer firmware there is no keyboard: text mode turns all streams off. Whether this background write currently reaches the device is being verified; do not rely on it. When `true`, modes continue to be sent. Keepalive messages for TapXR and TapBand are sent automatically while the app is active.
+When `false`, the SDK switches devices to text mode and user-control XR state on background. When `true`, modes continue to be sent. Keepalive messages for TapXR and TapBand are sent automatically while the app is active.
 
 ### Advanced (BLE extension)
 
@@ -399,9 +387,9 @@ Subclass `TAPKit` and override `setupParsers()` or `getHandleConfig()` to custom
 | Factory | Description |
 |---------|-------------|
 | `TAPInputMode.controller()` | **Default.** Delivers `tapped` / `moused` callbacks with raw finger combinations. |
-| `TAPInputMode.text()` | Tap Strap / stock TapXR: device acts as a Bluetooth keyboard; SDK tap/mouse callbacks are not fired. TapXR developer firmware: no HID; all streams off, no error. |
-| `TAPInputMode.controllerWithMouseHID()` | Tap Strap / stock TapXR: controller mode plus system mouse HID (Assistive Touch cursor on iOS 13+). TapXR developer firmware: plain controller, no HID, no error. |
-| `TAPInputMode.controllerWithFullHID()` | Tap Strap / stock TapXR: full HID controller mode. TapXR developer firmware: plain controller, no HID, no error. |
+| `TAPInputMode.text()` | Device acts as a Bluetooth keyboard; SDK tap/mouse callbacks are not fired. |
+| `TAPInputMode.controllerWithMouseHID()` | Controller mode plus system mouse HID (Assistive Touch cursor on iOS 13+). |
+| `TAPInputMode.controllerWithFullHID()` | Full HID controller mode. |
 | `TAPInputMode.tapHold()` | Distinguishes short tap vs. long press via `tapHoldStarted` / `tapHoldEnded`. |
 | `TAPInputMode.rawSensor(sensitivity:)` | Streams accelerometer/IMU data via `rawSensorDataReceived`. |
 | `TAPInputMode.v2Debug()` | Debug stream on TapXR and TapBand: all `TAPV2DeviceFeature` flags plus the air-gesture vision stream. Raw packets arrive via `rawSensorDataReceived`. |
@@ -409,15 +397,17 @@ Subclass `TAPKit` and override `setupParsers()` or `getHandleConfig()` to custom
 
 Newly connected devices receive the default mode set via `setDefaultTAPInputMode(_:immediate:)`.
 
+> **HID availability:** `TAPInputMode.text()`, `controllerWithMouseHID()`, and `controllerWithFullHID()` (keyboard/mouse HID) work only on the standard firmware (every Tap Strap, and TapXR by default). TapXR on the developer firmware, which owners join through the developer program, has no HID: enable tap detection with `TAPInputMode.controller()` after connecting, and expect Text/HID modes to fall back there without an error (Text turns streams off, HID modes act as controller).
+
 ---
 
 ## TAPXRState
 
-Controls TapXR input state (separate from `TAPInputMode`). On stock TapXR firmware this is the input-type command (hardware 4.x). On the TapXR developer firmware and TapBand, TAPKit maps it to the vision model:
+Controls TapXR / TapBand input state (separate from `TAPInputMode`):
 
 | Factory | Description |
 |---------|-------------|
-| `TAPXRState.userControl()` | Stock TapXR: user switches between air-mouse and tapping on the device. Developer firmware: default features only. |
+| `TAPXRState.userControl()` | User switches between air-mouse and tapping on the device. |
 | `TAPXRState.airMouse()` | Force air-mouse mode only. |
 | `TAPXRState.tapping()` | Force tapping mode only. |
 | `TAPXRState.dontSend()` | Do not send XR state commands. |
@@ -433,7 +423,7 @@ TAPKit.sharedKit.setTAPXRState(TAPXRState.airMouse(), forIdentifiers: ["device-u
 
 ## Raw detections and the iOS processed layer
 
-The sensor reports **raw** class indexes. Python, Web, and Android expose that stream; iOS does not (see below). Current TapXR developer firmware and TapBand report the full set: taps (via the tapping model), thumb swipes, thumb-to-finger pinches with hold, and fist with hold.
+The sensor reports **raw** class indexes. Every Tap SDK receives that stream. Current TapXR developer firmware and TapBand report the full set: taps (via the tapping model), thumb swipes, thumb-to-finger pinches with hold, and fist with hold.
 
 | Index | Label | Meaning |
 |-------|-------|---------|

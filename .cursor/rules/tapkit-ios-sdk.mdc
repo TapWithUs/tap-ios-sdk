@@ -10,10 +10,9 @@ When the user wants to build an iOS app with a Tap device, read the `tapkit-gett
 - Order: add the framework and `NSBluetoothAlwaysUsageDescription`, pair the Tap in Settings → Bluetooth, `addDelegate`, `setDefaultTAPInputMode` (and `setDefaultTAPXRState` for TapXR and TapBand), then `start()`. `start()` alone delivers no taps.
 - The SDK connects only to TAP devices already paired in iOS Settings. It does not scan or show a pairing UI.
 - One singleton, `TAPKit.sharedKit`. Delegate methods are optional and run on the main queue. `forIdentifiers: nil` targets every connected device.
-- Tap Strap and TapXR on stock firmware (the default) use the classic layout and have HID (Text mode, HID controller modes, `TAPXRState` input state). Only the TapXR developer firmware (opt-in developer program) has **no HID**.
-- TapXR (developer firmware) and TapBand share the same BLE API and the full gesture set (taps, thumb swipes, pinches with hold, fist with hold). TapBand is coming soon: https://www.tapwithus.com/tapband-waitlist/ — never call it unsupported or a missing target.
+- TapXR (current developer firmware) and TapBand share the same BLE API and the full gesture set (taps, thumb swipes, pinches with hold, fist with hold). TapBand is coming soon: https://www.tapwithus.com/tapband-waitlist/ — never call it unsupported or a missing target.
 - There is no Swift Package or CocoaPod. Build `TAPKit.framework` and embed it (Embed & Sign).
-- `TAPInputMode.text()` on Tap Strap / stock TapXR types on the system keyboard and does not call `tapped` or `moused`. Use `.controller()` to receive taps in the app. On the TapXR developer firmware there is no HID: `text()` turns all streams off (no keyboard, no error), and `controllerWithMouseHID()` / `controllerWithFullHID()` act as plain `controller()`.
+- `TAPInputMode.text()` types on the system keyboard and does not call `tapped` or `moused`. Use `.controller()` to receive taps in the app.
 - The sensor sends raw class indexes (100–114). iOS TAPKit post-processes them into `TAPXRAirGesture` edges on `tapXRAirGestured` (click, drag, drop, swipe, fist begin/end, with debounce and hold latching). Knob and D-Pad recipes (`tapkit-knob`, `tapkit-dpad`) use those edges. Do not switch on 100–114 in `tapXRAirGestured`.
 - `setIMUSensitivity` takes `TAPIMUGyroSensitivity` and `TAPIMUAcclSensitivity`, not raw integers.
 - Do not invent APIs, Bluetooth UUIDs, or enum values. Test with a real device. There is no simulator.

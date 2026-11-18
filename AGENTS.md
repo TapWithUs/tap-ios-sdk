@@ -12,14 +12,13 @@ Native iOS framework for Tap Strap, Tap Strap 2, TapXR, and TapBand. It receives
 
 Write one delegate. TAPKit selects the BLE adapter when the device connects.
 
-- **Tap Strap / Tap Strap 2**: finger taps, mouse, Tap Strap air gestures (`tapAirGestured`). Classic layout with HID (Text mode = Bluetooth keyboard; HID controller modes).
-- **TapXR on stock firmware** (every TapXR by default): classic layout, same as Tap Strap, with HID and `TAPXRState` input state.
-- **TapXR on the TapXR developer firmware** (opt-in developer program only; Tap Strap cannot opt in): framed BLE API, **no HID**. Reports the **full** gesture set: taps, thumb swipes up/down/left/right, thumb-to-finger pinches with hold, fist with hold. Same BLE API as TapBand.
+- **Tap Strap / Tap Strap 2**: finger taps, mouse, Tap Strap air gestures (`tapAirGestured`).
+- **TapXR**: current developer firmware reports the **full** gesture set: taps, thumb swipes up/down/left/right, thumb-to-finger pinches with hold, fist with hold. Same BLE API as TapBand.
 - **TapBand**: coming soon. Same BLE API as TapXR. Not for sale. Waitlist: https://www.tapwithus.com/tapband-waitlist/
 
 Do not describe TapBand as unsupported or as a missing target. Do not invent a TapXR firmware version number.
 
-Commands whose types start with `TAPV2` (`TAPV2DeviceFeature`, vision sensor, IMU sensitivity, standby, serial number) apply to the TapXR developer firmware and TapBand. On Tap Strap and stock TapXR they are ignored with a warning log (getters complete with `nil`). TAPKit has no public "is developer firmware" check.
+Commands whose types start with `TAPV2` (`TAPV2DeviceFeature`, vision sensor, IMU sensitivity, standby, serial number) apply to TapXR and TapBand. On Tap Strap they are ignored (getters complete with `nil`).
 
 This repository has no `Package.swift` and no podspec. Build the **TAPKit** scheme and embed `TAPKit.framework` (Embed & Sign).
 
@@ -67,7 +66,7 @@ Tap bits: thumb = 1, index = 2, middle = 4, ring = 8, pinky = 16.
 
 ## Raw detections vs the iOS processed layer
 
-The sensor reports **raw** gesture detections (class indexes 100–114: idle, thumb swipes, pinches, pinch-holds, fist, fist-hold). Python, Web, and Android expose them; iOS TAPKit has no public raw callback and exposes only processed `tapXRAirGestured` edges. See `tapkit-air-gestures` and `README.md` for the table.
+Every Tap SDK receives the **raw** gesture detections from the sensor (class indexes 100–114: idle, thumb swipes, pinches, pinch-holds, fist, fist-hold). See `tapkit-air-gestures` and `README.md` for the table.
 
 iOS TAPKit **also** post-processes that stream (200 ms cooldown, hold latching, swipe debounce) and delivers **edges** on `tapXRAirGestured`:
 
@@ -90,12 +89,12 @@ func tapXRAirGestured(identifier: String, gesture: TAPXRAirGesture) {
 ## Gotchas
 
 - The SDK does not scan. Pair in Settings first, and close other apps that hold the connection (including Tap Manager).
-- `TAPInputMode.text()` on Tap Strap / stock TapXR types into the focused text field (HID keyboard) and does **not** call `tapped` or `moused`. On the TapXR developer firmware there is no HID: `text()` turns all streams off (no keyboard, no error), and `controllerWithMouseHID()` / `controllerWithFullHID()` act as plain `controller()`.
-- On the TapXR developer firmware and TapBand (boots with tap detection off), controller mode enables model detection and IMU motion. `TAPXRState` selects the vision model (`.tapping()` → tapping model + trigger, `.airMouse()` → air-gesture model + stream). You can also call `setVisionSensorModel` and `setVisionSensorOpMode`.
+- `TAPInputMode.text()` types into the focused text field and does **not** call `tapped` or `moused`.
+- On TapXR and TapBand, controller mode enables model detection and IMU motion. `TAPXRState` selects the vision model (`.tapping()` → tapping model + trigger, `.airMouse()` → air-gesture model + stream). You can also call `setVisionSensorModel` and `setVisionSensorOpMode`.
 - `setTAPInputMode` writes `TAPV2DeviceFeature` flags. A later mode change can overwrite a direct `setFeature` call.
 - One vision model at a time: `.tapping` with `.trigger`, or `.airGesture` with `.stream`.
 - Haptics: `vibrate(durations:forIdentifiers:)`. Values are on/pause milliseconds, 10 ms steps, up to 18 values (each value is sent as `ms/10`, so the useful range is 10–2550).
-- By default (`sendModeInBackground = false`) the SDK intends to switch devices to text mode when the app backgrounds. On Tap Strap and stock TapXR, background is meant to switch to text mode so the user keeps a keyboard; on the TapXR developer firmware, text mode turns all streams off. Whether that background write currently reaches the device is being verified. Set `sendModeInBackground = true` to keep the current mode.
+- By default the SDK switches devices to text mode when the app backgrounds. Set `sendModeInBackground = true` to keep the current mode.
 - `getFeature` / `getVisionSensorModel` / `getIMUSensitivity` / `getStandbyState` are Swift-only completion handlers. The `set*` APIs are visible to Objective-C.
 - `setIMUSensitivity` takes `TAPIMUGyroSensitivity` and `TAPIMUAcclSensitivity`. Example: `setIMUSensitivity(.dps250, accelerometer: .g2, forIdentifiers: ids)`. Do not pass raw integers. `.dps125` and `.g2` are the lowest ranges (wire byte `1`).
 - Do not invent APIs, Bluetooth UUIDs, or enum cases. Check `README.md` and the public types in `TAPKit-iOS/`.

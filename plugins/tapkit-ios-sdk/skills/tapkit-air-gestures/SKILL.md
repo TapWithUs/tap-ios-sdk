@@ -7,7 +7,7 @@ description: Handle TAPXRAirGesture (processed click, drag, drop, fist, swipe) o
 
 TapXR (current developer firmware) and TapBand share the same BLE API and the **full** gesture set: taps, thumb swipes up/down/left/right, thumb-to-finger pinches with hold, and fist with hold. TapBand is coming soon (not for sale): https://www.tapwithus.com/tapband-waitlist/
 
-The sensor sends **raw** detections on the TapXR developer firmware and TapBand. Python, Web, and Android expose them; iOS TAPKit has no public raw callback and exposes a **processed** layer on `tapXRAirGestured`. Use that processed callback in iOS apps. Tap Strap air gestures are at the end of this page.
+Every Tap SDK receives the **raw** detections from the sensor. iOS TAPKit also exposes a **processed** layer on `tapXRAirGestured`. Use that processed callback in iOS apps. Tap Strap air gestures are at the end of this page.
 
 The device runs one vision model at a time:
 
@@ -28,7 +28,7 @@ TAPKit.sharedKit.setTAPXRState(.airMouse(), forIdentifiers: [identifier]) // air
 TAPKit.sharedKit.setTAPXRState(.tapping(), forIdentifiers: [identifier])  // tapping model + trigger
 ```
 
-You can set the same features directly (same BLE API on TapXR and TapBand). These calls are ignored on Tap Strap and stock TapXR firmware.
+You can set the same features directly (same BLE API on TapXR and TapBand). These calls are ignored on Tap Strap.
 
 ```swift
 func useAirGestures(_ identifier: String) {
@@ -46,11 +46,11 @@ func useTapping(_ identifier: String) {
 }
 ```
 
-You can switch at runtime. Read the current state with `getVisionSensorModel(forIdentifier:)` and `getVisionSensorOpMode(forIdentifier:)`. Completions run on the main queue. `nil` means timeout (default 2 s) or a Tap Strap / stock TapXR.
+You can switch at runtime. Read the current state with `getVisionSensorModel(forIdentifier:)` and `getVisionSensorOpMode(forIdentifier:)`. Completions run on the main queue. `nil` means timeout (default 2 s) or a Tap Strap.
 
 `setTAPInputMode` also writes these features. A later mode change can overwrite a direct `setFeature` call. Set the mode first, then the vision model.
 
-## Raw detections (exposed by Python, Web, and Android; consumed internally on iOS)
+## Raw detections (every Tap SDK)
 
 The sensor reports class indexes. TAPKit receives this stream. Other Tap SDKs expose the integers directly. On iOS there is **no** `TAPKitDelegate` method for the class index; TAPKit consumes the stream and then calls `tapXRAirGestured`.
 
