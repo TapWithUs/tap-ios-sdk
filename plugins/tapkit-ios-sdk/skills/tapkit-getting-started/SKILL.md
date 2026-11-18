@@ -7,6 +7,8 @@ description: First skill for any TAP iOS app. The order is add TAPKit and NSBlue
 
 Works for Tap Strap, Tap Strap 2, TapXR, and TapBand. TAPKit selects the BLE adapter per device. The same delegate methods fire. TapXR and TapBand share the same BLE API.
 
+HID availability: `TAPInputMode.text()`, `controllerWithMouseHID()`, and `controllerWithFullHID()` work only on the standard firmware (every Tap Strap, and TapXR by default); TapXR on the developer firmware (joined through the developer program) has no HID, so enable tap detection with `TAPInputMode.controller()` after connecting.
+
 ## 1. Ask the user (once)
 
 - Which device: Tap Strap, Tap Strap 2, TapXR, or TapBand?

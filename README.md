@@ -397,6 +397,8 @@ Subclass `TAPKit` and override `setupParsers()` or `getHandleConfig()` to custom
 
 Newly connected devices receive the default mode set via `setDefaultTAPInputMode(_:immediate:)`.
 
+> **HID availability:** `TAPInputMode.text()`, `controllerWithMouseHID()`, and `controllerWithFullHID()` (keyboard/mouse HID) work only on the standard firmware (every Tap Strap, and TapXR by default). TapXR on the developer firmware, which owners join through the developer program, has no HID: enable tap detection with `TAPInputMode.controller()` after connecting, and expect Text/HID modes to fall back there without an error (Text turns streams off, HID modes act as controller).
+
 ---
 
 ## TAPXRState
